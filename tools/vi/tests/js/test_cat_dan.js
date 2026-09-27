@@ -12,7 +12,7 @@ require(path.join(RT, 'cat-dan.js'));
 require(path.join(RT, 'khung-video.js'));
 require(path.join(RT, 'nhan.js'));
 require(path.join(RT, 'hinh.js'));
-['tieu-de', 'khai-niem', 'y-tung-y', 'quy-trinh', 'minh-hoa'].forEach(function (l) { require(path.join(RT, 'canh', l + '.js')); });
+['tieu-de', 'khai-niem', 'cong-thuc', 'y-tung-y', 'quy-trinh', 'minh-hoa'].forEach(function (l) { require(path.join(RT, 'canh', l + '.js')); });
 var C = globalThis.THI_CAT_DAN;
 var V = globalThis.THI_VIDEO;
 var K = globalThis.THI_CANH;
@@ -209,4 +209,24 @@ test('khong co chuDe (du lieu cu) la viet-tay', function () {
   var a = K['y-tung-y'].muc(du('y-tung-y', { 'tieu-de': ['Hai ý'], y: ['Một', 'Hai'] }));
   var b = K['y-tung-y'].muc(du('y-tung-y', { 'tieu-de': ['Hai ý'], y: ['Một', 'Hai'] }, VIET_TAY));
   assert.deepStrictEqual(a, b);
+});
+
+test('cat-dan: muc viet theo phan (cong-thuc tach " | ") truot xong trong 0,35 s tu phan dau', function () {
+  var d = du('cong-thuc', { 'bieu-thuc': ['F = m · a | a = F / m | m = F / a'] }, CAT_DAN, { moc: [1.2, 3.4, 5.6] });
+  var m = K['cong-thuc'].muc(d).filter(function (x) { return x.phan; })[0];
+  assert.ok(m && m.truot, 'mục viết theo phần ở cat-dan là chữ trượt');
+  assert.ok(m.thoiLuong > 1, 'mục kéo dài qua nhiều phần');
+  var bd = m.phan[0].batDau;
+  assert.strictEqual(V.tienDoTruot(m, bd), 0);
+  assert.ok(V.tienDoTruot(m, bd + 0.2) > 0.5);
+  // Hết 0,35 s: độ mờ 1, không còn dịch ('' là không đặt; tiến độ có thể là 0,99999… do làm tròn số thực).
+  var v = C.truotChu(V.tienDoTruot(m, bd + 0.35), false);
+  assert.strictEqual(Number(v.opacity || 1), 1);
+  assert.ok(v.transform === '' || v.transform === 'translateY(0px)', v.transform);
+  assert.deepStrictEqual(C.truotChu(V.tienDoTruot(m, bd + 0.36), false), { opacity: '', transform: '' });
+  // Phần sau hiện khi mục đã đứng yên: tại mốc phần 2 không còn trượt.
+  assert.strictEqual(V.tienDoTruot(m, m.phan[1].batDau), 1);
+  // Mục một phần: vẫn theo thoiLuong của mục (0,35 s).
+  var y = K['y-tung-y'].muc(du('y-tung-y', { 'tieu-de': ['Ý'], y: ['Một'] }, CAT_DAN)).filter(function (x) { return x.id === 'y-0'; })[0];
+  assert.ok(V.tienDoTruot(y, y.batDau + 0.35) > 1 - 1e-9);
 });

@@ -252,6 +252,11 @@
     var co = du.co || {};
     return co.chuyen || (co.lauBang ? 'lau-bang' : null);
   }
+  // Tiến độ trượt vào của mục chữ trượt (cat-dan) tại t. Mục viết theo phần kéo dài qua mọi phần (thoiLuong = hết
+  // phần cuối − phần đầu) nhưng chỉ trượt một lần 0,35 s từ phần đầu; mục thường trượt trong thoiLuong của nó.
+  function tienDoTruot(m, t) {
+    return m.phan ? tienDo(t, m.phan[0].batDau, root.THI_CAT_DAN.TRUOT) : tienDo(t, m.batDau, m.thoiLuong);
+  }
   // Chủ đề của cảnh (du.chuDe từ phong.py); dữ liệu cũ không có chuDe là viet-tay.
   function chuDe(du) { return du.chuDe || { ten: 'viet-tay', hienChu: 'viet', net: 've' }; }
   function tao(du) {
@@ -568,7 +573,7 @@
         // Chữ trượt (cat-dan): hiện đủ chữ (mục viết theo phần: đủ các phần đã tới), trượt và mờ dần 0,35 s.
         var n = m.phan ? m.phan.reduce(function (k, p) { return k + (t >= p.batDau ? p.ky : 0); }, 0) : o.tong;
         html = catDanhDau(m.chu, n, so, null, m.khongCum);
-        var v = root.THI_CAT_DAN.truotChu(tienDo(t, m.batDau, m.thoiLuong), m.bang);
+        var v = root.THI_CAT_DAN.truotChu(tienDoTruot(m, t), m.bang);
         [o.el, o.bang].forEach(function (el) {
           if (!el) { return; }
           el.style.opacity = v.opacity;
@@ -850,6 +855,6 @@
     LAU_BANG: LAU_BANG,
     kep: kep, tienDo: tienDo, thoat: thoat, demKyTu: demKyTu, catDanhDau: catDanhDau, phanTich: phanTich, demRong: demRong, viTriSo: viTriSo,
     thoiGianViet: thoiGianViet, kyTuHien: kyTuHien, lucKyTu: lucKyTu, tachPhan: tachPhan, duongQua: duongQua, hopQua: hopQua, vongTron: vongTron, muiTen: muiTen,
-    rng: rng, vuaKhung: vuaKhung, o: oBoCuc, doc: laDoc, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
+    rng: rng, tienDoTruot: tienDoTruot, vuaKhung: vuaKhung, o: oBoCuc, doc: laDoc, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
