@@ -8,8 +8,9 @@ nằm trong khung, đáy không quá vạch phụ đề.
 Cách tìm của một loại cảnh: qua ở giới hạn hiện tại thì giữ; không qua thì hạ đồng loạt mọi trường theo cùng tỉ lệ tới khi
 qua, rồi nâng từng trường lên hết mức còn qua (tìm nhị phân, hai vòng). Giới hạn chỉ hạ, không bao giờ nâng quá bảng gốc.
 
-Chạy: C:/Users/ADMIN/vmt/v/Scripts/python.exe tools/vi/tests/do_gioi_han.py <ngang|doc> <viet-tay|cat-dan> [loai ...]
-(in bảng JSON các trường phải hạ). Cần playwright và Chromium.
+Chạy: C:/Users/ADMIN/vmt/v/Scripts/python.exe tools/vi/tests/do_gioi_han.py <ngang|doc> <viet-tay|cat-dan> [--co-the] [loai ...]
+(in bảng JSON các trường phải hạ). `--co-the`: cảnh của bốn loại nhận thẻ có thêm thẻ ở giới hạn và dòng tài liệu 90 ký tự
+(bảng kiem.bang_gioi_han(..., co_the=True)). Cần playwright và Chromium.
 """
 
 from __future__ import annotations
@@ -24,10 +25,22 @@ sys.path.insert(0, str(TESTS.parent))
 sys.path.insert(0, str(TESTS))
 
 import video_ma  # noqa: E402
-from test_video_ma_kho_doc import DO_HOP, canh_toi_da, thu_muc_bai, video_md  # noqa: E402
+from test_video_ma_kho_doc import DO_HOP, canh_toi_da, chuoi, thu_muc_bai, video_md  # noqa: E402
 from video_ma_parts import chup, kho, kiem, parse  # noqa: E402
 
 LOAI_CO_COT = ("tieu-de", "khai-niem", "cong-thuc", "y-tung-y", "so-do")
+# Loại cảnh nhận `the` và `tai-lieu`; dòng thêm vào cảnh khi đo hay kiểm "có thẻ": thẻ ở giới hạn (nhãn 24, giá trị 16,
+# chú thích 60) và dòng tài liệu 90 ký tự, chữ nhiều dấu.
+LOAI_CO_THE = ("tieu-de", "khai-niem", "cong-thuc", "y-tung-y")
+
+
+def dong_the() -> str:
+    return f"the: {chuoi(24)} | {chuoi(16)} | {chuoi(60)}\ntai-lieu: {chuoi(90)}\n"
+
+
+def them_the(ds: list) -> list:
+    """Các cảnh của `ds` thuộc LOAI_CO_THE, mỗi cảnh thêm thẻ và dòng tài liệu ở giới hạn."""
+    return [(loai, noi + dong_the()) for loai, noi in ds if loai in LOAI_CO_THE]
 
 
 def meta(ten_kho: str, phong_cach: str) -> str:
@@ -57,8 +70,9 @@ def ngoai_vung(page, html: str, ten_kho: str) -> tuple:
 class Do:
     """Một trình duyệt và một thư mục tạm cho nhiều lần đo cùng khổ và phong cách."""
 
-    def __init__(self, page, tmp: Path, ten_kho: str, phong_cach: str) -> None:
+    def __init__(self, page, tmp: Path, ten_kho: str, phong_cach: str, co_the: bool = False) -> None:
         self.page, self.tmp, self.ten_kho, self.phong_cach = page, tmp, ten_kho, phong_cach
+        self.co_the = co_the
         self.dem = 0
 
     def loi(self, ds: list) -> list:
@@ -77,6 +91,8 @@ class Do:
         ds = [c for c in canh_toi_da(L, H) if c[0] == loai]
         if loai in LOAI_CO_COT:
             ds += [c for c in canh_toi_da(L, H, cot=True) if c[0] == loai]
+        if self.co_the:
+            ds = them_the(ds)
         return not self.loi(ds)
 
 
@@ -157,15 +173,15 @@ def tim_gioi_han(loai: str, truong: str, ten_kho: str, phong_cach: str, phan: in
         return a
 
 
-def bang_can_ha(ten_kho: str, phong_cach: str, cac_loai=None) -> dict:
-    """{loại: {khoá: n}} các trường phải hạ so với bảng hiện tại của khổ và phong cách."""
-    L, H = kiem.bang_gioi_han(ten_kho, phong_cach)
+def bang_can_ha(ten_kho: str, phong_cach: str, cac_loai=None, co_the: bool = False) -> dict:
+    """{loại: {khoá: n}} các trường phải hạ so với bảng hiện tại của khổ và phong cách (`co_the`: bảng cảnh có thẻ)."""
+    L, H = kiem.bang_gioi_han(ten_kho, phong_cach, co_the)
     L, H = dict(L), dict(H)
     H = {k: (v[0], v[1] if v[1] is not None else parse.SO_DAI) if k == ("bieu-do", "du-lieu") else v for k, v in H.items()}
     kq = {}
     with tempfile.TemporaryDirectory() as tmp, chup.trinh_duyet() as browser:
-        do = Do(chup.trang_moi(browser, kho.Kho(ten_kho, 720)), Path(tmp), ten_kho, phong_cach)
-        for loai in cac_loai or parse.SCENE_TYPES:
+        do = Do(chup.trang_moi(browser, kho.Kho(ten_kho, 720)), Path(tmp), ten_kho, phong_cach, co_the)
+        for loai in cac_loai or (LOAI_CO_THE if co_the else parse.SCENE_TYPES):
             ha = tim_loai(do, loai, L, H)
             if ha:
                 kq[loai] = ha
@@ -174,5 +190,7 @@ def bang_can_ha(ten_kho: str, phong_cach: str, cac_loai=None) -> dict:
 
 if __name__ == "__main__":
     ten_kho, phong_cach, *cac_loai = sys.argv[1:]
-    kq = bang_can_ha(ten_kho, phong_cach, cac_loai or None)
+    co_the = "--co-the" in cac_loai
+    cac_loai = [l for l in cac_loai if l != "--co-the"]
+    kq = bang_can_ha(ten_kho, phong_cach, cac_loai or None, co_the)
     print(json.dumps({l: {"|".join(map(str, k[1:])): n for k, n in v.items()} for l, v in kq.items()}, ensure_ascii=False))

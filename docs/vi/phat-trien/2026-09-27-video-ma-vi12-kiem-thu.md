@@ -91,3 +91,30 @@ Be Vietnam Pro rộng hơn Itim, nên vài trường phải hạ. Bảng `viet-t
 - Mọi trường khác qua ở đúng giới hạn `viet-tay` của khổ đó.
 - Nhãn tiêu đề cảnh (chữ hoa ExtraBold trên băng dính) dùng cỡ 34, tiêu đề dài hơn 40 ký tự cỡ 26; ở cỡ đó tiêu đề 90 ký tự vừa ô `tieu-de` của cả hai khổ, kể cả khi có cột phụ.
 - Test giữ kết quả: `tools/vi/tests/test_video_ma_cat_dan.py` (mọi loại × hai khổ ở bảng `cat-dan`, có và không có cột phụ). Chạy lại test này với bảng `cat-dan` đặt bằng bảng `viet-tay` thì trượt 12 cảnh (5 ngang, 7 dọc).
+
+## Task 6: thẻ thông tin, dòng tài liệu, công thức không ngắt
+
+### Cách đo
+
+Ngày 2026-09-28, cùng công cụ `tools/vi/tests/do_gioi_han.py`, thêm cờ `--co-the`: mỗi cảnh của bốn loại nhận thẻ (`tieu-de`, `khai-niem`, `cong-thuc`, `y-tung-y`), có và không có hình ở cột phụ, có thêm thẻ ở giới hạn (nhãn 24, giá trị 16, chú thích 60, chữ nhiều dấu) và dòng tài liệu 90 ký tự. Trước khi đo, bố cục đã co theo thẻ: bước hàng của `y-tung-y` và `cong-thuc` chia theo chiều cao ô khi có thẻ hay dòng tài liệu; khung biểu thức khổ dọc có thẻ cao 240 thay cho 300; tiêu đề bìa có thẻ cỡ 48, dòng phụ cỡ 28.
+
+Công thức: dòng chỉ xuống giữa hai phần ` | `, trước toán tử quan hệ cấp ngoài cùng (` = `, ` ≈ `, ` ≠ `, ` < `, ` > `, ` ≤ `, ` ≥ `, ` → `, ` ⇒ `), hoặc, khi một đoạn vẫn rộng hơn ô sau khi thu chữ tới 70 %, ở khoảng trắng như vi.11. Đoạn liền không khoảng trắng không bao giờ bị ngắt. Đo đoạn liền dài nhất còn vẽ được bằng biểu thức `a = <chuỗi "Nghiêngnghiễmnhiên" lặp>`, tìm nhị phân, có/không cột phụ, có/không thẻ; lấy số nhỏ nhất. Biểu thức 90 ký tự gồm các số hạng liền 6–34 ký tự nối bằng ` = ` vẽ được ở cả hai khổ, hai phong cách, trừ số hạng liền từ 30 ký tự ở khổ dọc cắt dán không cột phụ.
+
+### Kết quả
+
+Bảng hạ khi cảnh có thẻ hay dòng tài liệu, `kiem.HA_CO_THE`, chọn qua `kiem.bang_gioi_han(kho, phong_cach, co_the=True)`; lỗi ghi thêm "(giới hạn …, cảnh có thẻ hoặc dòng tài liệu)":
+
+| Khổ | Loại, trường | `viet-tay` | `cat-dan` |
+|---|---|---|---|
+| ngang | (không trường nào phải hạ) | – | – |
+| dọc | `cong-thuc`, `bieu-thuc` | 89 | 85 |
+
+Đoạn liền dài nhất của `bieu-thuc`, `kiem.DOAN_LIEN` (vượt là lỗi `canh` "phần công thức "…" quá dài cho khổ này", nêu dòng):
+
+| Khổ | `viet-tay` | `cat-dan` |
+|---|---|---|
+| ngang | 66 | 55 |
+| dọc | 34 | 28 |
+
+- Không có thẻ, `bieu-thuc` giữ giới hạn cũ (90 ngang và dọc viet-tay, 89 cat-dan): do lại khổ dọc hai phong cách với `cong-thuc` ra bảng rỗng.
+- Test giữ kết quả: `tools/vi/tests/test_video_ma_the.py` (nội dung ở giới hạn cộng thẻ và dòng tài liệu, bốn loại × hai khổ × hai phong cách, có và không có cột phụ; công thức 90 ký tự kiểu vi.11; đoạn liền quá dài).

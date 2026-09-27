@@ -18,13 +18,18 @@
       // chia đều phần ô còn lại cho 4 dòng, tối đa 110).
       var o = B.o(cot ? 'noi-dung-hep' : 'noi-dung');
       var doc = V.doc();
-      var hBT = doc && !cot ? 300 : 150;
-      var buoc = doc ? Math.min(110, (o.h - hBT - 16) / 4) : 68;
+      // Khổ dọc có thẻ (ô nội dung thấp hơn 160): khung biểu thức 240 thay cho 300. Khổ ngang có thẻ hay dòng tài
+      // liệu: dòng giải thích chia theo phần ô còn lại, tối đa 68.
+      var hBT = doc && !cot ? (B.coThe ? 240 : 300) : 150;
+      var buoc = doc ? Math.min(110, (o.h - hBT - 16) / 4) : (B.coThe || du.taiLieu ? Math.min(68, (o.h - hBT - 16) / 4) : 68);
       var kq = [];
       kq.push(B.net('khung', V.hopQua(o.x + 40, o.y, cot ? o.w - 40 : o.w - 80, hBT, 21), 0.1, 0.7, {}));
-      // Mỗi phần là một khối không ngắt dòng (span.phan); phần rộng hơn ô thì thu chữ theo bậc 5 % tới 70 % (khung-video
-      // doHop), vẫn rộng thì kiemTran báo `phan:<phần>`. Dòng chỉ xuống ở khoảng trắng giữa hai phần.
-      var tuy = { can: 'giua', mau: 'nhan', khongCum: true, khoi: phan.map(function (p) { return V.demKyTu(p, true); }), khoiChu: phan };
+      // Mỗi phần tách tiếp ở toán tử quan hệ (` = `, ` ≈ `, …) thành đoạn; mỗi đoạn là một khối không ngắt dòng
+      // (span.phan), dòng chỉ xuống ở khoảng trắng giữa hai đoạn. Đoạn rộng hơn ô thì thu chữ theo bậc 5 % tới 70 %
+      // (khung-video thuKhoi); vẫn rộng thì đoạn có khoảng trắng xuống dòng như vi.11, đoạn liền báo `phan:<đoạn>`.
+      var doan = [];
+      phan.forEach(function (p) { doan = doan.concat(V.tachDoanCongThuc(p)); });
+      var tuy = { can: 'giua', mau: 'nhan', khongCum: true, khoi: doan.map(function (p) { return V.demKyTu(p, true); }), khoiChu: doan };
       if (soPhan) {
         var tong = V.demKyTu(bieuThuc, true);
         var ky = phan.map(function (p, k) { return V.demKyTu(p, true) + (k < soPhan - 1 ? 1 : 0); });

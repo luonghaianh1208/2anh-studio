@@ -127,6 +127,7 @@ SO_LON_DUOC_PHEP = {
     ("tieu-de.js", 600): "độ dài nét gạch dưới tiêu đề, đặt giữa ô bia (kích thước)",
     ("tieu-de.js", 300): "khổ dọc: chiều cao ô tiêu đề dưới hình (kích thước)",
     ("cong-thuc.js", 300): "khổ dọc: chiều cao khung biểu thức (kích thước)",
+    ("cong-thuc.js", 240): "khổ dọc có thẻ: chiều cao khung biểu thức (kích thước)",
     ("cau-hoi.js", 230): "khổ dọc: chiều cao ô câu hỏi (kích thước)",
     ("so-do.js", 210): "góc (độ) của nhánh khổ dọc",
 }

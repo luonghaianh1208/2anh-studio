@@ -168,9 +168,38 @@
     });
     return nhom;
   }
+  // Toán tử quan hệ mà dòng công thức được xuống trước nó (có khoảng trắng hai bên): `a = b` được ngắt thành
+  // `a` / `= b`, còn một số hạng (`M x V`, `2π√(l/g)`) không bao giờ bị ngắt giữa.
+  var TOAN_TU = ['=', '≈', '≠', '<', '>', '≤', '≥', '→', '⇒'];
+  // Một phần công thức -> các đoạn (chữ gốc), tách ở khoảng trắng đứng trước ` <toán tử> ` cấp ngoài cùng: không nằm
+  // trong ngoặc, `**…**`, `~…~`, `^…^` hay `{{…}}`. Ghép các đoạn bằng một khoảng trắng thì ra lại đúng phần đó.
+  function tachDoanCongThuc(p) {
+    var kq = [];
+    var dau = 0;
+    var ngoac = 0;
+    var dam = 0, duoi = 0, tren = 0, so = 0;
+    for (var i = 0; i < p.length; i++) {
+      var c = p[i];
+      var hai = p.substr(i, 2);
+      if (hai === '**') { dam ^= 1; i++; continue; }
+      if (hai === '{{') { so++; i++; continue; }
+      if (hai === '}}') { so = Math.max(0, so - 1); i++; continue; }
+      if (c === '~') { duoi ^= 1; continue; }
+      if (c === '^') { tren ^= 1; continue; }
+      if ('([{'.indexOf(c) >= 0) { ngoac++; continue; }
+      if (')]}'.indexOf(c) >= 0) { ngoac = Math.max(0, ngoac - 1); continue; }
+      if (c === ' ' && i > dau && !ngoac && !dam && !duoi && !tren && !so && TOAN_TU.indexOf(p[i + 1]) >= 0 && p[i + 2] === ' ') {
+        kq.push(p.slice(dau, i));
+        dau = i + 1;
+      }
+    }
+    kq.push(p.slice(dau));
+    return kq;
+  }
   // `khoi` (chỉ kèm khongCum: biểu thức công thức, giá trị thẻ): mỗi khối bọc span.phan không ngắt dòng; dòng chỉ
-  // xuống ở khoảng trắng giữa hai khối.
-  function catDanhDau(chu, n, so, nay, khongCum, khoi) {
+  // xuống ở khoảng trắng giữa hai khối. `ngat`: chỉ số các khối được xuống dòng ở khoảng trắng bên trong (khối quá
+  // rộng cả khi đã thu chữ, xem thuKhoi).
+  function catDanhDau(chu, n, so, nay, khongCum, khoi, ngat) {
     var phan = phanTich(chu, khongCum);
     var con = nay ? Infinity : n;
     var giua = !nay && n > 0 && n < demPhan(phan);
@@ -200,8 +229,11 @@
     }
     function veDs(ds) { return ds.map(veDoan).join(''); }
     if (khoi && khongCum && phan.length) {
+      var k = 0;
       return chiaKhoi(phan[0].doan, khoi).map(function (g) {
-        return g.khoi ? '<span class="phan" style="white-space:nowrap">' + veDs(g.doan) + '</span>' : veDs(g.doan);
+        if (!g.khoi) { return veDs(g.doan); }
+        var kieu = ngat && ngat.indexOf(k++) >= 0 ? 'normal' : 'nowrap';
+        return '<span class="phan" style="white-space:' + kieu + '">' + veDs(g.doan) + '</span>';
       }).join('');
     }
     phan.forEach(function (p) {
@@ -703,7 +735,7 @@
       if (m.truot) {
         // Chữ trượt (cat-dan): hiện đủ chữ (mục viết theo phần: đủ các phần đã tới), trượt và mờ dần 0,35 s.
         var n = m.phan ? m.phan.reduce(function (k, p) { return k + (t >= p.batDau ? p.ky : 0); }, 0) : o.tong;
-        html = catDanhDau(m.chu, n, so, null, m.khongCum, m.khoi);
+        html = catDanhDau(m.chu, n, so, null, m.khongCum, m.khoi, m.khoiNgat);
         var v = root.THI_CAT_DAN.truotChu(tienDoTruot(m, t), m.bang);
         [o.el, o.bang].forEach(function (el) {
           if (!el) { return; }
@@ -714,7 +746,7 @@
         var tt = m.batDau + (t - m.batDau) * o.keo;
         html = catDanhDau(m.chu, o.tong, so, function (i) { return D.nayChu(i, o.tong, tt, m.batDau); });
       } else {
-        html = catDanhDau(m.chu, kyTuHien(m, t, o.tong), so, null, m.khongCum, m.khoi);
+        html = catDanhDau(m.chu, kyTuHien(m, t, o.tong), so, null, m.khongCum, m.khoi, m.khoiNgat);
       }
       o.el.innerHTML = m.day ? '<span class="trong">' + html + '</span>' : html;
       o.cum.forEach(function (c) {
@@ -792,21 +824,30 @@
     // bậc 5 % tới 70 %. Phần công thức vẫn rộng thì ghi vào o.tran (kiemTran báo `phan:<phần>`); giá trị thẻ vẫn rộng,
     // hay khối vẫn cao quá ô, thì ô chữ tràn như thường.
     function thuKhoi(o) {
-      var cac = o.el.querySelectorAll('span.phan');
-      function rongNhat() {
-        return Array.prototype.reduce.call(cac, function (n, sp) { return Math.max(n, sp.getBoundingClientRect().width); }, 0);
-      }
+      var m = o.m;
+      function cac() { return Array.prototype.slice.call(o.el.querySelectorAll('span.phan')); }
+      function rongQua(sp) { return sp.getBoundingClientRect().width > o.el.clientWidth + 0.5; }
       // Cũng thu khi các khối (mỗi khối một dòng vì không ngắt) cao quá ô: thu chữ thì nhiều khối nằm chung một dòng.
       function cao() { return o.el.scrollHeight > o.el.clientHeight + 1; }
       var tl = 1;
-      while ((rongNhat() > o.el.clientWidth + 0.5 || cao()) && tl > 0.7 + 1e-9) {
+      while ((cac().some(rongQua) || cao()) && tl > 0.7 + 1e-9) {
         tl = Math.round((tl - 0.05) * 100) / 100;
-        o.el.style.fontSize = lam3(o.m.co * tl) + 'px';
+        o.el.style.fontSize = lam3(m.co * tl) + 'px';
       }
       o.tran = [];
-      Array.prototype.forEach.call(cac, function (sp, k) {
-        if (o.m.khoiChu && sp.getBoundingClientRect().width > o.el.clientWidth + 0.5) { o.tran.push(o.m.khoiChu[k]); }
+      if (!cac().some(rongQua)) { return; }
+      // Vẫn có khối rộng hơn ô ở 70 %: về cỡ gốc. Khối có khoảng trắng (chữ dài kiểu vi.11) xuống dòng ở khoảng trắng
+      // như bản vi.11; khối liền không khoảng trắng thì không ngắt được: phần công thức báo `phan:<đoạn>`.
+      o.el.style.fontSize = m.co + 'px';
+      m.khoiNgat = [];
+      cac().forEach(function (sp, k) {
+        if (!rongQua(sp)) { return; }
+        // Bỏ toán tử đầu đoạn (`= `, `≈ `…) trước khi xét: khoảng trắng sau toán tử không phải chỗ ngắt của số hạng.
+        var than = (m.khoiChu ? m.khoiChu[k] : sp.textContent).trim();
+        if (TOAN_TU.indexOf(than[0]) >= 0 && than[1] === ' ') { than = than.slice(2); }
+        if (/\s/.test(than)) { m.khoiNgat.push(k); } else if (m.khoiChu) { o.tran.push(than); }
       });
+      datChu(o, 1e6);
     }
 
     function doHop() {
@@ -1028,6 +1069,6 @@
     LAU_BANG: LAU_BANG,
     kep: kep, tienDo: tienDo, thoat: thoat, demKyTu: demKyTu, catDanhDau: catDanhDau, phanTich: phanTich, demRong: demRong, viTriSo: viTriSo,
     thoiGianViet: thoiGianViet, kyTuHien: kyTuHien, lucKyTu: lucKyTu, tachPhan: tachPhan, duongQua: duongQua, hopQua: hopQua, vongTron: vongTron, muiTen: muiTen,
-    rng: rng, tienDoTruot: tienDoTruot, vuaKhung: vuaKhung, o: oBoCuc, doc: laDoc, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
+    rng: rng, tachDoanCongThuc: tachDoanCongThuc, tienDoTruot: tienDoTruot, vuaKhung: vuaKhung, o: oBoCuc, doc: laDoc, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

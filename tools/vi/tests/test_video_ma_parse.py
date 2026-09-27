@@ -738,6 +738,9 @@ class TheTaiLieuLoatTest(unittest.TestCase):
                          ("Siêu lạm phát", "1923", "Cộng hoà Weimar (Đức)"))
         self.assertEqual(parse.tach_the("GDP | 100 nghìn tỷ"), ("GDP", "100 nghìn tỷ", ""))
         self.assertEqual(parse.tach_the("GDP | 100 |"), ("GDP", "100", ""))
+        # `|x|` (không có khoảng trắng hai bên) là chữ, không phải dấu tách.
+        self.assertEqual(parse.tach_the("Trị tuyệt đối | |x| = 2 | khi x = ±2"), ("Trị tuyệt đối", "|x| = 2", "khi x = ±2"))
+        self.assertEqual(parse.tach_the("|a|+|b| | 5"), ("|a|+|b|", "5", ""))
         for sai in ("GDP", "| 100 | x", "GDP |  | x", "a | b | c | d"):
             self.assertIsNone(parse.tach_the(sai), sai)
         text = doc("## Cảnh 1\nloai: khai-niem\nthuat-ngu: GDP\ndinh-nghia: Tổng sản phẩm.\n"
@@ -790,6 +793,42 @@ class TheTaiLieuLoatTest(unittest.TestCase):
         with self.assertRaises(parse.ParseError) as caught:
             parse.parse(canh("xem https://vi.wikipedia.org"))
         self.assertIn("địa chỉ web", str(caught.exception))
+
+    def test_doan_lien_cua_cong_thuc_theo_kho_va_phong_cach(self):
+        def canh(bt: str, kho: str, pc: str) -> str:
+            return doc(f"## Cảnh 1\nloai: cong-thuc\nbieu-thuc: {bt}\nloi: Xin chào.\n", META + f"kho: {kho}\nphong-cach: {pc}\n")
+        for (kho, pc), n in kiem.DOAN_LIEN.items():
+            with self.subTest(kho=kho, pc=pc):
+                self.assertEqual(kiem.kiem(parse.parse(canh("a = " + "x" * n, kho, pc)), Path(".")), [])
+                text = canh("a = " + "x" * (n + 1) + " | = b", kho, pc)
+                with self.assertRaises(kiem.CanhError) as caught:
+                    kiem.kiem(parse.parse(text), Path("."))
+                self.assertTrue(str(caught.exception).startswith(f'Cảnh 1: phần công thức "{"x" * (n + 1)}" quá dài cho khổ này'))
+                self.assertIn(f"dòng {line_of(text, 'bieu-thuc')}", str(caught.exception))
+                self.assertIn("` | `", caught.exception.fix)
+        # Số hạng có khoảng trắng (`M x V`) không phải đoạn liền; `~`, `^` không tính.
+        self.assertEqual(kiem.kiem(parse.parse(canh("M x V = P x Y | " + "H~2~" * 14, "doc", "cat-dan")), Path(".")), [])
+
+    def test_gioi_han_rieng_khi_co_the_hoac_tai_lieu(self):
+        self.assertEqual(kiem.bang_gioi_han("ngang", "cat-dan", True), kiem.bang_gioi_han("ngang", "cat-dan"))
+        self.assertEqual(kiem.bang_gioi_han("doc", "cat-dan", True)[0][("cong-thuc", "bieu-thuc")], 85)
+        self.assertEqual(kiem.bang_gioi_han("doc", "viet-tay", True)[0][("cong-thuc", "bieu-thuc")], 89)
+        for kho in ("ngang", "doc"):
+            for pc in ("viet-tay", "cat-dan"):
+                L, _ = kiem.bang_gioi_han(kho, pc)
+                L2, _ = kiem.bang_gioi_han(kho, pc, True)
+                self.assertTrue(all(L2[k] <= L[k] for k in L), (kho, pc))
+        bt = " ".join(["ab = cd"] * 12)[:86]
+        meta = META + "kho: doc\nphong-cach: cat-dan\n"
+        text = doc(f"## Cảnh 1\nloai: cong-thuc\nbieu-thuc: {bt}\nloi: Xin chào.\n", meta)
+        self.assertEqual(kiem.kiem(parse.parse(text), Path(".")), [])
+        for them in ("the: Năm | 1923\n", "tai-lieu: Sách giáo khoa\n"):
+            with self.subTest(them=them):
+                text = doc(f"## Cảnh 1\nloai: cong-thuc\nbieu-thuc: {bt}\n{them}loi: Xin chào.\n", meta)
+                with self.assertRaises(kiem.CanhError) as caught:
+                    kiem.kiem(parse.parse(text), Path("."))
+                self.assertIn("cảnh có thẻ hoặc dòng tài liệu", str(caught.exception))
+                self.assertIn(f"dòng {line_of(text, 'bieu-thuc')}", str(caught.exception))
 
     def test_loat_la_khoa_dau_tu_do_toi_da_30(self):
         self.assertIn("loat", parse.META_FREE)

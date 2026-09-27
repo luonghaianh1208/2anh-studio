@@ -72,6 +72,7 @@ _POINT_RE = re.compile(r"^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$")
 _PARAM_RE = re.compile(r"^\d+(?:\.\d+)?\s+[a-z0-9-]+\s+-?\d+(?:\.\d+)?$")
 _DATA_RE = re.compile(r"^(.*?\S)\s*\|\s*(-?\d+(?:\.\d+)?)$")
 _MOC_RE = re.compile(r"^(.*?\S)\s*\|\s*(\S.*)$")
+_THE_RE = re.compile(r"(?:^|\s)\|(?:\s|$)")
 
 
 def tach_du_lieu(value: str) -> tuple:
@@ -88,8 +89,9 @@ def tach_moc(value: str) -> tuple:
 
 def tach_the(value: str):
     """`<nhãn> | <giá trị> | <chú thích>` -> (nhãn, giá trị, chú thích); chú thích bỏ trống được (hai phần, hoặc phần
-    ba trống). None nếu sai dạng: thiếu nhãn hay giá trị, hoặc hơn ba phần."""
-    phan = [p.strip() for p in value.split("|")]
+    ba trống). Tách ở ` | ` (gạch đứng có khoảng trắng hai bên, hay ở đầu/cuối dòng), nên `|x|` là chữ thường.
+    None nếu sai dạng: thiếu nhãn hay giá trị, hoặc hơn ba phần."""
+    phan = [p.strip() for p in _THE_RE.split(value)]
     if len(phan) not in (2, 3) or not phan[0] or not phan[1]:
         return None
     return (phan[0], phan[1], phan[2] if len(phan) == 3 else "")

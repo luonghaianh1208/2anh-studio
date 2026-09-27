@@ -170,8 +170,13 @@ test('cong-thuc: moi phan la mot khoi khong ngat; html boc span.phan nowrap, kho
   var bt = tim(C['cong-thuc'].muc(du('cong-thuc', { 'bieu-thuc': ['M x V | = P x Y'] })), 'bieu-thuc');
   assert.deepStrictEqual(bt.khoi, [5, 7]);
   assert.deepStrictEqual(bt.khoiChu, ['M x V', '= P x Y']);
+  // Không tách phần: vẫn được xuống dòng trước toán tử quan hệ cấp ngoài cùng, số hạng giữ liền.
   bt = tim(C['cong-thuc'].muc(du('cong-thuc', { 'bieu-thuc': ['M x V = P x Y'] })), 'bieu-thuc');
-  assert.deepStrictEqual(bt.khoi, [13]);
+  assert.deepStrictEqual(bt.khoi, [5, 7]);
+  assert.deepStrictEqual(bt.khoiChu, ['M x V', '= P x Y']);
+  bt = tim(C['cong-thuc'].muc(du('cong-thuc', { 'bieu-thuc': ['T = 2π√(l/g) | = 2π√(1/9.8) | ≈ {{2.01}} s'] })), 'bieu-thuc');
+  assert.deepStrictEqual(bt.khoiChu, ['T', '= 2π√(l/g)', '= 2π√(1/9.8)', '≈ {{2.01}} s']);
+  assert.strictEqual(bt.khoiChu.join(' '), bt.chu);
   var PHAN = '<span class="phan" style="white-space:nowrap">';
   assert.strictEqual(V.catDanhDau('M x V = P x Y', 13, null, null, true, [13]), PHAN + 'M x V = P x Y</span>');
   assert.strictEqual(V.catDanhDau('a b c d', 7, null, null, true, [3, 3]), PHAN + 'a b</span> ' + PHAN + 'c d</span>');
@@ -183,4 +188,22 @@ test('cong-thuc: moi phan la mot khoi khong ngat; html boc span.phan nowrap, kho
   assert.ok(h.indexOf(PHAN + 'x<sub>2</sub></span> ' + PHAN + '≈ <span class="so" data-so="0">2,01</span></span>') === 0, h);
   // Không có khối: HTML như cũ.
   assert.strictEqual(V.catDanhDau('a b', 3, null, null, true), 'a b');
+});
+
+test('tachDoanCongThuc: tach truoc toan tu quan he cap ngoai cung; khong tach trong ngoac, dinh dang, so chay', function () {
+  var T = V.tachDoanCongThuc;
+  assert.deepStrictEqual(T('M x V = P x Y'), ['M x V', '= P x Y']);
+  assert.deepStrictEqual(T('a ≈ b ≠ c < d > e ≤ f ≥ g → h ⇒ k'), ['a', '≈ b', '≠ c', '< d', '> e', '≤ f', '≥ g', '→ h', '⇒ k']);
+  assert.deepStrictEqual(T('= 2π√(1/9.8)'), ['= 2π√(1/9.8)']);
+  assert.deepStrictEqual(T('f(x = 2) = 5'), ['f(x = 2)', '= 5']);
+  assert.deepStrictEqual(T('**a = b** = c'), ['**a = b**', '= c']);
+  assert.deepStrictEqual(T('x^a = b^ = H~2 = O~'), ['x^a = b^', '= H~2 = O~']);
+  assert.deepStrictEqual(T('a == b'), ['a == b']);
+  assert.deepStrictEqual(T('a=b'), ['a=b']);
+  assert.deepStrictEqual(T('Nhờ ướt nhẫm quyết định'), ['Nhờ ướt nhẫm quyết định']);
+});
+
+test('catDanhDau: khoi trong danh sach ngat duoc xuong dong o khoang trang (white-space normal)', function () {
+  assert.strictEqual(V.catDanhDau('a b = c', 7, null, null, true, [3, 3], [0]),
+    '<span class="phan" style="white-space:normal">a b</span> <span class="phan" style="white-space:nowrap">= c</span>');
 });

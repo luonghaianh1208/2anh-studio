@@ -23,11 +23,12 @@
         return B.net('gach', V.duongQua([[giua - dai / 2, y], [giua + dai / 2, y]], 3), sau, 0.4, { mau: 'nhan', quay: false });
       }
       if (!B.coCot) {
-        var c = B.chu('chu', t.chu[0], o.x, o.y + 20, o.w, o.h - 70 - hPhu, 60, 0.3, { can: 'giua', mau: 'nhan', day: true, nay: nay });
+        // Có thẻ (ô chữ hẹp hơn ở khổ ngang, thấp hơn ở khổ dọc): tiêu đề 48 thay cho 60, dòng phụ 28 thay cho 34.
+        var c = B.chu('chu', t.chu[0], o.x, o.y + 20, o.w, o.h - 70 - hPhu, B.coThe ? 48 : 60, 0.3, { can: 'giua', mau: 'nhan', day: true, nay: nay });
         kq.push(c);
         var yGach = c.y + c.cao + 20;
         kq.push(gach(yGach, c.batDau + c.thoiLuong));
-        if (t.phu) { kq.push(B.chu('phu', t.phu[0], o.x, yGach + 30, o.w, hPhu, 34, c.batDau + c.thoiLuong + 0.4, { can: 'giua' })); }
+        if (t.phu) { kq.push(B.chu('phu', t.phu[0], o.x, yGach + 30, o.w, hPhu, B.coThe ? 28 : 34, c.batDau + c.thoiLuong + 0.4, { can: 'giua' })); }
         return B.them(kq, oThe);
       }
       // Có hình: hình 180×180 ở giữa đỉnh ô, vẽ trước; tiêu đề (cao 150; khổ dọc hẹp nên cao 300) dời xuống ngay dưới

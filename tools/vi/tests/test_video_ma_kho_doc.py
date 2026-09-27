@@ -43,16 +43,13 @@ def canh_toi_da(gioi_han: dict | None = None, hai_phan: dict | None = None, cot:
         return chuoi(L[(loai, truong)])
 
     hinh_cot = "hinh: clock\n" if cot else ""
-    # Biểu thức ở giới hạn: bốn phần tách bằng ` | ` (mỗi phần là một khối không ngắt dòng, spec Q14); tổng chữ hiện
-    # (bốn phần + ba khoảng trắng ngăn) không quá giới hạn.
-    bieu_thuc = " | ".join(chuoi((L[("cong-thuc", "bieu-thuc")] - 3) // 4) for _ in range(4))
     moc_nhan, moc_ta = H[("dong-thoi-gian", "moc")]
     nhan_du_lieu, so_du_lieu = H[("bieu-do", "du-lieu")]
     so_du_lieu = so_du_lieu or parse.SO_DAI
     ds = [
         ("tieu-de", f"chu: {t('tieu-de', 'chu')}\nphu: {t('tieu-de', 'phu')}\n{hinh_cot}"),
         ("khai-niem", f"thuat-ngu: {t('khai-niem', 'thuat-ngu')}\ndinh-nghia: {t('khai-niem', 'dinh-nghia')}\n{hinh_cot}"),
-        ("cong-thuc", f"bieu-thuc: {bieu_thuc}\n"
+        ("cong-thuc", f"bieu-thuc: {t('cong-thuc', 'bieu-thuc')}\n"
                       + "".join(f"giai-thich: {t('cong-thuc', 'giai-thich')}\n" for _ in range(4)) + hinh_cot),
         ("y-tung-y", f"tieu-de: {t('y-tung-y', 'tieu-de')}\n" + "".join(f"y: {t('y-tung-y', 'y')}\n" for _ in range(6)) + hinh_cot),
         ("quy-trinh", f"tieu-de: {t('quy-trinh', 'tieu-de')}\n" + "".join(f"buoc: {t('quy-trinh', 'buoc')}\n" for _ in range(5))),

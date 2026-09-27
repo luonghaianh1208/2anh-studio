@@ -47,6 +47,21 @@ LIMITS_HAI_PHAN_CAT_DAN_DOC = {("bieu-do", "du-lieu"): (16, 7), ("dong-thoi-gian
 # cụm nhấn, chỉ số chạy `{{…}}`. Dòng tài liệu (`tai-lieu`) là chữ thường, không định dạng.
 GIOI_HAN_THE = (("nhãn", 24, True), ("giá trị", 16, False), ("chú thích", 60, True))
 TAI_LIEU_DAI = 90
+# Cảnh có thẻ hay dòng tài liệu (`the`, `tai-lieu`): thẻ chiếm góc phải trên (khổ ngang) hay 160 điểm dưới tiêu đề
+# (khổ dọc), dòng tài liệu chiếm góc phải dưới. Bố cục co lại theo (bước hàng theo chiều cao ô, chữ tiêu đề bìa nhỏ
+# hơn); trường nào vẫn không vừa thì hạ ở đây. Đo bằng tools/vi/tests/do_gioi_han.py --co-the với thẻ ở giới hạn và dòng
+# tài liệu 90 ký tự (bảng đo ở file kiểm thử vi.12). Áp dụng khi cảnh có `the`, `tai-lieu` hoặc cả hai.
+HA_CO_THE = {
+    ("ngang", "viet-tay"): {},
+    ("ngang", "cat-dan"): {},
+    ("doc", "viet-tay"): {("cong-thuc", "bieu-thuc"): 89},
+    ("doc", "cat-dan"): {("cong-thuc", "bieu-thuc"): 85},
+}
+# Công thức (spec Q14): dòng chỉ xuống giữa hai phần ` | `, trước toán tử quan hệ (` = `, ` ≈ `…) hoặc, khi một đoạn
+# rộng quá ô cả lúc đã thu chữ tới 70 %, ở khoảng trắng như vi.11; một đoạn liền (không khoảng trắng) không bao giờ bị
+# ngắt. Đoạn liền dài nhất còn vẽ được, đo bằng Chromium (chuỗi "Nghiêngnghiễmnhiên" lặp, lấy nhỏ nhất của có/không cột
+# phụ, có/không thẻ; bảng đo ở file kiểm thử vi.12).
+DOAN_LIEN = {("ngang", "viet-tay"): 66, ("ngang", "cat-dan"): 55, ("doc", "viet-tay"): 34, ("doc", "cat-dan"): 28}
 LOI_DAI = 700
 MAX_THAM_SO = 3
 MAX_DO = 3
@@ -211,16 +226,26 @@ def _kiem_hinh_anh(scene: Scene, thu_muc: Path) -> None:
             raise CanhError(scene.so, f"{exc} (dòng {no}).") from exc
 
 
-def bang_gioi_han(ten_kho: str, phong_cach: str = "viet-tay") -> tuple:
-    """(giới hạn trường đơn, giới hạn trường hai phần) theo khổ (`ngang`/`doc`) và phong cách (`viet-tay`/`cat-dan`)."""
+def bang_gioi_han(ten_kho: str, phong_cach: str = "viet-tay", co_the: bool = False) -> tuple:
+    """(giới hạn trường đơn, giới hạn trường hai phần) theo khổ (`ngang`/`doc`) và phong cách (`viet-tay`/`cat-dan`);
+    `co_the`: cảnh có thẻ hay dòng tài liệu (HA_CO_THE)."""
     doc = ten_kho == "doc"
     if phong_cach == "cat-dan":
-        return (LIMITS_CAT_DAN_DOC, LIMITS_HAI_PHAN_CAT_DAN_DOC) if doc else (LIMITS_CAT_DAN, LIMITS_HAI_PHAN_CAT_DAN)
-    return (LIMITS_DOC, LIMITS_HAI_PHAN_DOC) if doc else (LIMITS, LIMITS_HAI_PHAN)
+        L, H = (LIMITS_CAT_DAN_DOC, LIMITS_HAI_PHAN_CAT_DAN_DOC) if doc else (LIMITS_CAT_DAN, LIMITS_HAI_PHAN_CAT_DAN)
+    else:
+        L, H = (LIMITS_DOC, LIMITS_HAI_PHAN_DOC) if doc else (LIMITS, LIMITS_HAI_PHAN)
+    if co_the:
+        L = {**L, **HA_CO_THE[(ten_kho, "cat-dan" if phong_cach == "cat-dan" else "viet-tay")]}
+    return L, H
 
 
-def _ghi_chu_gioi_han(ten_kho: str, phong_cach: str) -> str:
-    phan = (["khổ dọc"] if ten_kho == "doc" else []) + (["phong cách cắt dán"] if phong_cach == "cat-dan" else [])
+def co_the(scene: Scene) -> bool:
+    return "the" in scene.truong or "tai-lieu" in scene.truong
+
+
+def _ghi_chu_gioi_han(ten_kho: str, phong_cach: str, co_the_: bool = False) -> str:
+    phan = ((["khổ dọc"] if ten_kho == "doc" else []) + (["phong cách cắt dán"] if phong_cach == "cat-dan" else [])
+            + (["cảnh có thẻ hoặc dòng tài liệu"] if co_the_ else []))
     return f" (giới hạn {', '.join(phan)})" if phan else ""
 
 
@@ -242,6 +267,16 @@ def _kiem_the(scene: Scene) -> None:
             raise CanhError(scene.so, f"`tai-lieu` dài {len(value)} ký tự, tối đa {TAI_LIEU_DAI} (dòng {no}). Rút gọn dòng tài liệu.")
 
 
+def _kiem_doan_lien(so: int, value: str, no: int, ten_kho: str, phong_cach: str) -> None:
+    toi_da = DOAN_LIEN[(ten_kho, "cat-dan" if phong_cach == "cat-dan" else "viet-tay")]
+    for doan in value.split():
+        n = hien_thi(doan, cum=False)
+        if n > toi_da:
+            raise CanhError(so, f'phần công thức "{doan}" quá dài cho khổ này (dòng {no}: đoạn liền {n} ký tự, tối đa '
+                                f"{toi_da}).", "Thêm khoảng trắng quanh dấu `=`, `+`… hoặc tách công thức thành nhiều phần "
+                                               "bằng ` | `, rồi chạy lại.")
+
+
 def doc_nhac(video: Video, thu_muc: Path):
     """Nhạc nền của video (`nhac.doc`), None khi không có `nhac-nen`. Lỗi là CanhError số cảnh 0, nêu dòng khoá đầu."""
     ten = video.meta.get("nhac-nen")
@@ -259,9 +294,9 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
     if doc_nhac_nen:
         doc_nhac(video, thu_muc)
     ten_kho, phong_cach = video.meta.get("kho", "ngang"), video.meta.get("phong-cach", "viet-tay")
-    bang, bang_hai_phan = bang_gioi_han(ten_kho, phong_cach)
-    ghi_chu = _ghi_chu_gioi_han(ten_kho, phong_cach)
     for scene in video.canh:
+        bang, bang_hai_phan = bang_gioi_han(ten_kho, phong_cach, co_the(scene))
+        ghi_chu = _ghi_chu_gioi_han(ten_kho, phong_cach, co_the(scene))
         _kiem_the(scene)
         for key, values in scene.truong.items():
             hai_phan = bang_hai_phan.get((scene.loai, key))
@@ -280,6 +315,8 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
                 if (scene.loai, key) == ("cong-thuc", "bieu-thuc"):
                     value = value.replace(parse.PHAN_CONG_THUC, " ")
                 _kiem_do_dai(scene.so, key, value, no, gioi_han, cum, ghi_chu)
+                if (scene.loai, key) == ("cong-thuc", "bieu-thuc"):
+                    _kiem_doan_lien(scene.so, value, no, ten_kho, phong_cach)
         if len(scene.loi) > LOI_DAI:
             warnings.append(f"Cảnh {scene.so}: lời dài {len(scene.loi)} ký tự (quá {LOI_DAI}); nên tách thành hai cảnh.")
         loi_giai = scene.truong.get("loi-giai", [""])[0]

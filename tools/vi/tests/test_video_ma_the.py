@@ -18,8 +18,8 @@ sys.path.insert(0, str(TOOLS_VI))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import video_ma  # noqa: E402
-from do_gioi_han import meta  # noqa: E402
-from test_video_ma_kho_doc import chuoi, thu_muc_bai, video_md  # noqa: E402
+from do_gioi_han import LOAI_CO_THE, meta, ngoai_vung, them_the  # noqa: E402
+from test_video_ma_kho_doc import canh_toi_da, chuoi, thu_muc_bai, video_md  # noqa: E402
 from video_ma_parts import chup, kho, kiem, parse  # noqa: E402
 
 CO_CHROMIUM = video_ma.co_chromium()
@@ -77,11 +77,12 @@ class TheChromiumTest(unittest.TestCase):
         cls.cm.__exit__(None, None, None)
         cls.tmp.cleanup()
 
-    def trang(self, ds: list, ten_kho: str, phong_cach: str, meta_them: str = "") -> list:
+    def trang(self, ds: list, ten_kho: str, phong_cach: str, meta_them: str = "", kiem_truoc: bool = True) -> list:
         type(self).dem += 1
         thu_muc = thu_muc_bai(Path(self.tmp.name) / f"b{self.dem}", video_md(ds, meta(ten_kho, phong_cach) + meta_them))
         video = parse.parse((thu_muc / "video.md").read_text(encoding="utf-8"))
-        self.assertEqual(kiem.kiem(video, thu_muc), [])
+        if kiem_truoc:
+            self.assertEqual(kiem.kiem(video, thu_muc), [])
         return list(zip(video.canh, video_ma._trang_tam(video, thu_muc, video_ma._mo_hinh(video, thu_muc))))
 
     def test_the_o_gioi_han_nam_gon_khong_de_noi_dung_hai_kho_hai_phong_cach(self):
@@ -131,23 +132,65 @@ class TheChromiumTest(unittest.TestCase):
                             self.assertEqual(len({round(h[2]) for h in dong}), 1, dong)
                             self.assertEqual(page.evaluate(
                                 "() => [...document.querySelectorAll('[data-id=bieu-thuc] span.phan')].map((s) => s.style.whiteSpace)"),
-                                ["nowrap"] * (2 if " | " in canh.truong["bieu-thuc"][0] else 1))
+                                ["nowrap", "nowrap"])
                 finally:
                     page.close()
 
     def test_phan_cong_thuc_rong_thu_chu_roi_bao_loi(self):
-        # Vừa rộng hơn ô một chút: thu chữ, không ngắt, không lỗi.
+        lien = "Nghiêngnghiễmnhiên" * 4
         page = chup.trang_moi(self.browser, kho.Kho("doc", 720))
         try:
-            (_, html), = self.trang([("cong-thuc", "bieu-thuc: " + "M x V = P x Y = " * 2 + "Q\n")], "doc", "cat-dan")
+            # Đoạn liền vừa rộng hơn ô một chút: thu chữ, không ngắt, không lỗi.
+            (_, html), = self.trang([("cong-thuc", f"bieu-thuc: a = {lien[:24]}\n")], "doc", "cat-dan")
             self.assertEqual(chup.kiem_tran(page, html), [])
             co = page.evaluate("() => parseFloat(document.querySelector('[data-id=bieu-thuc]').style.fontSize)")
             self.assertLess(co, 40)
             self.assertGreaterEqual(co, 28 - 1e-6)
+            # Chữ dài có khoảng trắng, không toán tử (kiểu vi.11): về cỡ gốc và xuống dòng ở khoảng trắng như vi.11.
             (_, html), = self.trang([("cong-thuc", "bieu-thuc: " + chuoi(60) + "\n")], "doc", "cat-dan")
-            self.assertIn("phan:" + chuoi(60), chup.kiem_tran(page, html))
+            self.assertEqual(chup.kiem_tran(page, html), [])
+            self.assertEqual(page.evaluate("() => [document.querySelector('[data-id=bieu-thuc]').style.fontSize,"
+                                           " document.querySelector('[data-id=bieu-thuc] span.phan').style.whiteSpace]"),
+                             ["40px", "normal"])
+            # Đoạn liền quá dài (kiem đã chặn; ở đây dựng thẳng): kiemTran báo đúng đoạn.
+            (_, html), = self.trang([("cong-thuc", f"bieu-thuc: a = {lien[:40]}\n")], "doc", "cat-dan", kiem_truoc=False)
+            self.assertIn("phan:" + lien[:40], chup.kiem_tran(page, html))
         finally:
             page.close()
+
+    def test_cong_thuc_90_ky_tu_kieu_vi11_co_toan_tu_dung_sach(self):
+        bt = "P = A / t = F · s / t = F · v = 1500 N · 12,5 m/s = 18750 W ≈ 18,75 kW (công suất kéo)"
+        self.assertLessEqual(len(bt), 90)
+        page = chup.trang_moi(self.browser, kho.Kho("ngang", 720))
+        try:
+            for cot in ("", "hinh: clock\n"):
+                with self.subTest(cot=cot):
+                    (_, html), = self.trang([("cong-thuc", f"bieu-thuc: {bt}\n{cot}giai-thich: A là công\n")],
+                                            "ngang", "viet-tay")
+                    self.assertEqual(chup.kiem_tran(page, html), [])
+                    kieu = page.evaluate(
+                        "() => [...document.querySelectorAll('[data-id=bieu-thuc] span.phan')].map((s) => s.style.whiteSpace)")
+                    self.assertEqual(kieu, ["nowrap"] * 7)
+        finally:
+            page.close()
+
+    def test_noi_dung_o_gioi_han_co_the_va_tai_lieu_nam_gon(self):
+        # Nội dung ở giới hạn áp dụng (bảng có thẻ), thẻ ở giới hạn, dòng tài liệu 90 ký tự: bốn loại × hai khổ × hai
+        # phong cách, có và không có cột phụ.
+        for ten_kho in ("ngang", "doc"):
+            for phong_cach in ("viet-tay", "cat-dan"):
+                L, H = kiem.bang_gioi_han(ten_kho, phong_cach, True)
+                ds = them_the(canh_toi_da(L, H) + canh_toi_da(L, H, cot=True))
+                self.assertEqual({loai for loai, _ in ds}, set(LOAI_CO_THE))
+                page = chup.trang_moi(self.browser, kho.Kho(ten_kho, 720))
+                try:
+                    for canh, html in self.trang(ds, ten_kho, phong_cach):
+                        with self.subTest(kho=ten_kho, phong_cach=phong_cach, so=canh.so, loai=canh.loai):
+                            tran, ra = ngoai_vung(page, html, ten_kho)
+                            self.assertEqual(tran, [])
+                            self.assertEqual(ra, [])
+                finally:
+                    page.close()
 
     def test_loat_dung_yen_khi_may_quay_chay(self):
         ds = [("y-tung-y", NOI_DUNG["y-tung-y"])] * 8
@@ -223,15 +266,17 @@ class TheChromiumTest(unittest.TestCase):
 
 @unittest.skipUnless(CO_CHROMIUM, "máy không có Chromium hoặc playwright")
 class TheXemTruocTest(unittest.TestCase):
-    def test_phan_cong_thuc_qua_dai_la_loi_canh(self):
+    def test_so_hang_lien_qua_dai_la_loi_canh_truoc_khi_dung(self):
+        # Số hạng liền 30 ký tự không có toán tử ở khổ dọc cắt dán (tối đa 28): lỗi `canh` ngay ở bước kiểm.
         with tempfile.TemporaryDirectory() as tmp:
-            phan = chuoi(60)
+            phan = ("Nghiêngnghiễmnhiên" * 2)[:30]
             thu_muc = thu_muc_bai(Path(tmp), video_md([("tieu-de", "chu: A\n"), ("cong-thuc", f"bieu-thuc: {phan}\n")],
-                                                      meta("doc", "viet-tay")))
-            data = chay(thu_muc, "--xem-truoc")
+                                                      meta("doc", "cat-dan")))
+            data = chay(thu_muc, "--plan-only")
             self.assertFalse(data["ready"])
             self.assertEqual(data["error"]["step"], "canh")
-            self.assertEqual(data["error"]["message"], f'Cảnh 2: phần công thức "{phan}" quá dài cho khổ này')
+            self.assertTrue(data["error"]["message"].startswith(f'Cảnh 2: phần công thức "{phan}" quá dài cho khổ này'),
+                            data["error"]["message"])
             self.assertIn("` | `", data["error"]["fix"])
 
 

@@ -12,7 +12,9 @@
       // Ý dài quá 60 (vì đệm cụm khoanh) thì nhỏ thêm một cỡ để không xuống dòng quá ô.
       var co = cot && dai > 45 ? (dai > 60 ? 24 : 26) : 30;
       // Mỗi ý một hàng cao 74 (khổ dọc: chia đều ô cho số ý, tối đa 100).
-      var buoc = V.doc() ? Math.min(100, (o.h + 4) / t.y.length) : 74;
+      // Khổ ngang có thẻ hay dòng tài liệu (ô nội dung dừng trên dòng tài liệu): hàng chia theo chiều cao ô, tối đa 74.
+      var buoc = V.doc() ? Math.min(100, (o.h + 4) / t.y.length)
+        : (B.coThe || du.taiLieu ? Math.min(74, (o.h + 4) / t.y.length) : 74);
       t.y.forEach(function (y, k) {
         // Chấm ở x + 36, chữ từ x + 64 tới mép ô (không cột phụ: lố mép ô 4 như bản vi.11).
         var top = o.y - 4 + k * buoc;
