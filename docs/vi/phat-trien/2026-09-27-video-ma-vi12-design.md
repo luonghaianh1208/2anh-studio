@@ -43,7 +43,10 @@ Cơ chế ảnh AI đi theo đúng "Path B — host-native" của upstream (`ski
    - chữ hiện bằng trượt và mờ dần thay cho bút viết;
    - các lớp hiện theo thứ tự nền → hình chính → chữ và thẻ → dòng tài liệu.
 6. **Khung loạt bài:** khoá đầu `loat:` hiện tên loạt ở góc trái trên và "0k/N" ở góc phải trên, đứng yên qua camera và chuyển cảnh.
-7. **Khổ dọc 9:16:** `kho: doc` dựng 720×1280. Cả 14 loại cảnh cũ và loại mới đều có bố cục dọc. Mọi loại, ở giới hạn chữ của khổ dọc, không tràn khung và không đè vùng phụ đề.
+7. **Khổ dọc 9:16, Full HD:**
+   - `kho: doc` xuất video 1080×1920; khổ ngang xuất 1920×1080. Cả hai là Full HD thật (chữ và hình vector được vẽ ở độ phân giải đó, không phóng ảnh).
+   - Cả 14 loại cảnh cũ và loại mới đều có bố cục dọc.
+   - Mọi loại, ở giới hạn chữ của khổ dọc, không tràn khung và không đè vùng phụ đề.
 8. **Tránh lỗi đã thấy:**
    - Phụ đề ở `cat-dan` và `kho: doc` luôn có khung nền.
    - Mỗi phần của công thức không bao giờ bị ngắt dòng giữa chừng.
@@ -52,7 +55,7 @@ Cơ chế ảnh AI đi theo đúng "Path B — host-native" của upstream (`ski
    - Kịch bản vi.9–vi.11 dựng được không cần sửa, và bố cục của `viet-tay` khổ ngang không đổi.
    - Mỗi thứ mới tắt được hoặc là tuỳ chọn.
    - Mọi khung vẫn là hàm xác định của `t`.
-   - Thời gian dựng video 5 phút khổ ngang vẫn không quá 8 phút trên máy chủ repo.
+   - Thời gian dựng ở Full HD được đo so với 720p trước khi sửa. Mục tiêu: video 5 phút không quá 12 phút trên máy chủ repo. `do-phan-giai: 720` giữ tốc độ cũ cho máy yếu.
 10. **Ranh giới:**
     - Không sửa `skills/`, `video.py`, `video_parts/`, `thi_nghiem_parts/`.
     - Không thêm thư viện Python hay JavaScript. Xử lý ảnh bằng FFmpeg, vốn đã bắt buộc khi dựng.
@@ -84,7 +87,7 @@ Cơ chế ảnh AI đi theo đúng "Path B — host-native" của upstream (`ski
 
 | # | Quyết định | Lý do |
 |---|---|---|
-| Q1 | Khoá đầu `kho: ngang\|doc` (mặc định `ngang`). Một đối tượng khổ duy nhất `V.kho = {rong, cao, day, tam, le}` sinh từ khoá này thay mọi hằng số rải rác; CSS dùng biến `--rong`/`--cao`. `chup.py`, `karaoke.py` nhận kích thước từ lịch. | Một nguồn sự thật cho khung hình; khổ ngang giữ nguyên số cũ |
+| Q1 | Khoá đầu `kho: ngang\|doc` (mặc định `ngang`). Một đối tượng khổ duy nhất `V.kho = {rong, cao, day, tam, le}` sinh từ khoá này thay mọi hằng số rải rác; CSS dùng biến `--rong`/`--cao`. Bố cục tính theo điểm CSS 1280×720 hoặc 720×1280. Khoá đầu `do-phan-giai: 1080\|720` (mặc định `1080`) đặt `deviceScaleFactor` của Chromium là 1,5 hoặc 1. Khung chụp là 1920×1080 hoặc 1080×1920 ở 1080; `ghep.py` giữ đúng kích thước đó. `karaoke.py` giữ `PlayRes` theo điểm CSS vì libass tự co giãn theo khung video. Ảnh AI vẽ ở kích thước xuất (Q10). | Một nguồn sự thật cho khung hình; Full HD thật mà không phải viết lại bố cục; khổ ngang giữ nguyên toạ độ cũ |
 | Q2 | Bố cục theo khổ bằng bảng ô đặt tên: `V.o('cot-phai')`, `V.o('tieu-de')`, `V.o('noi-dung')`, `V.o('nhan-vat')`… trả `{x,y,w,h}` theo khổ. Ở khổ dọc, "cột phải" thành khối dưới nội dung; hai cột của `so-sanh` xếp chồng. Module cảnh chuyển từ toạ độ cứng sang ô. Giới hạn chữ khổ dọc là bảng riêng trong `kiem.py`, chốt bằng đo khi làm. | Mười bốn module sửa một lần theo một khuôn, không nhân đôi mã |
 | Q3 | `phong-cach` nhận thêm `cat-dan`. Chủ đề là một bộ biến (màu, font, kiểu hiện chữ, kiểu hình) cộng một file `runtime/cat-dan.css` và `runtime/cat-dan.js` (vẽ giấy xé, chấm lưới, băng dính bằng SVG với hạt giống = số cảnh). Ở `cat-dan`: `ban-tay` mặc định `khong`, chuyển cảnh mặc định `xe-giay` (kiểu mới: mép giấy xé quét ngang trên `nenTruoc`), nét vẽ hiện nhanh và đậm. | Giữ một bộ dựng, đổi "da" |
 | Q4 | Font chữ cắt dán: **Be Vietnam Pro** (SIL OFL, thiết kế cho tiếng Việt), đóng gói hai độ đậm Regular và ExtraBold vào `runtime/fonts/` kèm OFL, nhúng base64 như Itim; kiểm cmap đủ chữ Việt như vi.10. | Font không chân đậm hợp kiểu Vox; OFL cho phép đóng gói |
@@ -93,7 +96,7 @@ Cơ chế ảnh AI đi theo đúng "Path B — host-native" của upstream (`ski
 | Q7 | Giá trị của `nen`: `mau/<tên>` (kho mẫu), `<file>` trong `anh/` (ảnh có nguồn như cũ), `ve: <mô tả>` (AI vẽ thành `anh/ai/nen-<N>.png`), `nhu-canh <k>` (dùng lại nền cảnh k, như video mẫu dùng lại nền). Kho mẫu vi.12 có 8 nền SVG: `giay`, `bau-troi`, `vu-tru`, `lop-hoc`, `phong-thi-nghiem`, `thanh-pho`, `dong-que`, `vong-tron`. | Một trường cho mọi nguồn nền; kho mẫu luôn dùng được |
 | Q8 | Khoá đầu `nhan-vat: khong\|nguoi-que\|ve: <mô tả>` (mặc định `khong`), `mau-ao: <màu>` (8 tên màu Việt, mặc định `vang`). Trường cảnh `tu-the` nhận 10 tên cố định: `dung`, `chao`, `chi-tay`, `giai-thich`, `suy-nghi`, `ngac-nhien`, `vo-dau`, `dung-lai`, `an-mung`, `buon`. Ngoài `ke-chuyen`, `tu-the` chỉ ghi được ở `tieu-de`, `khai-niem`, `y-tung-y`, và loại trừ với `hinh`/`anh` (nhân vật chiếm ô cột phải). `tu-the` khi `nhan-vat: khong` là lỗi `parse`. | Một bộ từ cho cả người que và nhân vật AI, nên đổi nguồn chỉ là đổi khoá đầu |
 | Q9 | Người que: `runtime/nhan-vat.js`, hàm thuần `dang(tuThe, t)` trả toạ độ khớp (đầu, vai, khuỷu, tay, hông, gối, chân) và nét mặt; vẽ SVG nét đen, đầu tròn trắng, áo màu. Chuyển động: nhún thở chu kỳ 2,4 s biên độ 1,5 %, chớp mắt theo lịch xác định, cử chỉ lặp nhẹ của tư thế (vẫy, chỉ, gãi đầu) trong 1,2 s đầu. | Cử động được, không cần ảnh, đồng nhất tuyệt đối |
-| Q10 | Công cụ mới `tools/vi/anh_ai.py <thư_mục_video>` với hai lệnh. `ke-hoach` đọc `video.md`, ghi `anh/ai/ke-hoach.json` và in một dòng JSON: mỗi mục có `file`, `prompt`, `kich-thuoc`, `tham-chieu`. Nhân vật có một ảnh mẫu `nhan-vat-mau.png` vẽ trước (đứng thẳng, nhìn thẳng), rồi mỗi tư thế đã dùng một ảnh `tu-the-<tên>.png` vẽ kèm ảnh mẫu làm tham chiếu, trên nền xanh lá thuần #00FF00. Câu lệnh ghép từ câu phong cách cố định theo `phong-cach` và `kho`, mô tả của thầy cô, và luôn có "không chữ, không ký tự, không logo, không watermark". `nhan` kiểm mọi file trong kế hoạch rồi xử lý bằng FFmpeg: nền cắt phủ về đúng khổ; nhân vật tách nền xanh (`colorkey` + `despill`), cắt sát, rồi kiểm alpha (bốn góc trong suốt, phần đục 5–70 %). Ảnh gốc giữ ở `anh/ai/goc/`; nguồn ghi vào `anh/ai/nguon.json` gồm công cụ, mô hình, câu lệnh, ngày. | Đẩy phần dễ sai (câu lệnh thống nhất, tách nền) vào mã xác định; AI chỉ vẽ |
+| Q10 | Công cụ mới `tools/vi/anh_ai.py <thư_mục_video>` với hai lệnh. `ke-hoach` đọc `video.md`, ghi `anh/ai/ke-hoach.json` và in một dòng JSON: mỗi mục có `file`, `prompt`, `kich-thuoc`, `tham-chieu`. Nhân vật có một ảnh mẫu `nhan-vat-mau.png` vẽ trước (đứng thẳng, nhìn thẳng), rồi mỗi tư thế đã dùng một ảnh `tu-the-<tên>.png` vẽ kèm ảnh mẫu làm tham chiếu, trên nền xanh lá thuần #00FF00. Câu lệnh ghép từ câu phong cách cố định theo `phong-cach` và `kho`, mô tả của thầy cô, và luôn có "không chữ, không ký tự, không logo, không watermark". `nhan` kiểm mọi file trong kế hoạch rồi xử lý bằng FFmpeg: nền cắt phủ về đúng khổ xuất (1920×1080 hoặc 1080×1920, không phóng to ảnh nhỏ hơn: thiếu điểm ảnh thì cảnh báo), nén JPEG dưới 8 MB; nhân vật tách nền xanh (`colorkey` + `despill`), cắt sát, rồi kiểm alpha (bốn góc trong suốt, phần đục 5–70 %). Ảnh gốc giữ ở `anh/ai/goc/`; nguồn ghi vào `anh/ai/nguon.json` gồm công cụ, mô hình, câu lệnh, ngày. | Đẩy phần dễ sai (câu lệnh thống nhất, tách nền) vào mã xác định; AI chỉ vẽ |
 | Q11 | Ảnh AI luôn có dòng nhỏ "Hình minh hoạ tạo bằng AI (<mô hình>)" trong 4 s cuối video, cùng chỗ nguồn nhạc (xếp hai dòng khi có cả hai). `video_ma.py` gặp file AI thiếu thì lỗi `canh` liệt kê đúng file thiếu, kèm cách sửa: chạy `anh_ai.py ke-hoach`; nền tảng không có công cụ vẽ thì đổi sang `nen: mau/...` và `nhan-vat: nguoi-que`. Không tự thay âm thầm. | Minh bạch với học sinh; lỗi chỉ đúng việc cần làm |
 | Q12 | Khoá đầu `loat: <tên loạt>` (≤ 30). Có `loat` thì hiện tên loạt góc trái trên và "0k/N" góc phải trên, chữ nhỏ in hoa, lớp đứng yên như `#nhac-nguon`. Không có thì không hiện gì (tương thích). | Đúng khuôn "series" của video mẫu, không động tới kịch bản cũ |
 | Q13 | Phụ đề: kiểu `.ass` có khung nền (`BorderStyle=3`, nền đen 60 %, chữ trắng, từ đang đọc tô vàng) cho `cat-dan` và `kho: doc`; `viet-tay` ngang giữ kiểu cũ. Khổ dọc: tối đa 22 ký tự một dòng, hai dòng; câu dài hơn thì tách theo dấu phẩy rồi theo từ và cảnh báo. Font phụ đề theo chủ đề (Itim hoặc Be Vietnam Pro). | Sửa đúng lỗi phụ đề khó đọc ở video mẫu |
@@ -197,4 +200,5 @@ Sửa:
   - B. cắt dán, font, thẻ, tài liệu, khung loạt, phụ đề có khung;
   - C. người que, `ke-chuyen`, kho mẫu;
   - D. `anh_ai.py`, nguồn AI, tài liệu theo nền tảng.
-- **Khổ dọc 720×1280** có độ phân giải ngang thấp khi đăng TikTok hay Reels. Có thể nâng lên 1080×1920 sau bằng tỉ lệ thiết bị của Chromium; ghi nhận, chưa làm ở vi.12.
+- **Full HD tăng số điểm ảnh 2,25 lần.** Chụp, mã hoá và dung lượng khung tạm đều tăng. Kế hoạch đo trước ở đợt A. Nếu vượt mục tiêu thì đổi mã hoá khung tạm (JPEG chất lượng cao thay PNG), không hạ độ phân giải mặc định.
+- **Ảnh AI và ảnh thật 8 MB** ở Full HD: nền AI được `anh_ai.py nhan` nén về JPEG hoặc WebP dưới 8 MB. Giới hạn cũ giữ nguyên.
