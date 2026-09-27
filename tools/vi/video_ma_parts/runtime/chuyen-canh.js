@@ -8,9 +8,11 @@
   // `nen`: ảnh cảnh trước (với mo-man là nửa trái, `nen2` là nửa phải, kiểu khác null); `moi`: lớp bảng cảnh mới;
   // `loe`: độ mờ lớp loé trắng phủ trên cùng.
   var KIEU = ['lau-bang', 'lat-trang', 'truot', 'phong', 'mo-man'];
-  // Xé giấy (cat-dan): mép răng cưa của THI_CAT_DAN.giayXe với một hạt cố định (không đổi theo cảnh) quét từ trái
-  // sang phải; không thêm vào KIEU/luân phiên để không đổi kịch bản cũ, nhưng trangThai() vẫn nhận kiểu này.
-  var XE_GIAY_HAT = 20260927;
+  // Xé giấy (cat-dan): mép răng cưa của THI_CAT_DAN.giayXe với hạt giống = số cảnh (tham số `hat` của trangThai,
+  // như mọi nét "ngẫu nhiên" khác — mảng giấy xé, chấm lưới) nên mỗi cảnh một hình mép khác nhau; không thêm vào
+  // KIEU/luân phiên để không đổi kịch bản cũ, nhưng trangThai() vẫn nhận kiểu này. Gọi thiếu `hat` (kiểu khác không
+  // cần) thì dùng hạt mặc định để vẫn ra một hình hợp lệ.
+  var XE_GIAY_HAT_MAC_DINH = 1;
   var XE_GIAY_RANG = 26;
   var XE_GIAY_LE = XE_GIAY_RANG + 6;
 
@@ -27,8 +29,8 @@
   function den(a) { return 'rgba(0,0,0,' + lam(a) + ')'; }
   // clip-path polygon() của mép xé tại canhX: hộp rộng và cao quá khổ để chỉ mép trái (đã xé) rơi trong khung;
   // hạt cố định nên hình răng cưa luôn giống nhau. Đổi cú pháp điểm SVG ("x,y x,y") của giayXe sang CSS ("x y, x y").
-  function xeGiayClip(k, canhX) {
-    var diem = root.THI_CAT_DAN.giayXe(XE_GIAY_HAT, canhX, -XE_GIAY_LE, 3 * k.rong, k.cao + 2 * XE_GIAY_LE, XE_GIAY_RANG);
+  function xeGiayClip(k, canhX, hat) {
+    var diem = root.THI_CAT_DAN.giayXe(hat, canhX, -XE_GIAY_LE, 3 * k.rong, k.cao + 2 * XE_GIAY_LE, XE_GIAY_RANG);
     return 'polygon(' + diem.split(' ').map(function (p) { return p.replace(',', ' '); }).join(', ') + ')';
   }
   // Nếp màn: sọc dọc mờ cách 64 px và bóng đậm dần về mép trong (`huong` là hướng tới mép trong).
@@ -37,7 +39,7 @@
       'linear-gradient(' + huong + ',' + den(0) + ',' + den(0.3 * muc) + ')';
   }
 
-  function trangThai(kieu, t, dai) {
+  function trangThai(kieu, t, dai, hat) {
     if (KIEU.indexOf(kieu) < 0 && kieu !== 'xe-giay') { throw new Error('Kiểu chuyển cảnh không có: ' + kieu); }
     var k = root.THI_KHO.lay();
     var RONG = k.rong;
@@ -79,7 +81,7 @@
     } else if (kieu === 'xe-giay') {
       // Mép quét tuyến tính từ ngoài mép trái (che kín) tới ngoài mép phải (hết che); nền cũ là vùng bên phải mép.
       var canhX = -XE_GIAY_LE + (RONG + 2 * XE_GIAY_LE) * t / dai;
-      kq.nen.clipPath = xeGiayClip(k, canhX);
+      kq.nen.clipPath = xeGiayClip(k, canhX, typeof hat === 'number' ? hat : XE_GIAY_HAT_MAC_DINH);
       if (chay) { kq.nen.filter = 'drop-shadow(10px 0 12px ' + den(0.35) + ')'; }
     } else {
       // Mở màn: hai nửa trang cũ kéo sang hai bên, co lại về mép ngoài như vải dồn nếp, mép trong có bóng.

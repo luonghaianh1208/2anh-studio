@@ -338,10 +338,20 @@ test('chuyen canh: xe-giay dang chay thi co bong doc mep, moi ve nguyen trang', 
   }
 });
 
-test('chuyen canh: xe-giay xac dinh theo t (hat co dinh, cung t ra cung hinh)', function () {
+test('chuyen canh: xe-giay xac dinh theo t va hat (cung t, cung hat ra cung hinh)', function () {
   for (var t = -0.1; t < 0.8; t += 0.013) {
-    assert.deepStrictEqual(CH.trangThai('xe-giay', t, 0.5), CH.trangThai('xe-giay', t, 0.5), 't=' + t);
+    assert.deepStrictEqual(CH.trangThai('xe-giay', t, 0.5, 3), CH.trangThai('xe-giay', t, 0.5, 3), 't=' + t);
   }
+});
+
+test('chuyen canh: xe-giay hat = so canh - hai canh khac nhau ra mep khac nhau, cung canh thi giong het', function () {
+  var a2 = CH.trangThai('xe-giay', 0.25, 0.5, 2);
+  var a2b = CH.trangThai('xe-giay', 0.25, 0.5, 2);
+  var a3 = CH.trangThai('xe-giay', 0.25, 0.5, 3);
+  assert.deepStrictEqual(a2, a2b, 'cung so canh (hat) thi ra cung mep');
+  assert.notStrictEqual(a2.nen.clipPath, a3.nen.clipPath, 'khac so canh (hat) thi mep phai khac nhau');
+  // Thiếu hat (kiểu chuyển khác không cần) vẫn ra một hình hợp lệ, không lỗi.
+  assert.ok(/^polygon\(/.test(CH.trangThai('xe-giay', 0.25, 0.5).nen.clipPath));
 });
 
 test('ban tay: xe-giay cung khong co gie, tay an toi khi chuyen xong', function () {
@@ -528,4 +538,12 @@ test('thu tu xuat hien: canh 2 cat-dan xe-giay - moi muc >= giayLau + 0,05, nen 
   assert.ok(boi.hinh.batDau <= boi['tieu-de'].batDau, 'hinh chinh truoc nhan tieu de: ' + JSON.stringify(boi));
   assert.ok(boi['tieu-de'].batDau <= boi['y-0'].batDau, 'nhan tieu de truoc chu y: ' + JSON.stringify(boi));
   assert.ok(boi['y-0'].batDau <= boi['y-1'].batDau, 'chu y-0 truoc y-1 theo moc: ' + JSON.stringify(boi));
+  // Chấm tròn đầu mỗi ý (cham-k) và chữ ý (y-k) cùng nhận batDau = du.moc[k] (dau() kẹp cả hai như nhau), nên thứ tự
+  // thật là "cùng lúc", không phải chấm hẳn trước chữ: chấm không bao giờ đến trước hình chính, và không bao giờ đến
+  // sau đúng chữ ý nó đứng cạnh.
+  [0, 1].forEach(function (k) {
+    var cham = boi['cham-' + k], y = boi['y-' + k];
+    assert.ok(cham.batDau >= boi.hinh.batDau, 'cham-' + k + ' khong duoc den truoc hinh chinh: ' + JSON.stringify(boi));
+    assert.ok(cham.batDau <= y.batDau, 'cham-' + k + ' khong duoc den sau chu y-' + k + ' no dung canh: ' + JSON.stringify(boi));
+  });
 });

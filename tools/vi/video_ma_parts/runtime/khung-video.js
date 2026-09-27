@@ -751,7 +751,7 @@
     // và trả biến đổi của lớp bảng mới để ghép với máy quay.
     function datNen(t) {
       if (!nen.length) { return null; }
-      var s = t >= 0 && t < lau ? root.THI_CHUYEN.trangThai(kieu, t, lau) : null;
+      var s = t >= 0 && t < lau ? root.THI_CHUYEN.trangThai(kieu, t, lau, du.so) : null;
       [s && s.nen, s && s.nen2].forEach(function (l, i) {
         var o = nen[i];
         if (!o) { return; }
