@@ -10,6 +10,7 @@ from pathlib import Path
 from video_parts import media, srt
 
 from . import am_thanh, karaoke
+from .chup import DUOI_KHUNG, FIX_DUNG, ten_khung
 from .giong import _MARKUP_RE  # cùng bộ dấu giọng đọc bỏ đi: ** ~ ^ == (( )) __ {{ }}
 from .lich import DAN_DAU, FPS, doan_loi
 from .phong import FONT as ITIM_FONT, TEN as ITIM_TEN
@@ -18,6 +19,7 @@ BIEN_DO_NHIEU = 0.002
 HAT_NHIEU = 1234
 STYLE = f"FontName={ITIM_TEN},FontSize=16,Outline=1.5,Shadow=0,Spacing=0.5,MarginV=22"
 FONTS_REL = ".khung/fonts"
+KHUNG_DAU = f".khung/anh/{ten_khung(0)}"
 # Nhạc nền: vào/ra dần, mức nền, và bộ nén hạ nhạc khi tiếng chính (giọng) vượt ngưỡng.
 NHAC_VAO_RA = 1.5
 NHAC_DB = -24
@@ -86,7 +88,7 @@ def lenh_video(danh_sach_am: Path, out_mp4: Path, fps: int, phu_de_tuong_doi) ->
     """`danh_sach_am`: danh sách nối tiếng các cảnh (.txt), hoặc một file tiếng đã trộn nhạc (.wav)."""
     cmd = [
         "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
-        "-framerate", str(fps), "-i", ".khung/anh/f%06d.png",
+        "-framerate", str(fps), "-i", f".khung/anh/f%06d.{DUOI_KHUNG}",
     ]
     if Path(danh_sach_am).suffix.lower() == ".txt":
         cmd += ["-f", "concat", "-safe", "0"]
@@ -101,6 +103,22 @@ def lenh_video(danh_sach_am: Path, out_mp4: Path, fps: int, phu_de_tuong_doi) ->
     return cmd
 
 
+def _kiem_khung(thu_muc: Path, kho, run) -> None:
+    """Khung đầu tiên phải đúng kích thước xuất của khổ: ghép không co giãn nên sai là lỗi chụp."""
+    anh = thu_muc / KHUNG_DAU
+    cmd = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
+           "-of", "csv=s=x:p=0", str(anh)]
+    try:
+        proc = run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60, cwd=thu_muc)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise media.MediaError("ffmpeg", f"Không chạy được ffprobe: {exc}", media.FIX_FFMPEG) from exc
+    mong = f"{kho.rong_xuat}x{kho.cao_xuat}"
+    co = (proc.stdout or "").strip() if proc.returncode == 0 else ""
+    if co != mong:
+        raise media.MediaError("dung", f"Khung hình chụp ra {co or 'không đọc được'}, cần {mong} (khổ {kho.ten}, "
+                                       f"{kho.do_phan_giai}).", FIX_DUNG)
+
+
 def _chay(cmd: list, run, cwd: Path) -> None:
     try:
         proc = run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=7200, cwd=cwd)
@@ -112,9 +130,14 @@ def _chay(cmd: list, run, cwd: Path) -> None:
 
 
 def ghep_video(thu_muc: Path, cac_lich: list, cac_giong: list, phu_de: str, fps: int = FPS, run=subprocess.run,
-               su_kien: list | None = None, nhac: dict | None = None) -> list:
+               su_kien: list | None = None, nhac: dict | None = None, kho=None) -> list:
     """`su_kien`: sự kiện âm thanh của từng cảnh (cùng thứ tự `cac_lich`) để trộn hiệu ứng; None là không có hiệu ứng.
-    `nhac`: kết quả `nhac.doc` (nhạc nền trộn sau khi nối tiếng các cảnh); None là không có nhạc."""
+    `nhac`: kết quả `nhac.doc` (nhạc nền trộn sau khi nối tiếng các cảnh); None là không có nhạc.
+    `kho` (kho.Kho): kiểm kích thước khung chụp và đặt khung phụ đề karaoke theo điểm CSS; None là khổ ngang cũ."""
+    kich_ass = {}
+    if kho is not None:
+        _kiem_khung(thu_muc, kho, run)
+        kich_ass = {"rong": kho.rong, "cao": kho.cao}  # PlayRes theo điểm CSS; libass tự co theo khung video
     lam = thu_muc / ".khung"
     wavs = []
     mau = None
@@ -153,7 +176,7 @@ def ghep_video(thu_muc: Path, cac_lich: list, cac_giong: list, phu_de: str, fps:
         shutil.copy2(ITIM_FONT, fonts_dir / ITIM_FONT.name)
         burn = ".khung/phu-de.srt"
     elif phu_de == "karaoke":
-        (lam / "phu-de.ass").write_text(karaoke.tao_ass(cac_lich), encoding="utf-8")
+        (lam / "phu-de.ass").write_text(karaoke.tao_ass(cac_lich, **kich_ass), encoding="utf-8")
         fonts_dir = lam / "fonts"
         fonts_dir.mkdir(exist_ok=True)
         shutil.copy2(ITIM_FONT, fonts_dir / ITIM_FONT.name)

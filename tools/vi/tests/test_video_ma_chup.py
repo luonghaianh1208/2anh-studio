@@ -97,10 +97,10 @@ class ChromiumTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             n = chup.chup_canh(self.page, html, 6, lich.FPS, Path(tmp), 0)
             self.assertEqual(n, 6)
-            frames = sorted(Path(tmp).glob("f*.png"))
-            self.assertEqual([f.name for f in frames], [f"f{i:06d}.png" for i in range(6)])
+            frames = sorted(Path(tmp).glob("f*.jpg"))
+            self.assertEqual([f.name for f in frames], [f"f{i:06d}.jpg" for i in range(6)])
             first = frames[0].read_bytes()
-            self.assertEqual(first[:8], b"\x89PNG\r\n\x1a\n")
+            self.assertEqual(first[:3], b"\xff\xd8\xff")  # khung tạm là JPEG (chup.DUOI_KHUNG)
             final = Path(tmp) / "cuoi.png"
             chup.chup_cuoi(self.page, html, final)
             self.assertGreater(final.stat().st_size, frames[0].stat().st_size)
@@ -226,7 +226,7 @@ class ChromiumTest(unittest.TestCase):
             chup.chup_canh(self.page, html, 4, lich.FPS, Path(tmp), 0)
             chup.chup_canh(self.page, html, 4, lich.FPS, Path(tmp), 10)
             for i in range(4):
-                self.assertEqual((Path(tmp) / f"f{i:06d}.png").read_bytes(), (Path(tmp) / f"f{10 + i:06d}.png").read_bytes())
+                self.assertEqual((Path(tmp) / f"f{i:06d}.jpg").read_bytes(), (Path(tmp) / f"f{10 + i:06d}.jpg").read_bytes())
 
     def test_experiment_scene_draws_the_model(self):
         from thi_nghiem_parts import thu_vien
@@ -1253,6 +1253,16 @@ _SO_SANH = """([a, b]) => Promise.all([a, b].map((src) => new Promise((ok, loi) 
         return lon; })"""
 SO_SANH_NUA_PHAI = _SO_SANH.replace("X", "640")
 SO_SANH_CA_KHUNG = _SO_SANH.replace("X", "0")
+# Tỉ lệ điểm ảnh nửa phải có một kênh lệch quá 16 mức: khung tạm là JPEG nên nền cảnh trước (khung JPEG đọc lại rồi
+# mã hoá lần nữa) chỉ gần đúng từng điểm ảnh.
+LECH_NUA_PHAI = _SO_SANH.replace("X", "640").replace(
+    """let lon = 0;
+        for (let k = 0; k < px[0].length; k++) { lon = Math.max(lon, Math.abs(px[0][k] - px[1][k])); }
+        return lon; })""",
+    """let lech = 0;
+        for (let k = 0; k < px[0].length; k += 4) {
+            if ([0, 1, 2].some((c) => Math.abs(px[0][k + c] - px[1][k + c]) > 16)) { lech++; } }
+        return lech / (px[0].length / 4); })""")
 
 
 @unittest.skipUnless(co_chromium(), NEED_CHROMIUM)
@@ -1280,7 +1290,7 @@ class ParallelCaptureChromiumTest(unittest.TestCase):
         for thu_muc in (self.hai, self.mot):
             with self.subTest(thu_muc=thu_muc.name):
                 ten = sorted(p.name for p in thu_muc.iterdir())
-                self.assertEqual(ten, [f"f{i:06d}.png" for i in range(sum(self.so_khung))])
+                self.assertEqual(ten, [f"f{i:06d}.jpg" for i in range(sum(self.so_khung))])
 
     def test_one_process_and_two_processes_give_the_same_frames(self):
         # Ngoại lệ duy nhất: các khung lau bảng của cảnh mở đầu dải thứ hai. Nền ở đó là khung cuối cảnh trước dựng
@@ -1289,13 +1299,13 @@ class ParallelCaptureChromiumTest(unittest.TestCase):
         lau = range(dau_dai_2, dau_dai_2 + int(lich.LAU_BANG * lich.FPS) + 1)
         khac = []
         for i in range(sum(self.so_khung)):
-            if (self.hai / f"f{i:06d}.png").read_bytes() != (self.mot / f"f{i:06d}.png").read_bytes():
+            if (self.hai / f"f{i:06d}.jpg").read_bytes() != (self.mot / f"f{i:06d}.jpg").read_bytes():
                 khac.append(i)
         self.assertTrue(set(khac) <= set(lau), khac)
         import base64
 
         def url(thu_muc, i):
-            return "data:image/png;base64," + base64.b64encode((thu_muc / f"f{i:06d}.png").read_bytes()).decode("ascii")
+            return "data:image/jpeg;base64," + base64.b64encode((thu_muc / f"f{i:06d}.jpg").read_bytes()).decode("ascii")
 
         with chup.trinh_duyet() as browser:
             page = chup.trang_moi(browser)
@@ -1308,7 +1318,7 @@ class ParallelCaptureChromiumTest(unittest.TestCase):
         import base64
 
         def url(i):
-            return "data:image/png;base64," + base64.b64encode((self.hai / f"f{i:06d}.png").read_bytes()).decode("ascii")
+            return "data:image/jpeg;base64," + base64.b64encode((self.hai / f"f{i:06d}.jpg").read_bytes()).decode("ascii")
 
         dau = [0, self.so_khung[0], self.so_khung[0] + self.so_khung[1]]
         with chup.trinh_duyet() as browser:
@@ -1322,7 +1332,7 @@ class ParallelCaptureChromiumTest(unittest.TestCase):
                     cuoi_truoc = dau[k] - 1
                     self.assertGreater(page.evaluate(SO_SANH_NUA_PHAI, [url(cuoi_truoc), bang_trong]), 64,
                                        "nửa phải khung cuối cảnh trước phải có mực, không phải bảng trống")
-                    self.assertEqual(page.evaluate(SO_SANH_NUA_PHAI, [url(cuoi_truoc), url(dau[k] + 1)]), 0)
+                    self.assertLessEqual(page.evaluate(LECH_NUA_PHAI, [url(cuoi_truoc), url(dau[k] + 1)]), 0.005)
                     self.assertGreater(page.evaluate(SO_SANH_NUA_PHAI, [url(cuoi_truoc), url(dau[k] + self.so_khung[k] - 1)]), 64,
                                        "khung cuối cảnh mới phải khác nền cảnh trước")
 
@@ -1444,7 +1454,7 @@ class CaptureBookkeepingTest(unittest.TestCase):
     def chup_canh_gia(page, html, so_khung, fps, thu_muc, so_dau, ghi_log=None):
         thu_muc.mkdir(parents=True, exist_ok=True)
         for i in range(so_khung):
-            (thu_muc / f"f{so_dau + i:06d}.png").write_bytes(png(4, 4))
+            (thu_muc / f"f{so_dau + i:06d}.jpg").write_bytes(png(4, 4))
         return so_dau + so_khung
 
     def test_background_of_a_finished_scene_is_released(self):

@@ -4,6 +4,7 @@ var assert = require('node:assert');
 var path = require('node:path');
 
 var RT = path.join(__dirname, '..', '..', 'video_ma_parts', 'runtime');
+require(path.join(RT, 'kho.js'));
 require(path.join(RT, 'ban-tay.js'));
 require(path.join(RT, 'may-quay.js'));
 var T = globalThis.THI_BAN_TAY;

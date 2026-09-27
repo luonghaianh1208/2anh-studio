@@ -9,6 +9,7 @@ var RT = path.join(__dirname, '..', '..', 'video_ma_parts', 'runtime');
 var TN = path.join(__dirname, '..', '..', 'thi_nghiem_parts');
 require(path.join(TN, 'runtime', 'khung.js'));
 require(path.join(TN, 'mo_hinh', 'li-con-lac-don.js'));
+require(path.join(RT, 'kho.js'));
 require(path.join(RT, 'dong.js'));
 require(path.join(RT, 'chuyen-canh.js'));
 require(path.join(RT, 'khung-video.js'));

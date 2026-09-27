@@ -36,7 +36,7 @@ class FakeBrowser:
 def fake_chup(page, html, so_khung, fps, thu_muc, so_dau, ghi_log=None):
     thu_muc.mkdir(parents=True, exist_ok=True)
     for i in range(so_khung):
-        (thu_muc / f"f{so_dau + i:06d}.png").write_bytes(b"x")
+        (thu_muc / f"f{so_dau + i:06d}.jpg").write_bytes(b"x")
     return so_dau + so_khung
 
 
@@ -180,12 +180,12 @@ class CliTest(unittest.TestCase):
                 return False
 
         (self.dir / ".khung" / "anh").mkdir(parents=True)
-        (self.dir / ".khung" / "anh" / "f000000.png").write_bytes(b"khung-cu")
+        (self.dir / ".khung" / "anh" / "f000000.jpg").write_bytes(b"khung-cu")
 
         def fake_chup(page, html, so_khung, fps, thu_muc, so_dau, ghi_log=None):
-            self.assertFalse((thu_muc / "f000000.png").exists(), "khung cũ phải bị dọn trước khi chụp")
+            self.assertFalse((thu_muc / "f000000.jpg").exists(), "khung cũ phải bị dọn trước khi chụp")
             for i in range(so_khung):
-                (thu_muc / f"f{so_dau + i:06d}.png").write_bytes(b"x")
+                (thu_muc / f"f{so_dau + i:06d}.jpg").write_bytes(b"x")
             return so_dau + so_khung
 
         def fake_ghep(thu_muc, cac_lich, cac_giong, phu_de, **kw):
@@ -322,7 +322,7 @@ class CliTest(unittest.TestCase):
         giong = lich.GiongInfo(mp3=self.dir / "x.mp3", giay=3.0, moc_cau=[0.0], uoc_luong=False, nguon="may")
 
         def hong(cong_viec):
-            (Path(cong_viec["thu_muc_anh"]) / "f000000.png").write_bytes(b"x")
+            (Path(cong_viec["thu_muc_anh"]) / "f000000.jpg").write_bytes(b"x")
             raise RuntimeError("Target page crashed")
 
         with contextlib.ExitStack() as stack:

@@ -17,13 +17,16 @@ META_CHOICES = {
     "chuyen-canh": ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "luan-phien", "khong"),
     "chu-dong": ("co", "khong"),
     "am-thanh": ("co", "khong"),
+    # Khổ khung (kho.py): ngang 16:9 hoặc dọc 9:16; độ phân giải xuất 1080 (Full HD) hoặc 720 cho máy yếu.
+    "kho": ("ngang", "doc"),
+    "do-phan-giai": ("1080", "720"),
 }
 # Khoá đầu tự do (không có mặc định): nhạc nền là tên file trong nhac/; nguồn nhạc là chữ (chỉ dùng kèm `nhac-nen`).
 META_FREE = ("nhac-nen", "nguon-nhac")
 META_DEFAULTS = {
     "phong-cach": "viet-tay", "giong": "nu", "toc-do": "vua", "phu-de": "karaoke",
     "ban-tay": "co", "may-quay": "co", "chuyen-canh": "lau-bang",
-    "chu-dong": "co", "am-thanh": "co",
+    "chu-dong": "co", "am-thanh": "co", "kho": "ngang", "do-phan-giai": "1080",
 }
 
 # loại cảnh -> (trường đơn bắt buộc, trường đơn tuỳ chọn, trường lặp {khoá: (tối thiểu, tối đa)})

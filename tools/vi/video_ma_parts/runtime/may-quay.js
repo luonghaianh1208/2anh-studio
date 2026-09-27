@@ -3,12 +3,11 @@
 
   // Máy quay theo t: hàm thuần, chạy được trong Node. `hop[id] = {x, y, w, h}` đo ở Z = 1.
   // Kết quả {z, tx, ty}: điểm (x, y) của lớp bảng hiện ở (z*x + tx, z*y + ty).
-  var RONG = 1280, CAO = 720, DAY = 620;
+  // Rộng, cao, đáy vùng nội dung (mép trên phụ đề) và tâm lấy từ khổ hiện tại (kho.js), đọc lúc tính.
   var ZMAX = 1.35;
   var CHUYEN = 0.6;
   var THU = 1.2;
   var XONG = 0.2;
-  var TAM = { x: 640, y: 310 };
   var GOC = { z: 1, tx: 0, ty: 0 };
 
   function kep(x, a, b) { return x < a ? a : (x > b ? b : x); }
@@ -41,30 +40,35 @@
     return ve || xong;
   }
 
-  // Z nhỏ nhất để hộp có đáy <= 620 mà lớp bảng vẫn phủ kín khung: z >= 100 / (720 - đáy).
-  // Chỉ làm được khi đáy <= 720 - 100 / 1,35 ≈ 646; hộp thấp hơn thì z kẹp ở 1,35 và đáy vượt 620
-  // (bố cục cảnh giữ mọi nội dung trên y = 630 nên không xảy ra).
+  function kho() { return root.THI_KHO.lay(); }
+
+  // Z nhỏ nhất để hộp có đáy <= DAY mà lớp bảng vẫn phủ kín khung: z >= (CAO - DAY) / (CAO - đáy).
+  // Khổ ngang (DAY 620, CAO 720): chỉ làm được khi đáy <= 720 - 100 / 1,35 ≈ 646; hộp thấp hơn thì z kẹp ở
+  // 1,35 và đáy vượt 620 (bố cục cảnh giữ mọi nội dung trên y = 630 nên không xảy ra).
   function zToiThieu(h) {
+    var k = kho();
     var day = h.y + h.h;
-    return day > DAY ? Math.min(ZMAX, (CAO - DAY) / (CAO - day)) : 1;
+    return day > k.day ? Math.min(ZMAX, (k.cao - k.day) / (k.cao - day)) : 1;
   }
 
   function kepKhoang(v, lo, hi, phuLo, phuHi) {
     return lo <= hi ? kep(v, lo, hi) : kep(v, phuLo, phuHi);
   }
 
-  // Kẹp để lớp bảng phủ kín khung và hộp nằm trong khung, đáy <= 620.
+  // Kẹp để lớp bảng phủ kín khung và hộp nằm trong khung, đáy <= DAY.
   function kepHop(s, h) {
+    var k = kho();
     var z = kep(Math.max(s.z, zToiThieu(h)), 1, ZMAX);
-    var phuX = RONG * (1 - z), phuY = CAO * (1 - z);
-    var tx = kepKhoang(s.tx, Math.max(phuX, -z * h.x), Math.min(0, RONG - z * (h.x + h.w)), phuX, 0);
-    var ty = kepKhoang(s.ty, Math.max(phuY, -z * h.y), Math.min(0, DAY - z * (h.y + h.h)), phuY, 0);
+    var phuX = k.rong * (1 - z), phuY = k.cao * (1 - z);
+    var tx = kepKhoang(s.tx, Math.max(phuX, -z * h.x), Math.min(0, k.rong - z * (h.x + h.w)), phuX, 0);
+    var ty = kepKhoang(s.ty, Math.max(phuY, -z * h.y), Math.min(0, k.day - z * (h.y + h.h)), phuY, 0);
     return { z: z, tx: tx, ty: ty };
   }
 
   function ngam(h) {
-    var z = kep(Math.min(0.6 * RONG / h.w, 0.6 * 560 / h.h), 1, ZMAX);
-    return kepHop({ z: z, tx: TAM.x - z * (h.x + h.w / 2), ty: TAM.y - z * (h.y + h.h / 2) }, h);
+    var k = kho();
+    var z = kep(Math.min(0.6 * k.rong / h.w, 0.6 * 560 / h.h), 1, ZMAX);
+    return kepHop({ z: z, tx: k.tamX - z * (h.x + h.w / 2), ty: k.tamY - z * (h.y + h.h / 2) }, h);
   }
 
   function theoMuc(ds, hop, t) {
@@ -97,7 +101,7 @@
     if (cauHinh.mayQuay === false) { return { z: 1, tx: 0, ty: 0 }; }
     if (cauHinh.day) {
       var z = 1 + 0.06 * kep(t / gh, 0, 1);
-      return { z: z, tx: 640 * (1 - z), ty: 360 * (1 - z) };
+      return { z: z, tx: kho().rong / 2 * (1 - z), ty: kho().cao / 2 * (1 - z) };
     }
     var ve = em((t - (gh - THU)) / (THU - XONG));
     if (ve >= 1) { return { z: 1, tx: 0, ty: 0 }; }

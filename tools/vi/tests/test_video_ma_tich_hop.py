@@ -101,7 +101,7 @@ class EndToEndTest(unittest.TestCase):
         self.assertTrue(video.is_file())
         info = thong_so(video)
         kinds = {s["codec_type"]: s for s in info["streams"]}
-        self.assertEqual((kinds["video"]["width"], kinds["video"]["height"]), (1280, 720))
+        self.assertEqual((kinds["video"]["width"], kinds["video"]["height"]), (1920, 1080))  # do-phan-giai mặc định 1080
         self.assertEqual(kinds["video"]["r_frame_rate"], "30/1")
         self.assertIn("audio", kinds)
         self.assertEqual(data["so_canh"], 3)

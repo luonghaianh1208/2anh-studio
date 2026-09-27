@@ -130,7 +130,7 @@ class CommandTest(unittest.TestCase):
     def test_video_command_uses_scene_fps_frames_and_30_fps_output(self):
         cmd = ghep.lenh_video(Path("am.txt"), Path(".khung/video.mp4"), lich.FPS, ".khung/phu-de.srt")
         self.assertEqual(cmd[cmd.index("-framerate") + 1], str(lich.FPS))
-        self.assertEqual(cmd[cmd.index("-framerate") + 3], ".khung/anh/f%06d.png")
+        self.assertEqual(cmd[cmd.index("-framerate") + 3], ".khung/anh/f%06d.jpg")
         self.assertEqual(cmd[cmd.index("-r") + 1], "30")
         self.assertIn("libx264", cmd)
         vf = cmd[cmd.index("-vf") + 1]

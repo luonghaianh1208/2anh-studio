@@ -207,9 +207,22 @@ class NewFieldsTest(unittest.TestCase):
             ("ban-tay", ("co", "khong"), "co"),
             ("may-quay", ("co", "khong"), "co"),
             ("chuyen-canh", ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "luan-phien", "khong"), "lau-bang"),
+            ("kho", ("ngang", "doc"), "ngang"),
+            ("do-phan-giai", ("1080", "720"), "1080"),
         ):
             self.assertEqual(parse.META_CHOICES[key], choices)
             self.assertEqual(parse.META_DEFAULTS[key], default)
+
+    def test_kho_va_do_phan_giai(self):
+        video = parse.parse(doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n", META + "kho: doc\ndo-phan-giai: 720\n"))
+        self.assertEqual((video.meta["kho"], video.meta["do-phan-giai"]), ("doc", "720"))
+        video = parse.parse(doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n"))
+        self.assertEqual((video.meta["kho"], video.meta["do-phan-giai"]), ("ngang", "1080"))
+        for dong, khoa in (("kho: vuong\n", "kho"), ("do-phan-giai: 4k\n", "do-phan-giai")):
+            with self.subTest(dong=dong), self.assertRaises(parse.ParseError) as bat:
+                parse.parse(doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n", META + "giong: nu\n" + dong))
+            self.assertEqual(bat.exception.line_no, 6)
+            self.assertIn(f"`{khoa}`", str(bat.exception))
 
     def test_new_meta_keys_default_when_video_omits_them(self):
         video = parse.parse(doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n"))

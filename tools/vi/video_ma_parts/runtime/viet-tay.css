@@ -1,13 +1,13 @@
 html, body { margin: 0; padding: 0; background: #fbfaf5; }
-#khung { position: relative; width: 1280px; height: 720px; overflow: hidden; background: #fbfaf5;
+#khung { position: relative; width: var(--rong); height: var(--cao); overflow: hidden; background: #fbfaf5;
   font-family: 'Itim', sans-serif; color: #1f2937; }
-.nen-bao { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; pointer-events: none; }
-#nen-truoc, #nen-truoc-2, .nen-phu { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; display: none;
+.nen-bao { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); pointer-events: none; }
+#nen-truoc, #nen-truoc-2, .nen-phu { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); display: none;
   transform-origin: 0 0; backface-visibility: hidden; }
-#loe-chuyen { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; background: #ffffff; opacity: 0;
+#loe-chuyen { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); background: #ffffff; opacity: 0;
   z-index: 2; pointer-events: none; }
-#bang { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; }
-#bang > svg.ve { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; }
+#bang { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); transform-origin: 0 0; }
+#bang > svg.ve { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); }
 .chu { position: absolute; overflow: hidden; line-height: 1.3; white-space: normal; overflow-wrap: normal; text-align: left; }
 .chu.day { display: flex; flex-direction: column; }
 .chu.day > .trong { margin-top: auto; padding-bottom: 0.25em; }

@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from thi_nghiem_parts import thu_vien  # noqa: E402
-from video_ma_parts import anh, chup, ghep, giong, hinh, kiem, lich, parse, trang  # noqa: E402
+from video_ma_parts import anh, chup, ghep, giong, hinh, kho, kiem, lich, parse, trang  # noqa: E402
 from video_parts import media  # noqa: E402
 
 FIX_INPUT = "Viết video.md trong thư mục dự án (xem docs/vi/tro-ly/video-giai-thich.md) rồi chạy lại."
@@ -144,7 +144,7 @@ def _xem_truoc(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> 
     shutil.rmtree(ra, ignore_errors=True)
     files = []
     with _loi_chup(), chup.trinh_duyet() as browser:
-        page = chup.trang_moi(browser)
+        page = chup.trang_moi(browser, kho.tu_meta(video.meta))
         _kiem_tran_tat_ca(page, video, trang_html)
         for canh, html in zip(video.canh, trang_html):
             chup.chup_cuoi(page, html, ra / f"canh-{canh.so}.png")
@@ -160,8 +160,9 @@ def _dung(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> dict:
     if not co_chromium():
         raise media.MediaError("chromium", "Chưa cài Chromium hoặc playwright.", chup.FIX_CHROMIUM)
     models = _mo_hinh(video, thu_muc)
+    k = kho.tu_meta(video.meta)
     with _loi_chup(), chup.trinh_duyet() as browser:
-        _kiem_tran_tat_ca(chup.trang_moi(browser), video, _trang_tam(video, thu_muc, models, nhac))
+        _kiem_tran_tat_ca(chup.trang_moi(browser, k), video, _trang_tam(video, thu_muc, models, nhac))
     cac_giong = [_lay_giong(c, thu_muc / "giong", video.meta) for c in video.canh]
     cac_lich, canh_bao = lich.dung_lich(video.canh, cac_giong)
     warnings.extend(canh_bao)
@@ -179,10 +180,10 @@ def _dung(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> dict:
         co_am = video.meta["am-thanh"] == "co"
         with _loi_chup():
             ket = chup.chup_song_song(cac_du, models_js, so_khung, lich.FPS, thu_muc_khung, so_tt,
-                                      thu_muc_su_kien=lam / "su-kien" if co_am else None)
+                                      thu_muc_su_kien=lam / "su-kien" if co_am else None, kho=k)
         su_kien = [ket.get(du["so"], []) for du in cac_du] if co_am and ket is not None else None
         log("Ghép video bằng FFmpeg...")
-        files = ghep.ghep_video(thu_muc, cac_lich, cac_giong, video.meta["phu-de"], su_kien=su_kien, nhac=nhac)
+        files = ghep.ghep_video(thu_muc, cac_lich, cac_giong, video.meta["phu-de"], su_kien=su_kien, nhac=nhac, kho=k)
     finally:
         shutil.rmtree(lam, ignore_errors=True)
     if video.meta["phu-de"] != "file":

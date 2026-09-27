@@ -137,7 +137,7 @@ class FixtureBuildTest(unittest.TestCase):
                                           str(thu_muc / "video.mp4")], capture_output=True, text=True, encoding="utf-8",
                                          check=True, timeout=60).stdout)
         kinds = {s["codec_type"]: s for s in info["streams"]}
-        self.assertEqual((kinds["video"]["width"], kinds["video"]["height"]), (1280, 720))
+        self.assertEqual((kinds["video"]["width"], kinds["video"]["height"]), (1920, 1080))  # do-phan-giai mặc định 1080
         self.assertEqual(kinds["video"]["r_frame_rate"], "30/1")
         self.assertIn("audio", kinds)
         cau_hoi = parse.parse((thu_muc / "video.md").read_text(encoding="utf-8")).canh[6]

@@ -5,6 +5,7 @@ var assert = require('node:assert');
 var path = require('node:path');
 
 var RT = path.join(__dirname, '..', '..', 'video_ma_parts', 'runtime');
+require(path.join(RT, 'kho.js'));
 require(path.join(RT, 'dong.js'));
 require(path.join(RT, 'khung-video.js'));
 require(path.join(RT, 'ban-tay.js'));

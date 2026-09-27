@@ -20,15 +20,18 @@ def _doc(path: Path) -> str:
 
 
 def dung_trang(du: dict, model=None) -> str:
-    scripts = []
+    # kho.js nạp đầu tiên: mọi runtime khác đọc khổ qua THI_KHO; du["kho"] (kho.py) được đặt trước khi dựng cảnh.
+    kho = du["kho"]
+    scripts = [_doc(RUNTIME / "kho.js")]
     if du["loai"] == "thi-nghiem":
         scripts.append(_doc(NGHIEM / "khung.js"))
         scripts.append(model.js)
     for ten in ("dong.js", "chuyen-canh.js", "khung-video.js", "nhan.js", "hinh.js", "ban-tay.js", "may-quay.js"):
         scripts.append(_doc(RUNTIME / ten))
     scripts.append(_doc(RUNTIME / "canh" / f"{du['loai']}.js"))
-    scripts.append(f"window.DU_CANH = {json_nhung(du)};\nTHI_VIDEO.khoiDong(window.DU_CANH);")
+    scripts.append(f"window.DU_CANH = {json_nhung(du)};\nTHI_KHO.dat(window.DU_CANH.kho);\nTHI_VIDEO.khoiDong(window.DU_CANH);")
     body = "\n".join(f"<script>\n{s}\n</script>" for s in scripts)
     return ("<!doctype html>\n<html lang=\"vi\"><head><meta charset=\"utf-8\">"
-            f"<style>\n{phong.font_css()}\n{_doc(RUNTIME / 'viet-tay.css')}\n</style></head>\n"
+            f"<style>\n:root {{ --rong: {kho['rong']}px; --cao: {kho['cao']}px; }}\n"
+            f"{phong.font_css()}\n{_doc(RUNTIME / 'viet-tay.css')}\n</style></head>\n"
             f"<body><div id=\"khung\"></div>\n{body}\n</body></html>\n")

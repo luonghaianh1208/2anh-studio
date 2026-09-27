@@ -331,7 +331,7 @@ class TrangChromiumTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             anh, su = Path(tmp) / "anh", Path(tmp) / "su-kien"
             ket = chup.chup_song_song(cac_du, {}, so_khung, lich.FPS, anh, 1, thu_muc_su_kien=su)
-            self.assertEqual(sorted(p.name for p in anh.iterdir()), [f"f{i:06d}.png" for i in range(sum(so_khung))])
+            self.assertEqual(sorted(p.name for p in anh.iterdir()), [f"f{i:06d}.jpg" for i in range(sum(so_khung))])
             with chup.trinh_duyet() as browser:
                 page = chup.trang_moi(browser)
                 truc_tiep = {}

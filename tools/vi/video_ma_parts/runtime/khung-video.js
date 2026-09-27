@@ -451,7 +451,8 @@
     }
     var svg = document.createElementNS(NS, 'svg');
     svg.setAttribute('class', 've');
-    svg.setAttribute('viewBox', '0 0 1280 720');
+    var kho = root.THI_KHO.lay();
+    svg.setAttribute('viewBox', '0 0 ' + kho.rong + ' ' + kho.cao);
     goc.appendChild(svg);
     var ds = muc.map(function (m) {
       var el;
@@ -725,30 +726,32 @@
       nen.forEach(function (o) { o.img.style.display = 'none'; o.phu.style.display = 'none'; });
       if (loe) { loe.style.opacity = '0'; }
       var loi = [];
+      // Mép phải, mép dưới khung và vạch phụ đề (khổ ngang: 1280, 720, 620), cho phép lệch 1 px.
+      var R = kho.rong + 1, C = kho.cao + 1, D = kho.day + 1;
       var cacO = goc.querySelectorAll('.chu');
       for (var i = 0; i < cacO.length; i++) {
         var el = cacO[i];
         var r = el.getBoundingClientRect();
-        if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1 || r.right > 1281 || r.bottom > 721) {
+        if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1 || r.right > R || r.bottom > C) {
           loi.push(el.getAttribute('data-id'));
         }
       }
-      // Dòng nguồn ảnh: nằm trong khung hình và trên vạch phụ đề (y = 620).
+      // Dòng nguồn ảnh: nằm trong khung hình và trên vạch phụ đề.
       var ng = goc.querySelector('.anh .nguon');
       if (ng) {
         var rn = ng.getBoundingClientRect();
-        if (rn.left < -1 || rn.top < -1 || rn.right > 1281 || rn.bottom > 621) { loi.push('nguon'); }
+        if (rn.left < -1 || rn.top < -1 || rn.right > R || rn.bottom > D) { loi.push('nguon'); }
       }
       // Dòng nguồn nhạc nền: trong khung hình và trên vạch phụ đề.
       if (nhacNguon) {
         var rm = nhacNguon.getBoundingClientRect();
-        if (rm.left < -1 || rm.top < -1 || rm.right > 1281 || rm.bottom > 621) { loi.push('nhac-nguon'); }
+        if (rm.left < -1 || rm.top < -1 || rm.right > R || rm.bottom > D) { loi.push('nhac-nguon'); }
       }
       // Vòng khoanh và nét gạch của cụm nhấn: trong khung hình và trên vạch phụ đề.
       var cacNet = svg.querySelectorAll('path.nhan-net');
       for (var j = 0; j < cacNet.length; j++) {
         var b = cacNet[j].getBBox();
-        if (b.x < -1 || b.y < -1 || b.x + b.width > 1281 || b.y + b.height > 621) { loi.push('nhan-' + cacNet[j].getAttribute('data-nhan')); }
+        if (b.x < -1 || b.y < -1 || b.x + b.width > R || b.y + b.height > D) { loi.push('nhan-' + cacNet[j].getAttribute('data-nhan')); }
       }
       return loi;
     };

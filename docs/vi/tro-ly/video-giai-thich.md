@@ -65,6 +65,8 @@ Khối thông tin:
 | `chuyen-canh` | không | `lau-bang` (mặc định: 0,5 giây đầu mỗi cảnh từ cảnh 2, bàn tay cầm giẻ lau bảng cũ), `lat-trang`, `truot`, `phong`, `mo-man`, `luan-phien` (xoay vòng năm kiểu) hoặc `khong`; cách chuyển ở mục "Chuyển cảnh" của `docs/vi/tro-ly/canh-video.md` |
 | `chu-dong` | không | `co` (mặc định: tiêu đề cảnh `tieu-de` nảy vào từng chữ cái, cụm nhấn nảy nhẹ khi nổ) hoặc `khong` |
 | `am-thanh` | không | `co` (mặc định: tiếng bút viết, tiếng "ting" khi ý hiện, tiếng chuyển cảnh, tích tắc khi đếm ngược, chuông khi hiện đáp án, tiếng nhỏ khi nhấn ý) hoặc `khong` |
+| `kho` | không | `ngang` (mặc định: 16:9) hoặc `doc` (9:16, cho Reels, TikTok, Story) |
+| `do-phan-giai` | không | `1080` (mặc định: Full HD, 1920×1080 hoặc 1080×1920) hoặc `720` (1280×720 hoặc 720×1280, dựng nhanh hơn cho máy yếu) |
 | `nhac-nen` | không | tên file nhạc trong thư mục `nhac/` của video (`.mp3`, `.m4a`, `.wav`, `.ogg`); không ghi thì không có nhạc |
 | `nguon-nhac` | không | dòng nguồn của nhạc nền, chỉ ghi kèm `nhac-nen` khi `nhac/nguon.json` không có bản ghi cho file đó (nhạc thầy cô gửi) |
 

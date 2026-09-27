@@ -13,6 +13,7 @@ from types import SimpleNamespace
 
 from video_parts.media import MediaError
 
+from .kho import Kho
 from .phong import CHU_VIET
 
 FIX_CHROMIUM = (
@@ -21,7 +22,20 @@ FIX_CHROMIUM = (
 )
 FIX_DUNG = "Chạy lại một lần; vẫn lỗi thì dán nguyên thông báo này cho người bảo trì."
 FIX_GHI = "Kiểm tra ổ đĩa còn chỗ trống, đóng các file đang mở trong thư mục dự án rồi chạy lại."
-VIEWPORT = {"width": 1280, "height": 720}
+# Khổ khi nơi gọi không truyền (test cũ): khung ngang 1280×720 của vi.11.
+KHO_CU = Kho("ngang", 720)
+# Khung tạm để ghép là JPEG chất lượng 95: với PNG, dựng Full HD chậm 1,75 lần 720 (số đo ở
+# docs/vi/phat-trien/2026-09-27-video-ma-vi12-kiem-thu.md). Ảnh xem trước vẫn là PNG.
+DUOI_KHUNG = "jpg"
+CHAT_LUONG = 95
+
+
+def ten_khung(i: int) -> str:
+    return f"f{i:06d}.{DUOI_KHUNG}"
+
+
+def _anh_khung(page, path=None):
+    return page.screenshot(path=None if path is None else str(path), type="jpeg", quality=CHAT_LUONG)
 
 
 class GhiKhungLoi(Exception):
@@ -67,8 +81,9 @@ def trinh_duyet():
             browser.close()
 
 
-def trang_moi(browser):
-    return browser.new_page(viewport=VIEWPORT, device_scale_factor=1)
+def trang_moi(browser, kho: Kho = KHO_CU):
+    """Trang theo điểm CSS của khổ; ảnh chụp ra ở kích thước xuất (`device_scale_factor = kho.ti_le`)."""
+    return browser.new_page(viewport={"width": kho.rong, "height": kho.cao}, device_scale_factor=kho.ti_le)
 
 
 def mo_trang(page, html: str) -> None:
@@ -97,7 +112,7 @@ def chup_canh(page, html: str, so_khung: int, fps: int, thu_muc: Path, so_dau: i
     thu_muc.mkdir(parents=True, exist_ok=True)
     for i in range(so_khung):
         page.evaluate("(t) => window.datThoiDiem(t)", i / fps)
-        page.screenshot(path=str(thu_muc / f"f{so_dau + i:06d}.png"), type="png")
+        _anh_khung(page, thu_muc / ten_khung(so_dau + i))
     return so_dau + so_khung
 
 
@@ -131,8 +146,8 @@ def chia_dai(so_khung_moi_canh: list, so_tien_trinh: int) -> list:
     return dai
 
 
-def _data_url(png: bytes) -> str:
-    return "data:image/png;base64," + base64.b64encode(png).decode("ascii")
+def _data_url(jpg: bytes) -> str:
+    return "data:image/jpeg;base64," + base64.b64encode(jpg).decode("ascii")
 
 
 def chup_dai(cong_viec: dict) -> int:
@@ -150,6 +165,7 @@ def chup_dai(cong_viec: dict) -> int:
     thu_muc = Path(cong_viec["thu_muc_anh"])
     # Có `thu_muc_su_kien`: đọc sự kiện âm thanh của mỗi cảnh ngay trên trang vừa chụp (không mở thêm trang).
     thu_muc_su_kien = Path(cong_viec["thu_muc_su_kien"]) if cong_viec.get("thu_muc_su_kien") else None
+    kho = Kho(*cong_viec["kho"]) if cong_viec.get("kho") else KHO_CU
 
     def html(k: int) -> str:
         return trang.dung_trang(cac_du[k], models.get(cac_du[k]["so"]))
@@ -161,12 +177,12 @@ def chup_dai(cong_viec: dict) -> int:
 
     da_ghi = 0
     with trinh_duyet() as browser:
-        page = trang_moi(browser)
+        page = trang_moi(browser, kho)
         if dau > 0 and can_nen(dau):
             # Khung cuối cảnh trước (t = (số khung − 1)/fps) dựng lại tại chỗ, không chờ tiến trình khác.
             mo_trang(page, html(dau - 1))
             page.evaluate("(t) => window.datThoiDiem(t)", (so_khung[dau - 1] - 1) / fps)
-            cac_du[dau]["nenTruoc"] = _data_url(page.screenshot(type="png"))
+            cac_du[dau]["nenTruoc"] = _data_url(_anh_khung(page))
         for k in range(dau, cuoi):
             print(f"Chụp cảnh {cac_du[k]['so']} ({so_khung[k]} khung)...", file=sys.stderr, flush=True)
             trang_k = html(k)
@@ -179,7 +195,7 @@ def chup_dai(cong_viec: dict) -> int:
                         json.dumps(doc_su_kien(page)), encoding="utf-8")
                 cac_du[k]["nenTruoc"] = None  # nền data: của cảnh đã chụp xong không cần giữ nữa
                 if k + 1 < cuoi and can_nen(k + 1):
-                    cuoi_k = thu_muc / f"f{khung_dau[k] + so_khung[k] - 1:06d}.png"
+                    cuoi_k = thu_muc / ten_khung(khung_dau[k] + so_khung[k] - 1)
                     cac_du[k + 1]["nenTruoc"] = _data_url(cuoi_k.read_bytes())
             except OSError as exc:
                 raise GhiKhungLoi(str(exc)) from None
@@ -205,7 +221,7 @@ def _loi_dai(cac_du: list, dau: int, cuoi: int, exc: BaseException) -> MediaErro
 
 
 def chup_song_song(cac_du: list, models_js: dict, so_khung: list, fps: int, thu_muc_anh, so_tt: int,
-                   thu_muc_su_kien=None) -> dict | None:
+                   thu_muc_su_kien=None, kho: Kho = KHO_CU) -> dict | None:
     """Chụp mọi cảnh. Có `thu_muc_su_kien` thì trả thêm {số cảnh: sự kiện âm thanh}, đọc trong cùng lượt chụp."""
     khung_dau = [0]
     for n in so_khung[:-1]:
@@ -218,7 +234,7 @@ def chup_song_song(cac_du: list, models_js: dict, so_khung: list, fps: int, thu_
         cac_so = {du["so"] for du in cac_du[lo:b]}
         viec.append({"cac_du": cac_du[lo:b], "models_js": {so: js for so, js in models_js.items() if so in cac_so},
                      "dau": a - lo, "cuoi": b - lo, "khung_dau": khung_dau[lo:b], "so_khung": list(so_khung[lo:b]),
-                     "fps": fps, "thu_muc_anh": str(thu_muc_anh),
+                     "fps": fps, "thu_muc_anh": str(thu_muc_anh), "kho": [kho.ten, kho.do_phan_giai],
                      "thu_muc_su_kien": str(thu_muc_su_kien) if thu_muc_su_kien else None})
     if len(viec) == 1:
         try:
