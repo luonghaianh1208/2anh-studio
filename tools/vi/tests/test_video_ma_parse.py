@@ -269,9 +269,14 @@ class NewFieldsTest(unittest.TestCase):
             ("chuyen-canh", ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "luan-phien", "khong"), "lau-bang"),
             ("kho", ("ngang", "doc"), "ngang"),
             ("do-phan-giai", ("1080", "720"), "1080"),
+            ("phong-cach", ("viet-tay", "cat-dan"), "viet-tay"),
         ):
             self.assertEqual(parse.META_CHOICES[key], choices)
             self.assertEqual(parse.META_DEFAULTS[key], default)
+
+    def test_phong_cach_cat_dan(self):
+        video = parse.parse(doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n", META + "phong-cach: cat-dan\n"))
+        self.assertEqual(video.meta["phong-cach"], "cat-dan")
 
     def test_kho_va_do_phan_giai(self):
         video = parse.parse(doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n", META + "kho: doc\ndo-phan-giai: 720\n"))

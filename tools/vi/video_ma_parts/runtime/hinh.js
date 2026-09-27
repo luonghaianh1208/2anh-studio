@@ -7,11 +7,24 @@
   var PHONG = 0.12;
   var LUOT = 0.03;
   var HIEN = 0.4;
+  var STICKER = 0.45; // sticker (cat-dan) bật vào trong 0,45 s
 
   function kep(x, a, b) { return x < a ? a : (x > b ? b : x); }
   function khung(vb) {
     var so = String(vb || '0 0 24 24').trim().split(/[\s,]+/).map(Number);
     return { x: so[0] || 0, y: so[1] || 0, w: so[2] || 24, h: so[3] || 24 };
+  }
+
+  function phanTuSvg(p) {
+    var el = document.createElementNS(NS, p.the);
+    Object.keys(p.thuocTinh || {}).forEach(function (k) {
+      // Bỏ thuộc tính có không gian tên (`{ns}tên` từ ElementTree) và mọi thuộc tính sự kiện `on…`.
+      if (!BO_QUA[k] && k.charAt(0) !== '{' && !/^on/i.test(k)) { el.setAttribute(k, p.thuocTinh[k]); }
+    });
+    return el;
+  }
+  function bienDoi(m, vb, s) {
+    return 'translate(' + m.x + ' ' + m.y + ') scale(' + s + ') translate(' + (-vb.x) + ' ' + (-vb.y) + ')';
   }
 
   function taoHinh(svg, m) {
@@ -20,24 +33,54 @@
     var g = document.createElementNS(NS, 'g');
     g.setAttribute('class', 'hinh ' + m.mau);
     g.setAttribute('data-hinh', m.id);
-    g.setAttribute('transform', 'translate(' + m.x + ' ' + m.y + ') scale(' + s + ') translate(' + (-vb.x) + ' ' + (-vb.y) + ')');
+    g.setAttribute('transform', bienDoi(m, vb, s));
+    var day = Math.max(3, m.kich / 60);
     var cac = m.phanTu.map(function (p) {
-      var el = document.createElementNS(NS, p.the);
-      Object.keys(p.thuocTinh || {}).forEach(function (k) {
-        // Bỏ thuộc tính có không gian tên (`{ns}tên` từ ElementTree) và mọi thuộc tính sự kiện `on…`.
-        if (!BO_QUA[k] && k.charAt(0) !== '{' && !/^on/i.test(k)) { el.setAttribute(k, p.thuocTinh[k]); }
-      });
+      var el = phanTuSvg(p);
       el.setAttribute('pathLength', '1');
-      el.style.strokeWidth = String(Math.max(3, m.kich / 60) / s);
+      el.style.strokeWidth = String(day / s);
       el.style.strokeDasharray = '1';
       g.appendChild(el);
       return el;
     });
-    svg.appendChild(g);
-    return { g: g, cac: cac, vb: vb, s: s };
+    if (!m.sticker) {
+      svg.appendChild(g);
+      return { g: g, cac: cac, vb: vb, s: s };
+    }
+    // Sticker (cat-dan): viền trắng 6 px quanh nét (bản sao nét dày hơn 12 px, nằm dưới), bóng đổ, xoay m.goc độ
+    // quanh tâm hình; nhóm ngoài mang biến đổi bật vào (datHinh).
+    var ngoai = document.createElementNS(NS, 'g');
+    ngoai.setAttribute('class', 'hinh-dan');
+    ngoai.setAttribute('filter', 'url(#bong-dan)');
+    var vien = document.createElementNS(NS, 'g');
+    vien.setAttribute('class', 'vien-dan');
+    vien.setAttribute('transform', bienDoi(m, vb, s));
+    m.phanTu.forEach(function (p) {
+      var el = phanTuSvg(p);
+      el.style.strokeWidth = String((day + 12) / s);
+      vien.appendChild(el);
+    });
+    ngoai.appendChild(vien);
+    ngoai.appendChild(g);
+    svg.appendChild(ngoai);
+    return { g: g, cac: cac, vb: vb, s: s, sticker: true, ngoai: ngoai, cx: m.x + m.kich / 2, cy: m.y + m.kich / 2, goc: m.goc || 0 };
+  }
+
+  // Sticker bật vào tại tiến độ p (0..1 của 0,45 s): phóng 0,6 → 1 theo easeOutBack, hiện rõ trong phần tư đầu.
+  function datSticker(el, p, bienDoiCuoi) {
+    var k = 0.6 + 0.4 * root.THI_DONG.easeOutBack(p);
+    el.style.opacity = p > 0 ? String(Math.min(1, Math.round(p * 4 * 1000) / 1000)) : '0';
+    return bienDoiCuoi(Math.round(k * 10000) / 10000);
   }
 
   function datHinh(o, p) {
+    if (o.sticker) {
+      o.ngoai.setAttribute('transform', datSticker(o.ngoai, p, function (k) {
+        return 'translate(' + o.cx + ' ' + o.cy + ') rotate(' + o.goc + ') scale(' + k + ') translate(' + (-o.cx) + ' ' + (-o.cy) + ')';
+      }));
+      o.cac.forEach(function (el) { el.style.strokeDashoffset = '0'; el.style.opacity = '1'; });
+      return;
+    }
     var n = o.cac.length;
     o.cac.forEach(function (el, i) {
       var pi = kep(p * n - i, 0, 1);
@@ -72,6 +115,8 @@
     el.style.top = m.y + 'px';
     el.style.width = m.rong + 'px';
     el.style.height = m.cao + 'px';
+    // Sticker (cat-dan): viền trắng, bóng đổ (cat-dan.css), xoay m.goc độ; không có khung vẽ tay.
+    if (m.sticker) { el.className = 'anh dan'; }
     var cua = document.createElement('div');
     cua.className = 'cua-anh';
     var img = document.createElement('img');
@@ -104,11 +149,17 @@
     nguon.textContent = m.nguon;
     el.appendChild(nguon);
     goc.appendChild(el);
-    return { el: el, img: img, net: net };
+    return { el: el, img: img, net: net, cua: cua };
   }
 
   function datAnh(o, m, p, t, gh, hat) {
-    o.el.style.opacity = String(kep((t - m.batDau) / HIEN, 0, 1));
+    if (m.sticker) {
+      o.cua.style.transform = datSticker(o.el, kep((t - m.batDau) / STICKER, 0, 1), function (k) {
+        return 'rotate(' + m.goc + 'deg) scale(' + k + ')';
+      });
+    } else {
+      o.el.style.opacity = String(kep((t - m.batDau) / HIEN, 0, 1));
+    }
     o.net.style.strokeDashoffset = String(1 - p);
     var q = gh > m.batDau ? (t - m.batDau) / (gh - m.batDau) : 1;
     var k = kenBurns(hat || 1, q);

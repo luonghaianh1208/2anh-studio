@@ -28,12 +28,16 @@ def dung_trang(du: dict, model=None) -> str:
     if du["loai"] == "thi-nghiem":
         scripts.append(_doc(NGHIEM / "khung.js"))
         scripts.append(model.js)
-    for ten in ("dong.js", "chuyen-canh.js", "khung-video.js", "nhan.js", "hinh.js", "ban-tay.js", "may-quay.js"):
+    # cat-dan.js (hàm thuần; chỉ chạm trang khi khung-video.js gọi ở cảnh cat-dan) nạp trước chuyen-canh.js.
+    for ten in ("dong.js", "cat-dan.js", "chuyen-canh.js", "khung-video.js", "nhan.js", "hinh.js", "ban-tay.js", "may-quay.js"):
         scripts.append(_doc(RUNTIME / ten))
     scripts.append(_doc(RUNTIME / "canh" / f"{du['loai']}.js"))
     scripts.append(f"window.DU_CANH = {json_nhung(du)};\nTHI_KHO.dat(window.DU_CANH.kho);\nTHI_VIDEO.khoiDong(window.DU_CANH);")
+    # Phong cách: viet-tay.css là nền chung; cat-dan thêm font Be Vietnam Pro và lớp da cat-dan.css.
+    chu_de = du.get("chuDe", {}).get("ten", "viet-tay")
+    css_them = _doc(RUNTIME / "cat-dan.css") + "\n" if chu_de == "cat-dan" else ""
     body = "\n".join(f"<script>\n{s}\n</script>" for s in scripts)
     return ("<!doctype html>\n<html lang=\"vi\"><head><meta charset=\"utf-8\">"
             f"<style>\n:root {{ --rong: {kho['rong']}px; --cao: {kho['cao']}px; --day: {kho['day']}px; }}\n"
-            f"{phong.font_css()}\n{_doc(RUNTIME / 'viet-tay.css')}\n</style></head>\n"
+            f"{phong.font_css(chu_de)}\n{_doc(RUNTIME / 'viet-tay.css')}\n{css_them}</style></head>\n"
             f"<body><div id=\"khung\"></div>\n{body}\n</body></html>\n")

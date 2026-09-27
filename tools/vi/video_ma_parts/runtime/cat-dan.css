@@ -1,0 +1,15 @@
+/* Phong cách cắt dán (phong-cach: cat-dan): nạp sau viet-tay.css, chỉ ở trang cat-dan. Màu nhãn của cảnh là
+   biến --mau-nhan (cat-dan.js đặt theo số cảnh); nền giấy là lớp .nen-giay dưới mọi lớp. */
+#khung.cat-dan { background: #f3ead7; font-family: 'BeVietnamPro', sans-serif; color: #22201c; }
+.nen-giay { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); pointer-events: none;
+  will-change: transform; }
+.nen-giay > svg { display: block; width: 100%; height: 100%; }
+/* Chữ nhấn (thuật ngữ, tiêu đề bìa): ExtraBold, mực đậm. Nhãn tiêu đề: chữ hoa ExtraBold trắng trên băng dính. */
+.cat-dan .chu.nhan { color: #22201c; font-weight: 800; }
+.cat-dan .chu.bang { color: #ffffff; font-weight: 800; text-transform: uppercase; line-height: 1.5; letter-spacing: 0.02em; }
+.cat-dan g.bang-dinh polygon { fill: var(--mau-nhan); }
+.cat-dan path.net.nhan { stroke: var(--mau-nhan); }
+/* Sticker: viền trắng quanh nét của biểu tượng; ảnh có viền trắng 6 px và bóng đổ, không khung vẽ tay. */
+.cat-dan g.vien-dan > * { fill: none; stroke: #ffffff; stroke-linecap: round; stroke-linejoin: round; }
+.cat-dan .anh.dan .vien-anh { display: none; }
+.cat-dan .anh.dan .cua-anh { box-shadow: 0 0 0 6px #ffffff, 0 6px 14px rgba(0, 0, 0, 0.25); transform-origin: 50% 50%; }

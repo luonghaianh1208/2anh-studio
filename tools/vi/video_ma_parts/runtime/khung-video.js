@@ -5,6 +5,9 @@
   var LAU_BANG = 0.5; // mặc định khi chạy ngoài trang (Node); trang lấy du.giayLauBang từ lich.LAU_BANG của Python
   var HINH_TOI_THIEU = 1.2;
   var CO_TAY = 0.85;
+  // Cỡ chữ nhãn tiêu đề của cat-dan (chữ hoa ExtraBold): tiêu đề dài hơn 40 ký tự dùng cỡ nhỏ.
+  var CO_NHAN = 34;
+  var CO_NHAN_NHO = 26;
   var NS = 'http://www.w3.org/2000/svg';
   var DANH_DAU = /\*\*(.+?)\*\*|~([^~]+)~|\^([^\^]+)\^/g;
   // Cùng ngữ pháp với kiem.py (_CUM_RE, _SO_DUNG). `____` (ô trống) và ` == ` có khoảng trắng hai bên là chữ thường.
@@ -249,12 +252,28 @@
     var co = du.co || {};
     return co.chuyen || (co.lauBang ? 'lau-bang' : null);
   }
+  // Chủ đề của cảnh (du.chuDe từ phong.py); dữ liệu cũ không có chuDe là viet-tay.
+  function chuDe(du) { return du.chuDe || { ten: 'viet-tay', hienChu: 'viet', net: 've' }; }
   function tao(du) {
     var gh = du.thoiLuong;
     var sau = kieuChuyen(du) ? giayLau(du) + 0.05 : 0;
+    var cd = chuDe(du);
+    // cat-dan: chữ trượt vào (không bút, không bàn tay), nét vẽ nhanh và đậm, hình và ảnh là sticker có góc xoay
+    // lấy lần lượt từ prng(số cảnh).
+    var truot = cd.hienChu === 'truot';
+    var nhanh = cd.net === 'nhanh';
+    var catDan = cd.ten === 'cat-dan';
+    var xoayDan = catDan ? root.THI_CAT_DAN.prng(du.so) : null;
     function dau(batDau, lui) { return Math.min(Math.max(batDau, sau), gh - lui); }
+    // Chữ trượt: vào ở batDau (không sớm hơn 0,6 s; nhãn tiêu đề 0,4 s), trượt 0,35 s.
+    function daiTruot(batDau) { return Math.max(0.05, Math.min(root.THI_CAT_DAN.TRUOT, gh - 0.2 - batDau)); }
     function chu(id, noiDung, x, y, rong, cao, co, batDau, tuy) {
       if (tuy && tuy.phan) { return chuPhan(id, noiDung, x, y, rong, cao, co, tuy); }
+      if (truot) {
+        batDau = dau(Math.max(batDau, tuy && tuy.bang ? 0.4 : 0.6), 0.6);
+        return gan(gan({ id: id, kieu: 'chu', chu: noiDung, x: x, y: y, rong: rong, cao: cao, co: co, batDau: batDau,
+          thoiLuong: daiTruot(batDau), can: 'trai', mau: '' }, tuy), { truot: true, tay: false, nay: false });
+      }
       batDau = dau(batDau, 0.6);
       // Chữ nảy (tiêu đề khi chu-dong): nảy từng ký tự thay cho bút viết; không có bàn tay.
       var nay = !!(tuy && tuy.nay);
@@ -268,8 +287,8 @@
       var xong = 0;
       var tu = 0;
       var phan = tuy.phan.map(function (p) {
-        var bd = Math.max(dau(p.batDau, 0.6), Math.min(xong, gh - 0.6));
-        var dai = Math.max(0.3, Math.min(p.ky / TOC_DO_VIET, gh - 0.2 - bd));
+        var bd = Math.max(dau(truot ? Math.max(p.batDau, 0.6) : p.batDau, 0.6), Math.min(xong, gh - 0.6));
+        var dai = truot ? daiTruot(bd) : Math.max(0.3, Math.min(p.ky / TOC_DO_VIET, gh - 0.2 - bd));
         var o = { batDau: bd, thoiLuong: dai, tu: tu, ky: p.ky };
         xong = bd + dai;
         tu += p.ky;
@@ -278,32 +297,44 @@
       var batDau = phan[0].batDau;
       var het = Math.max.apply(null, phan.map(function (p) { return p.batDau + p.thoiLuong; }));
       return gan(gan({ id: id, kieu: 'chu', chu: noiDung, x: x, y: y, rong: rong, cao: cao, co: co, batDau: batDau,
-        thoiLuong: het - batDau, can: 'trai', mau: '' }, tuy), { phan: phan });
+        thoiLuong: het - batDau, can: 'trai', mau: '' }, tuy), truot ? { phan: phan, truot: true, tay: false } : { phan: phan });
     }
     function net(id, d, batDau, dai, tuy) {
       batDau = dau(batDau, 0.6);
       dai = Math.max(0.2, Math.min(dai, gh - 0.2 - batDau));
-      return gan({ id: id, kieu: 'net', d: d, batDau: batDau, thoiLuong: dai, mau: '', day: 4 }, tuy);
+      var n = gan({ id: id, kieu: 'net', d: d, batDau: batDau, thoiLuong: dai, mau: '', day: 4 }, tuy);
+      // Nét nhanh (cat-dan): vẽ trong tối đa 0,5 s, dày gấp 1,4.
+      if (nhanh) { n.thoiLuong = Math.min(n.thoiLuong, 0.5); n.day *= 1.4; }
+      return n;
     }
     // Biểu tượng vẽ lần lượt từng phần tử; cả hình ít nhất 1,2 s.
     function hinh(id, h, x, y, kich, batDau, tuy) {
       batDau = dau(batDau, 0.2 + HINH_TOI_THIEU);
       var dai = Math.min(3, Math.max(HINH_TOI_THIEU, 0.45 * h.phanTu.length));
       dai = Math.max(0.3, Math.min(dai, gh - 0.2 - batDau));
-      return gan({ id: id, kieu: 'hinh', phanTu: h.phanTu, viewBox: h.viewBox, x: x, y: y, kich: kich, batDau: batDau, thoiLuong: dai, mau: '' }, tuy);
+      var m = gan({ id: id, kieu: 'hinh', phanTu: h.phanTu, viewBox: h.viewBox, x: x, y: y, kich: kich, batDau: batDau, thoiLuong: dai, mau: '' }, tuy);
+      // Sticker (cat-dan): bật vào trong 0,45 s thay cho vẽ từng nét; không bàn tay.
+      if (catDan) { gan(m, { sticker: true, goc: xoayDan() * 6 - 3, tay: false, thoiLuong: Math.max(0.05, Math.min(0.45, gh - 0.2 - batDau)) }); }
+      return m;
     }
     // Ảnh hiện dần 0,4 s rồi phóng/lướt chậm tới cuối cảnh; khung giữ tỉ lệ ảnh trong ô.
     // `tuy.viTriNguon`: `duoi` (dưới khung, trong ô `tuy.oNguon`), `canh` (bên phải khung), bỏ trống là trong khung.
     function anh(id, a, x, y, rong, cao, batDau, tuy) {
       batDau = dau(batDau, 0.6);
       var k = vuaKhung(a.rong, a.cao, x, y, rong, cao);
-      return gan({ id: id, kieu: 'anh', dataUrl: a.dataUrl, nguon: a.nguon, x: k.x, y: k.y, rong: k.rong, cao: k.cao,
+      var m = gan({ id: id, kieu: 'anh', dataUrl: a.dataUrl, nguon: a.nguon, x: k.x, y: k.y, rong: k.rong, cao: k.cao,
         batDau: batDau, thoiLuong: Math.min(0.4, gh - 0.2 - batDau) }, tuy);
+      if (catDan) { gan(m, { sticker: true, goc: xoayDan() * 6 - 3 }); }
+      return m;
     }
     // Tiêu đề trong ô `tieu-de`; `rong` (bỏ trống là cả ô) hẹp hơn ô khi cảnh có cột phụ. Nét gạch dưới cách ô 14.
     function tieuDe(noiDung, batDau, rong) {
       var o = oBoCuc('tieu-de');
       rong = rong || o.w;
+      // cat-dan: nhãn chữ hoa trên dải băng dính màu của cảnh, ở góc trái trên của ô, vào ở 0,4 s; không gạch chân.
+      if (catDan) {
+        return [chu('tieu-de', noiDung, o.x, o.y, rong, o.h, demKyTu(noiDung) <= 40 ? CO_NHAN : CO_NHAN_NHO, batDau, { mau: 'bang', bang: true })];
+      }
       var co = rong < o.w && demKyTu(noiDung) > 40 ? 32 : 40;
       var c = chu('tieu-de', noiDung, o.x, o.y, rong, o.h, co, batDau, { mau: 'nhan', day: true });
       var w = Math.min(rong, Math.max(240, demKyTu(noiDung) * co * 0.6));
@@ -315,7 +346,8 @@
     // nằm trên vạch phụ đề.
     var coCot = !!(du.hinh || du.anh);
     function cot() {
-      var batDau = du.moc && du.moc.length ? du.moc[0] : 1.0;
+      // cat-dan: hình chính hiện ở 0,3 s, trước tiêu đề và chữ.
+      var batDau = catDan ? 0.3 : (du.moc && du.moc.length ? du.moc[0] : 1.0);
       var o = oBoCuc('cot-phu');
       if (du.hinh) { return [hinh('hinh', du.hinh, o.x + 10, o.y + 40, o.w - 20, batDau)]; }
       if (du.anh) { return [anh('anh', du.anh, o.x, o.y, o.w, o.h - 30, batDau, { viTriNguon: 'duoi', oNguon: { x: o.x, rong: o.w } })]; }
@@ -365,8 +397,8 @@
       if (m.kieu === 'chu' && !m.dong) {
         lichCum(m, nhipChu(m), du.tu, gh).forEach(function (c) { if (c.daiNo > 0) { ds.push({ t: c.no, loai: 'nhan' }); } });
       }
-      // Chữ nảy, dòng số của thí nghiệm và ảnh không có ngòi bút.
-      if (m.dong || m.nay || m.kieu === 'anh') { return; }
+      // Chữ nảy, dòng số của thí nghiệm, ảnh, chữ trượt và sticker (cat-dan) không có ngòi bút.
+      if (m.dong || m.nay || m.kieu === 'anh' || m.truot || m.sticker) { return; }
       (m.phan || [m]).forEach(function (p) { but.push([p.batDau, p.batDau + p.thoiLuong]); });
     });
     var q = du.cauHoi;
@@ -463,6 +495,8 @@
     var kho = root.THI_KHO.lay();
     svg.setAttribute('viewBox', '0 0 ' + kho.rong + ' ' + kho.cao);
     goc.appendChild(svg);
+    // cat-dan: nền giấy dưới mọi lớp, màu nhãn của cảnh, bộ lọc bóng sticker (runtime/cat-dan.js).
+    if (chuDe(du).ten === 'cat-dan') { root.THI_CAT_DAN.dung(khung, svg, du); }
     var ds = muc.map(function (m) {
       var el;
       if (m.kieu === 'net') {
@@ -487,6 +521,13 @@
         el.style.height = m.cao + 'px';
         el.style.fontSize = m.co + 'px';
         goc.appendChild(el);
+        // Nhãn tiêu đề cat-dan: dải băng dính (một dải mỗi dòng, dựng trong doHop) nằm dưới chữ, trong lớp vẽ.
+        if (m.bang) {
+          var bang = document.createElementNS(NS, 'g');
+          bang.setAttribute('class', 'bang-dinh');
+          svg.appendChild(bang);
+          return { m: m, el: el, bang: bang };
+        }
       }
       return { m: m, el: el };
     });
@@ -523,7 +564,17 @@
       var m = o.m;
       var so = o.so.map(function (s) { return D.soChay(t, s.batDau, s.dai, s.gtri, s.chuSo); });
       var html;
-      if (m.nay) {
+      if (m.truot) {
+        // Chữ trượt (cat-dan): hiện đủ chữ (mục viết theo phần: đủ các phần đã tới), trượt và mờ dần 0,35 s.
+        var n = m.phan ? m.phan.reduce(function (k, p) { return k + (t >= p.batDau ? p.ky : 0); }, 0) : o.tong;
+        html = catDanhDau(m.chu, n, so, null, m.khongCum);
+        var v = root.THI_CAT_DAN.truotChu(tienDo(t, m.batDau, m.thoiLuong), m.bang);
+        [o.el, o.bang].forEach(function (el) {
+          if (!el) { return; }
+          el.style.opacity = v.opacity;
+          el.style.transform = v.transform;
+        });
+      } else if (m.nay) {
         var tt = m.batDau + (t - m.batDau) * o.keo;
         html = catDanhDau(m.chu, o.tong, so, function (i) { return D.nayChu(i, o.tong, tt, m.batDau); });
       } else {
@@ -627,6 +678,27 @@
             cuoi: { x: z.right - k.left, y: z.top + 0.8 * z.height - k.top }
           };
         }
+      });
+      // Dải băng dính của nhãn tiêu đề (cat-dan): một dải cho mỗi dòng chữ ở trạng thái cuối.
+      ds.forEach(function (o) {
+        if (!o.bang) { return; }
+        var r = document.createRange();
+        r.selectNodeContents(o.el);
+        var dong = [];
+        Array.prototype.forEach.call(r.getClientRects(), function (c) {
+          if (c.width <= 0) { return; }
+          var h = { x: c.left - k.left, y: c.top - k.top, w: c.width, h: c.height };
+          var cung = dong.filter(function (d) { return Math.abs(d.y + d.h / 2 - (h.y + h.h / 2)) < h.h / 2; })[0];
+          if (!cung) { dong.push(h); return; }
+          var x2 = Math.max(cung.x + cung.w, h.x + h.w), y2 = Math.max(cung.y + cung.h, h.y + h.h);
+          cung.x = Math.min(cung.x, h.x);
+          cung.y = Math.min(cung.y, h.y);
+          cung.w = x2 - cung.x;
+          cung.h = y2 - cung.y;
+        });
+        o.bang.innerHTML = root.THI_CAT_DAN.bangTieuDe(du.so, dong).map(function (b) {
+          return '<polygon points="' + b.points + '"/>';
+        }).join('');
       });
       // Hộp cụm nhấn (từng dòng) ở trạng thái cuối: vòng khoanh, nét gạch, và cụm nào nằm gọn một dòng.
       ds.forEach(function (o) {

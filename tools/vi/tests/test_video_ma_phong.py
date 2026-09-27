@@ -1,4 +1,5 @@
-"""Test bộ đọc cmap của font Itim đóng gói: đủ 134 chữ tiếng Việt có dấu."""
+"""Test font đóng gói (Itim; Be Vietnam Pro của phong cách `cat-dan`): đủ 134 chữ tiếng Việt có dấu; khối @font-face
+theo chủ đề; bộ biến chủ đề."""
 
 import struct
 import sys
@@ -114,6 +115,56 @@ class FontCssTest(unittest.TestCase):
         self.assertIn("url(data:font/ttf;base64,", css)
         self.assertNotIn("http://", css)
         self.assertNotIn("https://", css)
+
+
+class BeVietnamProTest(unittest.TestCase):
+    def test_hai_do_dam_du_chu_viet(self):
+        self.assertEqual(sorted(phong.FONT_CAT_DAN), [400, 800])
+        for dam, path in phong.FONT_CAT_DAN.items():
+            with self.subTest(dam=dam):
+                self.assertTrue(path.is_file(), path)
+                ma = phong.bang_ma(path)
+                self.assertEqual([c for c in phong.CHU_VIET if ord(c) not in ma], [])
+                for c in "ĐƯƠ":
+                    self.assertIn(ord(c), ma)
+
+    def test_font_css_cat_dan_nhung_hai_do_dam_va_itim(self):
+        css = phong.font_css("cat-dan")
+        self.assertEqual(css.count("@font-face"), 3)
+        self.assertEqual(css.count("font-family:'BeVietnamPro'"), 2)
+        self.assertIn("font-weight:400", css)
+        self.assertIn("font-weight:800", css)
+        self.assertIn(f"font-family:'{phong.TEN}'", css)
+        self.assertNotIn("http", css)
+
+    def test_font_css_viet_tay_nhu_cu(self):
+        self.assertEqual(phong.font_css("viet-tay"), phong.font_css())
+        self.assertEqual(phong.font_css().count("@font-face"), 1)
+        self.assertNotIn("BeVietnamPro", phong.font_css())
+
+    def test_giay_phep_va_nguon_font(self):
+        thu_muc = phong.FONT.parent
+        self.assertIn("SIL OPEN FONT LICENSE", (thu_muc / "OFL-BeVietnamPro.txt").read_text(encoding="utf-8").upper())
+        readme = (thu_muc / "README.md").read_text(encoding="utf-8")
+        for tep, dam in (("BeVietnamPro-Regular.ttf", 400), ("BeVietnamPro-ExtraBold.ttf", 800)):
+            import hashlib
+            so = hashlib.sha256(phong.FONT_CAT_DAN[dam].read_bytes()).hexdigest()
+            self.assertIn(tep, readme)
+            self.assertIn(so, readme)
+
+
+class ChuDeTest(unittest.TestCase):
+    def test_hai_chu_de(self):
+        self.assertEqual(phong.CHU_DE["viet-tay"], {"ten": "viet-tay", "font": "Itim", "hienChu": "viet", "net": "ve"})
+        self.assertEqual(phong.CHU_DE["cat-dan"], {
+            "ten": "cat-dan", "font": "BeVietnamPro", "hienChu": "truot", "net": "nhanh",
+            "mauNhan": ["#e8a33d", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"})
+
+    def test_chu_de_la_ban_sao(self):
+        a = phong.chu_de("cat-dan")
+        a["mauNhan"].append("#000000")
+        self.assertEqual(len(phong.chu_de("cat-dan")["mauNhan"]), 4)
+        self.assertEqual(phong.chu_de(None), phong.CHU_DE["viet-tay"])
 
 
 if __name__ == "__main__":

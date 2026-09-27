@@ -1,13 +1,28 @@
-"""Font Itim đóng gói cho khung hình và phụ đề: bộ đọc bảng cmap và khối @font-face nhúng data:."""
+"""Chủ đề của khung hình và font đóng gói: Itim (`viet-tay`, phụ đề), Be Vietnam Pro (`cat-dan`); bộ đọc bảng cmap
+và khối @font-face nhúng data:."""
 
 from __future__ import annotations
 
 import base64
+import json
 import struct
 from pathlib import Path
 
-FONT = Path(__file__).resolve().parent / "runtime" / "fonts" / "Itim-Regular.ttf"
+_FONTS = Path(__file__).resolve().parent / "runtime" / "fonts"
+FONT = _FONTS / "Itim-Regular.ttf"
 TEN = "Itim"
+# Be Vietnam Pro của phong cách `cat-dan`: độ đậm -> file (nguồn và SHA-256 ở runtime/fonts/README.md).
+TEN_CAT_DAN = "BeVietnamPro"
+FONT_CAT_DAN = {400: _FONTS / "BeVietnamPro-Regular.ttf", 800: _FONTS / "BeVietnamPro-ExtraBold.ttf"}
+
+# Chủ đề (`du["chuDe"]`) theo khoá đầu `phong-cach`: font, kiểu hiện chữ (`viet` bút viết, `truot` trượt và mờ dần),
+# kiểu nét (`ve` vẽ theo nhịp, `nhanh` vẽ nhanh và đậm); `cat-dan` thêm bốn màu nhãn (cảnh N dùng màu (N-1) % 4) và
+# màu giấy nền.
+CHU_DE = {
+    "viet-tay": {"ten": "viet-tay", "font": TEN, "hienChu": "viet", "net": "ve"},
+    "cat-dan": {"ten": "cat-dan", "font": TEN_CAT_DAN, "hienChu": "truot", "net": "nhanh",
+                "mauNhan": ["#e8a33d", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"},
+}
 
 _THUONG = "ạảãàáâậầấẩẫăặằắẳẵẹẻẽèéêệềếểễịỉĩìíọỏõòóôộồốổỗơợờớởỡụủũùúưựừứửữỵỷỹỳýđ"
 CHU_VIET = _THUONG + _THUONG.upper()
@@ -86,6 +101,19 @@ def bang_ma(path) -> set:
     return ma
 
 
-def font_css() -> str:
-    b64 = base64.b64encode(FONT.read_bytes()).decode("ascii")
-    return f"@font-face{{font-family:'{TEN}';src:url(data:font/ttf;base64,{b64});}}"
+def chu_de(phong_cach) -> dict:
+    """Bản sao chủ đề của `phong_cach` (không có thì `viet-tay`)."""
+    return json.loads(json.dumps(CHU_DE.get(phong_cach or "viet-tay", CHU_DE["viet-tay"])))
+
+
+def _face(ten: str, path: Path, dam: str = "") -> str:
+    b64 = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"@font-face{{font-family:'{ten}';{dam}src:url(data:font/ttf;base64,{b64});}}"
+
+
+def font_css(phong_cach: str = "viet-tay") -> str:
+    """Khối @font-face nhúng data: của chủ đề. `cat-dan` nhúng Be Vietnam Pro 400 và 800, và vẫn nhúng Itim."""
+    css = _face(TEN, FONT)
+    if phong_cach == "cat-dan":
+        css += "".join(_face(TEN_CAT_DAN, path, f"font-weight:{dam};") for dam, path in FONT_CAT_DAN.items())
+    return css

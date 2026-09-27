@@ -57,3 +57,37 @@ Mọi trường không nêu dưới đây qua ở đúng giới hạn khổ ngan
 - Ba trường đầu thấp hơn vì ở khổ dọc cột phụ là khối dưới nội dung (y 640–1020), nên ô nội dung hẹp chỉ cao 300.
 - Số của `du-lieu` bị giới hạn vì 8 cột trong bề rộng 580 chỉ còn 66 điểm mỗi cột. Số ghi trên cột không được rộng hơn cột.
 - Task 4 đo lại với font của `cat-dan` và hạ giới hạn nếu cần.
+
+## Task 4: phong cách cắt dán và font Be Vietnam Pro
+
+### Cách đo
+
+Ngày 2026-09-28. Công cụ đo đã commit: `tools/vi/tests/do_gioi_han.py` (chạy `C:/Users/ADMIN/vmt/v/Scripts/python.exe tools/vi/tests/do_gioi_han.py <ngang|doc> <viet-tay|cat-dan> [loại ...]`, in các trường phải hạ). Cùng chuỗi thử, số dòng lặp tối đa và các biến thể như Task 3, thêm biến thể có hình ở cột phụ ở cả khổ ngang.
+
+- Một loại cảnh qua ở giới hạn hiện tại thì giữ. Không qua thì hạ đồng loạt mọi trường theo cùng tỉ lệ tới khi qua, rồi nâng từng trường lên hết mức còn qua (tìm nhị phân, hai vòng). Giới hạn chỉ hạ.
+- Một cảnh qua khi `THI_VIDEO.kiemTran()` rỗng và mọi phần tử của lớp bảng nằm trong khung, đáy không quá vạch phụ đề. Ô chữ đo bằng hộp của chính dòng chữ: vài ô khổ ngang của vi.11 (chú thích ảnh đáy 625, tên trục ngang đồ thị đáy 622) lố vạch dù chữ nằm trên vạch. Nét vẽ tay được lố vạch tới 3 điểm vì khung hộp khổ ngang của vi.11 nằm đúng y 620 và lượn ±2.
+- Kiểm chứng công cụ: với `viet-tay`, cả hai khổ ra bảng rỗng (khớp `LIMITS` và `LIMITS_DOC` của Task 3).
+
+### Kết quả
+
+Be Vietnam Pro rộng hơn Itim, nên vài trường phải hạ. Bảng `viet-tay` giữ nguyên; `cat-dan` có bảng riêng `kiem.LIMITS_CAT_DAN`, `LIMITS_HAI_PHAN_CAT_DAN` (ngang) và `LIMITS_CAT_DAN_DOC`, `LIMITS_HAI_PHAN_CAT_DAN_DOC` (dọc), chọn qua `kiem.bang_gioi_han(kho, phong_cach)`. Lỗi vượt giới hạn ghi thêm "(giới hạn phong cách cắt dán)".
+
+| Khổ | Loại, trường | `viet-tay` | `cat-dan` |
+|---|---|---|---|
+| ngang | `tieu-de`, `chu` | 90 | 88 |
+| ngang | `cong-thuc`, `bieu-thuc` | 90 | 89 |
+| ngang | `cong-thuc`, `giai-thich` (4 dòng) | 60 | 59 |
+| ngang | `y-tung-y`, `y` (6 ý) | 60 | 54 |
+| ngang | `anh`, `chu-thich` | 90 | 89 |
+| dọc | `khai-niem`, `dinh-nghia` | 132 | 127 |
+| dọc | `cong-thuc`, `giai-thich` (4 dòng) | 51 | 45 |
+| dọc | `y-tung-y`, `y` (6 ý) | 40 | 34 |
+| dọc | `do-thi`, `truc-doc` | 40 | 38 |
+| dọc | `bieu-do`, `don-vi` | 12 | 10 |
+| dọc | `bieu-do`, `truc-doc` | 40 | 36 |
+| dọc | `bieu-do`, `du-lieu` phần số | 8 | 7 |
+| dọc | `dong-thoi-gian`, `moc` phần nhãn | 12 | 10 |
+
+- Mọi trường khác qua ở đúng giới hạn `viet-tay` của khổ đó.
+- Nhãn tiêu đề cảnh (chữ hoa ExtraBold trên băng dính) dùng cỡ 34, tiêu đề dài hơn 40 ký tự cỡ 26; ở cỡ đó tiêu đề 90 ký tự vừa ô `tieu-de` của cả hai khổ, kể cả khi có cột phụ.
+- Test giữ kết quả: `tools/vi/tests/test_video_ma_cat_dan.py` (mọi loại × hai khổ ở bảng `cat-dan`, có và không có cột phụ). Chạy lại test này với bảng `cat-dan` đặt bằng bảng `viet-tay` thì trượt 12 cảnh (5 ngang, 7 dọc).

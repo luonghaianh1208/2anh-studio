@@ -92,6 +92,8 @@ def mo_trang(page, html: str) -> None:
     page.evaluate(
         "(chuViet) => document.fonts.load(\"40px 'Itim'\", document.body.innerText + chuViet)", CHU_VIET,
     )
+    # Mọi font nhúng của trang (cat-dan: Be Vietnam Pro 400 và 800) nạp xong trước khung đầu và trước khi đo.
+    page.evaluate("() => Promise.all(Array.from(document.fonts).map((f) => f.load())).then(() => true)")
     page.evaluate("() => document.fonts.ready.then(() => true)")
     # Nền cảnh trước và ảnh phải giải mã xong trước khung đầu, nếu không khung t = 0 có thể trống.
     page.evaluate("() => Promise.all(Array.from(document.images).map((i) => i.decode().catch(() => null)))")

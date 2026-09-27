@@ -8,7 +8,8 @@ from dataclasses import dataclass, field
 
 META_REQUIRED = ("tieu-de", "mon", "lop")
 META_CHOICES = {
-    "phong-cach": ("viet-tay",),
+    # Phong cách: viết tay trên bảng, hoặc cắt dán giấy kiểu Vox (runtime/cat-dan.css, cat-dan.js).
+    "phong-cach": ("viet-tay", "cat-dan"),
     "giong": ("nu", "nam"),
     "toc-do": ("cham", "vua", "nhanh"),
     "phu-de": ("hinh", "file", "khong", "karaoke"),

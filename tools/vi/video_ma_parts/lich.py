@@ -8,7 +8,7 @@ import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import kho
+from . import kho, phong
 from .kiem import CanhError, ma_do, tham_so_theo_thoi_gian
 from .parse import Scene, phan_cong_thuc, tach_du_lieu
 
@@ -248,6 +248,7 @@ def du_lieu_canh(scene: Scene, cl: CanhLich, model=None, tai_nguyen: dict | None
         },
         "nenTruoc": None,
         "kho": kho.tu_meta(meta).du_lieu(),
+        "chuDe": phong.chu_de(meta.get("phong-cach")),
     }
     if scene.loai == "do-thi":
         du["diem"] = [[float(p) for p in v.split(",")] for v in scene.truong["diem"]]
