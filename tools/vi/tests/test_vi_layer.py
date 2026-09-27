@@ -1855,7 +1855,7 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
                 self.assertIn(dau, chu)
         self.assertTrue(any("chuyen" in s.truong for s in scenes))
         self.assertTrue(any(v.meta.get("nhac-nen") for v in videos))
-        self.assertTrue(any(v.meta["chuyen-canh"] == "luan-phien" for v in videos))
+        self.assertTrue(any(v.meta.get("chuyen-canh") == "luan-phien" for v in videos))
 
     def test_guide_asks_about_quiz_effects_and_music(self):
         items = numbered_items(section(read(EXPLAINER_GUIDE), "## Câu hỏi bắt buộc"))

@@ -205,13 +205,27 @@ def dung_lich(cac_canh: list, cac_giong: list, fps: int = FPS, kiem_moc: bool = 
 
 
 CHUYEN_XOAY = ("lau-bang", "lat-trang", "truot", "phong", "mo-man")
+# Mặc định cũ (`phong-cach: viet-tay` hoặc không ghi `phong-cach`) của hai khoá đổi theo phong cách.
+_MAC_DINH_CU = {"ban-tay": "co", "chuyen-canh": "lau-bang"}
+# `cat-dan` (giấy cắt dán): tay ẩn, chuyển cảnh mặc định xé giấy thay vì lau bảng.
+_MAC_DINH_CAT_DAN = {"ban-tay": "khong", "chuyen-canh": "xe-giay"}
+
+
+def mac_dinh(meta: dict, khoa: str) -> str:
+    """Giá trị của khoá đầu `khoa` (`ban-tay`, `chuyen-canh`): kịch bản có ghi thì theo kịch bản; không ghi thì theo
+    `phong-cach` (`cat-dan` đổi mặc định, phong cách khác giữ mặc định cũ)."""
+    if khoa in meta:
+        return meta[khoa]
+    if meta.get("phong-cach") == "cat-dan":
+        return _MAC_DINH_CAT_DAN[khoa]
+    return _MAC_DINH_CU[khoa]
 
 
 def kieu_chuyen(scene: Scene, meta: dict):
     """Kiểu chuyển cảnh vào cảnh này: trường `chuyen:` của cảnh, không có thì khoá đầu; cảnh 1 và `khong` là None."""
     if scene.so <= 1:
         return None
-    kieu = scene.truong.get("chuyen", [None])[0] or meta.get("chuyen-canh", "lau-bang")
+    kieu = scene.truong.get("chuyen", [None])[0] or mac_dinh(meta, "chuyen-canh")
     if kieu == "luan-phien":
         return CHUYEN_XOAY[(scene.so - 2) % len(CHUYEN_XOAY)]
     return None if kieu == "khong" else kieu
@@ -240,7 +254,7 @@ def du_lieu_canh(scene: Scene, cl: CanhLich, model=None, tai_nguyen: dict | None
         "anh": tai_nguyen.get("anh"),
         "hinhs": tai_nguyen.get("hinhs", []),
         "co": {
-            "banTay": meta.get("ban-tay", "co") == "co",
+            "banTay": mac_dinh(meta, "ban-tay") == "co",
             "mayQuay": meta.get("may-quay", "co") == "co",
             "lauBang": chuyen == "lau-bang",
             "chuDong": meta.get("chu-dong", "co") == "co",

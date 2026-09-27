@@ -163,6 +163,7 @@ test('ban tay: chuyen canh khac lau bang thi khong co gie va tay an, but vao sau
 
 // ---------- chuyển cảnh ----------
 
+require(path.join(RT, 'cat-dan.js'));
 require(path.join(RT, 'chuyen-canh.js'));
 var CH = globalThis.THI_CHUYEN;
 var KIEU = ['lau-bang', 'lat-trang', 'truot', 'phong', 'mo-man'];
@@ -307,6 +308,52 @@ test('chuyen canh: kieu la hoac null thi nem loi', function () {
   assert.throws(function () { CH.trangThai(null, 0.1, 0.5); });
 });
 
+// ---------- xé giấy (cat-dan) ----------
+
+test('chuyen canh: xe-giay khong nam trong KIEU/luan phien nhung trangThai van nhan', function () {
+  assert.deepStrictEqual(CH.KIEU, KIEU, 'KIEU van dung 5 kieu cu');
+  assert.doesNotThrow(function () { CH.trangThai('xe-giay', 0.1, 0.5); });
+});
+
+test('chuyen canh: xe-giay tai t=0 che kin (opacity 1, polygon), tu t >= dai thi het (opacity 0)', function () {
+  var s0 = CH.trangThai('xe-giay', 0, 0.5);
+  assert.strictEqual(s0.nen.opacity, 1);
+  assert.ok(/^polygon\(/.test(s0.nen.clipPath), s0.nen.clipPath);
+  assert.strictEqual(s0.nen.filter, '', 'chua chay thi chua co bong');
+  [0.5, 0.55, 1, 30].forEach(function (t) {
+    var s = CH.trangThai('xe-giay', t, 0.5);
+    assert.strictEqual(s.nen.opacity, 0, 't=' + t);
+  });
+});
+
+test('chuyen canh: xe-giay dang chay thi co bong doc mep, moi ve nguyen trang', function () {
+  for (var i = 1; i < 10; i++) {
+    var t = 0.05 * i;
+    var s = CH.trangThai('xe-giay', t, 0.5);
+    assert.ok(/drop-shadow/.test(s.nen.filter), s.nen.filter);
+    assert.ok(/^polygon\(/.test(s.nen.clipPath), s.nen.clipPath);
+    assert.deepStrictEqual(s.moi, { transform: 'none', opacity: 1, clipPath: 'none' }, 't=' + t);
+    assert.strictEqual(s.nen2, null, 't=' + t);
+    assert.strictEqual(s.loe, 0, 't=' + t);
+  }
+});
+
+test('chuyen canh: xe-giay xac dinh theo t (hat co dinh, cung t ra cung hinh)', function () {
+  for (var t = -0.1; t < 0.8; t += 0.013) {
+    assert.deepStrictEqual(CH.trangThai('xe-giay', t, 0.5), CH.trangThai('xe-giay', t, 0.5), 't=' + t);
+  }
+});
+
+test('ban tay: xe-giay cung khong co gie, tay an toi khi chuyen xong', function () {
+  var ds = [muc('a', 0.55, 1)];
+  for (var i = 0; i <= 10; i++) {
+    var v = T.viTri(ds, 0.5 * i / 10, ngoi, NGHI, { chuyen: 'xe-giay', giayLau: 0.5 });
+    assert.strictEqual(v.hien, false, 't=' + 0.05 * i + ' ' + JSON.stringify(v));
+    assert.strictEqual(v.kieu, 'but');
+  }
+  assert.strictEqual(T.viTri(ds, 0.52, ngoi, NGHI, { chuyen: 'xe-giay', giayLau: 0.5 }).hien, true, 'but luot vao sau chuyen canh');
+});
+
 // ---------- máy quay ----------
 
 var HOP = {
@@ -373,6 +420,27 @@ test('may quay: hop sat vach phu de van duoc nang len tren 620', function () {
   assert.ok(phuKin(s));
 });
 
+test('may quay: hop noi dung dien hinh khong vuot vach phu de o ca hai kho (ngam theo canh, khong hang so kho ngang)', function () {
+  var CAC_KHO = {
+    ngang: { ten: 'ngang', rong: 1280, cao: 720, day: 620, tamX: 640, tamY: 310 },
+    doc: { ten: 'doc', rong: 720, cao: 1280, day: 1080, tamX: 360, tamY: 540 }
+  };
+  Object.keys(CAC_KHO).forEach(function (ten) {
+    var k = CAC_KHO[ten];
+    globalThis.THI_KHO.dat(k);
+    // Hộp nội dung điển hình: gần hết bề ngang, cao bằng 28% chiều cao vùng nội dung, sát đáy.
+    var hop = { a: { x: k.rong * 0.08, y: k.day - 0.28 * k.day, w: k.rong * 0.84, h: 0.28 * k.day } };
+    var ds = [muc('a', 0.5, 2)];
+    for (var i = 0; i <= 60; i++) {
+      var t = 3 * i / 60;
+      var s = Q.tinh(ds, hop, t, 3, {});
+      var day = s.z * (hop.a.y + hop.a.h) + s.ty;
+      assert.ok(day <= k.day + 1e-6, ten + ' t=' + t + ' day=' + day);
+    }
+  });
+  globalThis.THI_KHO.dat(globalThis.THI_KHO.NGANG);
+});
+
 test('may quay: canh thi nghiem chi day cham tu 1 len 1,06, giu tam', function () {
   var s0 = Q.tinh(DS, HOP, 0, GH, { day: true });
   var s1 = Q.tinh(DS, HOP, GH, GH, { day: true });
@@ -430,4 +498,34 @@ test('ban tay: muc tay:false khong duoc ve (tieu de nay chu)', function () {
   assert.strictEqual(T.viTri(ds, 1.5, ngoi, NGHI).hien, false);
   assert.strictEqual(T.dangVe(ds, 1.5), null);
   assert.strictEqual(T.viTri(ds, 5.5, ngoi, NGHI).hien, true);
+});
+
+// ---------- thu tu xuat hien o canh cat-dan xe-giay (dau() kep batDau >= giayLau + 0,05) ----------
+
+require(path.join(RT, 'dong.js'));
+require(path.join(RT, 'khung-video.js'));
+require(path.join(RT, 'canh', 'y-tung-y.js'));
+var CANH = globalThis.THI_CANH;
+
+test('thu tu xuat hien: canh 2 cat-dan xe-giay - moi muc >= giayLau + 0,05, nen truoc hinh truoc nhan truoc chu', function () {
+  var du = {
+    so: 2, loai: 'y-tung-y', thoiLuong: 12, danDau: 1.0, giayLauBang: 0.5,
+    moc: [3.0, 5.0],
+    truong: { 'tieu-de': ['Ba y'], y: ['Mot', 'Hai'] },
+    hinh: { phanTu: [{ the: 'circle', thuocTinh: { cx: '12', cy: '12', r: '9' } }], viewBox: '0 0 24 24' },
+    co: { chuyen: 'xe-giay', banTay: false, mayQuay: false, chuDong: false, lauBang: false },
+    chuDe: { ten: 'cat-dan', font: 'BeVietnamPro', hienChu: 'truot', net: 'nhanh',
+             mauNhan: ['#e8a33d', '#1f6f78', '#c8452f', '#2f4f9e'], giay: '#f3ead7' }
+  };
+  var ds = CANH['y-tung-y'].muc(du);
+  var sau = 0.5 + 0.05;
+  var boi = {};
+  ds.forEach(function (m) {
+    assert.ok(m.batDau >= sau - 1e-9, m.id + ' batDau=' + m.batDau + ' < giayLau + 0,05');
+    boi[m.id] = m;
+  });
+  // Nền (mép xé) chạy suốt [0, giayLau]; mọi mục chỉ vẽ từ sau khi mép xé xong nên luôn sau nền.
+  assert.ok(boi.hinh.batDau <= boi['tieu-de'].batDau, 'hinh chinh truoc nhan tieu de: ' + JSON.stringify(boi));
+  assert.ok(boi['tieu-de'].batDau <= boi['y-0'].batDau, 'nhan tieu de truoc chu y: ' + JSON.stringify(boi));
+  assert.ok(boi['y-0'].batDau <= boi['y-1'].batDau, 'chu y-0 truoc y-1 theo moc: ' + JSON.stringify(boi));
 });

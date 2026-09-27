@@ -15,7 +15,7 @@ META_CHOICES = {
     "phu-de": ("hinh", "file", "khong", "karaoke"),
     "ban-tay": ("co", "khong"),
     "may-quay": ("co", "khong"),
-    "chuyen-canh": ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "luan-phien", "khong"),
+    "chuyen-canh": ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "luan-phien", "khong", "xe-giay"),
     "chu-dong": ("co", "khong"),
     "am-thanh": ("co", "khong"),
     # Khổ khung (kho.py): ngang 16:9 hoặc dọc 9:16; độ phân giải xuất 1080 (Full HD) hoặc 720 cho máy yếu.
@@ -24,9 +24,11 @@ META_CHOICES = {
 }
 # Khoá đầu tự do (không có mặc định): nhạc nền là tên file trong nhac/; nguồn nhạc là chữ (chỉ dùng kèm `nhac-nen`).
 META_FREE = ("nhac-nen", "nguon-nhac")
+# `ban-tay` và `chuyen-canh` không có mặt ở đây: mặc định của hai khoá này đổi theo `phong-cach` (lich.mac_dinh),
+# nên kịch bản không ghi thì để trống trong `meta` thay vì điền cứng "co"/"lau-bang".
 META_DEFAULTS = {
     "phong-cach": "viet-tay", "giong": "nu", "toc-do": "vua", "phu-de": "karaoke",
-    "ban-tay": "co", "may-quay": "co", "chuyen-canh": "lau-bang",
+    "may-quay": "co",
     "chu-dong": "co", "am-thanh": "co", "kho": "ngang", "do-phan-giai": "1080",
 }
 
@@ -58,7 +60,7 @@ PHAN_CONG_THUC = " | "
 MAX_PHAN = 4
 SCENE_TYPES = tuple(SCENE_SPEC)
 # Trường `chuyen:` (mọi loại cảnh, từ cảnh 2) ghi đè khoá đầu `chuyen-canh` cho riêng cảnh đó.
-SCENE_KIEU_CHUYEN = ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "khong")
+SCENE_KIEU_CHUYEN = ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "xe-giay", "khong")
 
 _KEY_RE = re.compile(r"^([a-z][a-z0-9-]*):\s*(.*)$")
 _SCENE_RE = re.compile(r"^##\s+Cảnh\s+(\d+)\s*$")

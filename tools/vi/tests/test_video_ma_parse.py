@@ -263,16 +263,22 @@ class ExperimentSceneTest(unittest.TestCase):
 
 class NewFieldsTest(unittest.TestCase):
     def test_meta_choices_have_new_keys_with_defaults(self):
-        for key, choices, default in (
-            ("ban-tay", ("co", "khong"), "co"),
-            ("may-quay", ("co", "khong"), "co"),
-            ("chuyen-canh", ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "luan-phien", "khong"), "lau-bang"),
-            ("kho", ("ngang", "doc"), "ngang"),
-            ("do-phan-giai", ("1080", "720"), "1080"),
-            ("phong-cach", ("viet-tay", "cat-dan"), "viet-tay"),
+        for key, choices in (
+            ("ban-tay", ("co", "khong")),
+            ("may-quay", ("co", "khong")),
+            ("chuyen-canh", ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "luan-phien", "khong", "xe-giay")),
+            ("kho", ("ngang", "doc")),
+            ("do-phan-giai", ("1080", "720")),
+            ("phong-cach", ("viet-tay", "cat-dan")),
         ):
             self.assertEqual(parse.META_CHOICES[key], choices)
+        for key, default in (
+            ("may-quay", "co"), ("kho", "ngang"), ("do-phan-giai", "1080"), ("phong-cach", "viet-tay"),
+        ):
             self.assertEqual(parse.META_DEFAULTS[key], default)
+        # ban-tay và chuyen-canh không có mặc định cứng: đổi theo phong-cach (lich.mac_dinh).
+        self.assertNotIn("ban-tay", parse.META_DEFAULTS)
+        self.assertNotIn("chuyen-canh", parse.META_DEFAULTS)
 
     def test_phong_cach_cat_dan(self):
         video = parse.parse(doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n", META + "phong-cach: cat-dan\n"))
@@ -291,9 +297,10 @@ class NewFieldsTest(unittest.TestCase):
 
     def test_new_meta_keys_default_when_video_omits_them(self):
         video = parse.parse(doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n"))
-        self.assertEqual(video.meta["ban-tay"], "co")
+        # ban-tay/chuyen-canh không ghi thì để trống trong meta (mặc định theo phong cách ở lich.mac_dinh).
+        self.assertNotIn("ban-tay", video.meta)
+        self.assertNotIn("chuyen-canh", video.meta)
         self.assertEqual(video.meta["may-quay"], "co")
-        self.assertEqual(video.meta["chuyen-canh"], "lau-bang")
 
     def test_new_scene_types_are_registered(self):
         self.assertIn("minh-hoa", parse.SCENE_SPEC)
@@ -350,7 +357,7 @@ class TransitionFieldTest(unittest.TestCase):
     def test_chuyen_field_is_allowed_on_every_scene_type_after_the_first(self):
         mau = parse.parse(MAU.read_text(encoding="utf-8"))
         self.assertTrue(all(c.so == 1 or "chuyen" not in c.truong for c in mau.canh))
-        self.assertEqual(parse.SCENE_KIEU_CHUYEN, ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "khong"))
+        self.assertEqual(parse.SCENE_KIEU_CHUYEN, ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "xe-giay", "khong"))
         toi_thieu = {
             "tieu-de": "chu: B\n",
             "khai-niem": "thuat-ngu: B\ndinh-nghia: C\n",

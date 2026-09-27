@@ -229,6 +229,25 @@ class ResourceDataTest(unittest.TestCase):
         self.assertIsNone(du2["co"]["chuyen"])
 
 
+class StyleDefaultsTest(unittest.TestCase):
+    """Mặc định của `ban-tay` và `chuyen-canh` đổi theo `phong-cach` khi kịch bản không ghi (lich.mac_dinh)."""
+
+    def test_cat_dan_khong_ghi_gi_thi_xe_giay_va_khong_tay(self):
+        cac_du = video_nhieu_canh("phong-cach: cat-dan\n", 2)
+        self.assertEqual([du["co"]["chuyen"] for du in cac_du], [None, "xe-giay"])
+        self.assertEqual([du["co"]["banTay"] for du in cac_du], [False, False])
+
+    def test_cat_dan_ghi_ban_tay_co_thi_van_co_tay(self):
+        cac_du = video_nhieu_canh("phong-cach: cat-dan\nban-tay: co\n", 2)
+        self.assertEqual([du["co"]["banTay"] for du in cac_du], [True, True])
+        self.assertEqual([du["co"]["chuyen"] for du in cac_du], [None, "xe-giay"])
+
+    def test_viet_tay_khong_ghi_gi_thi_lau_bang_nhu_cu(self):
+        cac_du = video_nhieu_canh("", 2)
+        self.assertEqual([du["co"]["chuyen"] for du in cac_du], [None, "lau-bang"])
+        self.assertEqual([du["co"]["banTay"] for du in cac_du], [True, True])
+
+
 def video_nhieu_canh(meta_them: str, so_canh: int, chuyen_rieng: dict | None = None):
     chuyen_rieng = chuyen_rieng or {}
     text = f"---\n{META}{meta_them}---\n\n" + "".join(
@@ -241,7 +260,7 @@ def video_nhieu_canh(meta_them: str, so_canh: int, chuyen_rieng: dict | None = N
 
 class TransitionKindTest(unittest.TestCase):
     def test_each_meta_kind_applies_from_scene_two(self):
-        for kieu in ("lau-bang", "lat-trang", "truot", "phong", "mo-man"):
+        for kieu in ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "xe-giay"):
             with self.subTest(kieu=kieu):
                 cac_du = video_nhieu_canh(f"chuyen-canh: {kieu}\n", 3)
                 self.assertEqual([du["co"]["chuyen"] for du in cac_du], [None, kieu, kieu])
@@ -265,6 +284,10 @@ class TransitionKindTest(unittest.TestCase):
         cac_du = video_nhieu_canh("chuyen-canh: khong\n", 3, {3: "phong"})
         self.assertEqual([du["co"]["chuyen"] for du in cac_du], [None, None, "phong"])
         self.assertEqual([du["co"]["lauBang"] for du in cac_du], [False, False, False])
+
+    def test_scene_field_accepts_xe_giay_even_outside_cat_dan(self):
+        cac_du = video_nhieu_canh("chuyen-canh: khong\n", 2, {2: "xe-giay"})
+        self.assertEqual([du["co"]["chuyen"] for du in cac_du], [None, "xe-giay"])
 
 
 class WordMarkEstimateTest(unittest.TestCase):

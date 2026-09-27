@@ -56,11 +56,12 @@ Từ cảnh 2, nửa giây đầu mỗi cảnh chuyển từ khung cuối của 
 | `truot` | trang cũ trượt ra bên trái, trang mới trượt vào từ bên phải |
 | `phong` | phóng xuyên qua trang cũ, có một chớp sáng trắng ở giữa |
 | `mo-man` | trang cũ tách làm hai nửa kéo sang hai bên như mở màn |
+| `xe-giay` | mép giấy xé quét từ trái sang phải; mặc định khi `phong-cach: cat-dan` không ghi `chuyen-canh` |
 | `khong` | không chuyển, cảnh mới hiện ngay |
 | `luan-phien` | chỉ dùng ở khoá đầu: xoay vòng từ cảnh 2 theo thứ tự `lau-bang`, `lat-trang`, `truot`, `phong`, `mo-man`, rồi lặp lại |
 
-- `chuyen:` nhận năm kiểu trên hoặc `khong`, không nhận `luan-phien`. Cảnh 1 mở đầu video nên không có `chuyen:`; ghi vào cảnh 1 là lỗi `parse`.
-- Chỉ `lau-bang` có bàn tay trong lúc chuyển; bốn kiểu kia ẩn bàn tay, bút vào sau khi chuyển xong.
+- `chuyen:` nhận sáu kiểu trên hoặc `khong`, không nhận `luan-phien`. Cảnh 1 mở đầu video nên không có `chuyen:`; ghi vào cảnh 1 là lỗi `parse`.
+- Chỉ `lau-bang` có bàn tay trong lúc chuyển; năm kiểu kia ẩn bàn tay, bút vào sau khi chuyển xong.
 - Nên dùng `luan-phien` cho video nhiều cảnh, hoặc giữ một kiểu và dùng `chuyen:` để đánh dấu lúc sang phần mới (ví dụ `chuyen: lat-trang` trước cảnh câu hỏi).
 
 ## Tiêu đề
