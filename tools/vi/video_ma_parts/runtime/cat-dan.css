@@ -12,4 +12,15 @@
 /* Sticker: viền trắng quanh nét của biểu tượng; ảnh có viền trắng 6 px và bóng đổ, không khung vẽ tay. */
 .cat-dan g.vien-dan > * { fill: none; stroke: #ffffff; stroke-linecap: round; stroke-linejoin: round; }
 .cat-dan .anh.dan .vien-anh { display: none; }
+/* Thẻ thông tin: giấy trắng ngà, viền đen 2 px, bóng lệch 4 px; nhãn chữ hoa màu nhãn của cảnh, giá trị ExtraBold. */
+.cat-dan .chu.the-nen { background: #fffaf0; border: 2px solid #22201c; box-shadow: 4px 4px 0 #22201c; box-sizing: border-box;
+  overflow: visible; }
+.cat-dan .chu.the-nhan { color: var(--mau-nhan); font-weight: 800; }
+.cat-dan .chu.the-gia-tri { color: #22201c; font-weight: 800; }
+.cat-dan .chu.the-chu-thich { color: #22201c; }
+/* Dòng tài liệu: nền mực đen, chữ trắng (như video mẫu). Khung loạt: chữ mực đậm, số màu nhãn. */
+.cat-dan .dong-nguon .dong { background: rgba(34, 32, 28, 0.88); color: #ffffff; border-radius: 2px; }
+.cat-dan #khung-loat { color: #22201c; font-weight: 800; }
+.cat-dan #khung-loat span { background: rgba(243, 234, 215, 0.9); }
+.cat-dan #khung-loat .so { color: var(--mau-nhan); }
 .cat-dan .anh.dan .cua-anh { box-shadow: 0 0 0 6px #ffffff, 0 6px 14px rgba(0, 0, 0, 0.25); transform-origin: 50% 50%; }

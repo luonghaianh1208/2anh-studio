@@ -75,6 +75,8 @@ Mã loại: `tieu-de`.
 | `hinh` | không | tên biểu tượng `tabler-outline` |
 | `anh` | không | tên file trong `anh/` |
 | `nguon` | không | dòng nguồn của ảnh ở `anh`; chỉ ghi khi cảnh có `anh` |
+| `the` | không | thẻ thông tin `<nhãn> \| <giá trị> \| <chú thích>`: nhãn 24, giá trị 16 (nhận số chạy `{{…}}`), chú thích 60 ký tự (bỏ trống được) |
+| `tai-lieu` | không | dòng tài liệu tham khảo, 90 ký tự; tự thêm "Nguồn: " nếu chưa ghi |
 
 Cách hiện: chữ lớn hiện ra giữa khung, dòng phụ hiện bên dưới. Với `chu-dong: co` (mặc định) chữ lớn nảy vào từng chữ cái, không có bàn tay; với `chu-dong: khong` chữ lớn được bút viết ra như các chữ khác. Dùng cho cảnh mở đầu hoặc mở một phần mới.
 
@@ -97,6 +99,8 @@ Mã loại: `khai-niem`.
 | `hinh` | không | tên biểu tượng `tabler-outline` |
 | `anh` | không | tên file trong `anh/` |
 | `nguon` | không | dòng nguồn của ảnh ở `anh`; chỉ ghi khi cảnh có `anh` |
+| `the` | không | thẻ thông tin `<nhãn> \| <giá trị> \| <chú thích>`: nhãn 24, giá trị 16 (nhận số chạy `{{…}}`), chú thích 60 ký tự (bỏ trống được) |
+| `tai-lieu` | không | dòng tài liệu tham khảo, 90 ký tự; tự thêm "Nguồn: " nếu chưa ghi |
 
 Cách hiện: khung được vẽ nét, thuật ngữ rồi định nghĩa được viết vào trong khung.
 
@@ -119,8 +123,10 @@ Mã loại: `cong-thuc`.
 | `hinh` | không | tên biểu tượng `tabler-outline` |
 | `anh` | không | tên file trong `anh/` |
 | `nguon` | không | dòng nguồn của ảnh ở `anh`; chỉ ghi khi cảnh có `anh` |
+| `the` | không | thẻ thông tin `<nhãn> \| <giá trị> \| <chú thích>`: nhãn 24, giá trị 16 (nhận số chạy `{{…}}`), chú thích 60 ký tự (bỏ trống được) |
+| `tai-lieu` | không | dòng tài liệu tham khảo, 90 ký tự; tự thêm "Nguồn: " nếu chưa ghi |
 
-Cách hiện: biểu thức được viết dần, các dòng giải thích hiện lần lượt theo từng câu của lời.
+Cách hiện: biểu thức được viết dần, các dòng giải thích hiện lần lượt theo từng câu của lời. Mỗi phần của biểu thức (cả biểu thức khi không tách) là một khối không bao giờ ngắt dòng giữa chừng; dòng chỉ xuống ở chỗ giữa hai phần. Phần rộng hơn khung thì chữ nhỏ dần tới 70 %; vẫn rộng thì công cụ báo lỗi `canh` "phần công thức … quá dài cho khổ này": tách thành nhiều phần bằng ` | ` hoặc rút gọn.
 
 Công thức hiện từng phần: tách `bieu-thuc` bằng ` | ` (gạch đứng có khoảng trắng hai bên), ví dụ `bieu-thuc: T = 2π√(l/g) | = 2π√(1/9,8) | ≈ {{2.01}} s`. Phần thứ k được viết nối tiếp trên cùng dòng khi câu thứ k của `loi` bắt đầu; dòng giải thích thứ k khi đó hiện ở câu (số phần + k). Không có ` | ` thì như cũ; `|x|` (không có khoảng trắng hai bên) vẫn là chữ thường. Phần trống, quá 4 phần, hoặc `**`, `~`, `^`, `{{…}}` mở ở phần này đóng ở phần khác là lỗi `parse`. Trong `bieu-thuc`, `==`, `((`, `__` là chữ của công thức, không phải dấu nhấn; dấu nhấn dùng được ở `giai-thich`.
 
@@ -154,6 +160,8 @@ Mã loại: `y-tung-y`.
 | `hinh` | không | tên biểu tượng `tabler-outline` |
 | `anh` | không | tên file trong `anh/` |
 | `nguon` | không | dòng nguồn của ảnh ở `anh`; chỉ ghi khi cảnh có `anh` |
+| `the` | không | thẻ thông tin `<nhãn> \| <giá trị> \| <chú thích>`: nhãn 24, giá trị 16 (nhận số chạy `{{…}}`), chú thích 60 ký tự (bỏ trống được) |
+| `tai-lieu` | không | dòng tài liệu tham khảo, 90 ký tự; tự thêm "Nguồn: " nếu chưa ghi |
 
 Cách hiện: tiêu đề viết trước, mỗi ý được viết ra khi lời nói tới.
 

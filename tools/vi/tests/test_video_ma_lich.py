@@ -489,5 +489,31 @@ class NfdTest(unittest.TestCase):
         self.assertEqual(json.loads(proc.stdout), [tu[0]["t"], tu[1]["t"], tu[2]["t"]])
 
 
+class TheTaiLieuLoatDataTest(unittest.TestCase):
+    def du(self, noi_dung: str, meta=None) -> dict:
+        scene = canh_dau(noi_dung, "Xin chào.")
+        plan, _ = lich.dung_lich([scene], [giong(2.0, [0.0])])
+        return lich.du_lieu_canh(scene, plan[0], tai_nguyen={"meta": meta or {}})
+
+    def test_the_ba_phan_va_tai_lieu_them_nguon(self):
+        du = self.du("loai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\nthe: Của cải thực sự | GDP | Tổng sản lượng\n"
+                     "tai-lieu: Giáo trình Kinh tế vĩ mô\n")
+        self.assertEqual(du["the"], {"nhan": "Của cải thực sự", "giaTri": "GDP", "chuThich": "Tổng sản lượng"})
+        self.assertEqual(du["taiLieu"], "Nguồn: Giáo trình Kinh tế vĩ mô")
+        du = self.du("loai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\nthe: Năm | {{1923}}\ntai-lieu: nguồn: Sách giáo khoa\n")
+        self.assertEqual(du["the"], {"nhan": "Năm", "giaTri": "{{1923}}", "chuThich": ""})
+        self.assertEqual(du["taiLieu"], "nguồn: Sách giáo khoa")
+
+    def test_khong_co_truong_moi_thi_du_lieu_khong_doi(self):
+        du = self.du("loai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\n")
+        for khoa in ("the", "taiLieu", "loat"):
+            self.assertNotIn(khoa, du)
+
+    def test_gan_loat_so_va_tong(self):
+        cac = [{"so": k} for k in (1, 2, 3)]
+        lich.gan_loat(cac, "Kinh tế học")
+        self.assertEqual([d["loat"] for d in cac], [{"ten": "Kinh tế học", "so": k, "tong": 3} for k in (1, 2, 3)])
+
+
 if __name__ == "__main__":
     unittest.main()

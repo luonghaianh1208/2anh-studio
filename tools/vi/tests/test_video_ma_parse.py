@@ -707,5 +707,104 @@ class NfdTest(unittest.TestCase):
         self.assertEqual(v.canh[0].truong["y"], [nfc("==chu kì== lặp lại")])
 
 
+class TheTaiLieuLoatTest(unittest.TestCase):
+    """Thẻ thông tin `the`, dòng tài liệu `tai-lieu` và khoá đầu `loat` (spec Q5, Q12)."""
+
+    def parse_loi(self, text: str, needle: str, fragment: str = ""):
+        with self.assertRaises(parse.ParseError) as caught:
+            kiem.kiem(parse.parse(text), Path("."))
+        self.assertEqual(caught.exception.line_no, line_of(text, needle), str(caught.exception))
+        self.assertIn(fragment, str(caught.exception))
+
+    def canh_loi(self, text: str, needle: str, fragment: str = ""):
+        with self.assertRaises(kiem.CanhError) as caught:
+            kiem.kiem(parse.parse(text), Path("."))
+        self.assertIn(f"dòng {line_of(text, needle)}", str(caught.exception))
+        self.assertIn(fragment, str(caught.exception))
+
+    def test_the_va_tai_lieu_la_truong_tuy_chon_cua_bon_loai_canh(self):
+        for loai in ("tieu-de", "khai-niem", "cong-thuc", "y-tung-y"):
+            _, optional, _ = parse.SCENE_SPEC[loai]
+            self.assertIn("the", optional, loai)
+            self.assertIn("tai-lieu", optional, loai)
+        for loai in ("quy-trinh", "so-sanh", "do-thi", "thi-nghiem", "minh-hoa", "anh", "bieu-do", "so-do",
+                     "dong-thoi-gian", "cau-hoi"):
+            req, optional, rep = parse.SCENE_SPEC[loai]
+            self.assertNotIn("the", (*req, *optional, *rep), loai)
+            self.assertNotIn("tai-lieu", (*req, *optional, *rep), loai)
+
+    def test_the_ba_phan_va_chu_thich_bo_trong(self):
+        self.assertEqual(parse.tach_the("Siêu lạm phát | 1923 | Cộng hoà Weimar (Đức)"),
+                         ("Siêu lạm phát", "1923", "Cộng hoà Weimar (Đức)"))
+        self.assertEqual(parse.tach_the("GDP | 100 nghìn tỷ"), ("GDP", "100 nghìn tỷ", ""))
+        self.assertEqual(parse.tach_the("GDP | 100 |"), ("GDP", "100", ""))
+        for sai in ("GDP", "| 100 | x", "GDP |  | x", "a | b | c | d"):
+            self.assertIsNone(parse.tach_the(sai), sai)
+        text = doc("## Cảnh 1\nloai: khai-niem\nthuat-ngu: GDP\ndinh-nghia: Tổng sản phẩm.\n"
+                   "the: Của cải | GDP | Tổng sản lượng\ntai-lieu: Giáo trình Kinh tế vĩ mô\nloi: Xin chào.\n")
+        canh = parse.parse(text).canh[0]
+        self.assertEqual(canh.truong["the"], ["Của cải | GDP | Tổng sản lượng"])
+        self.assertEqual(kiem.kiem(parse.parse(text), Path(".")), [])
+
+    def test_the_sai_dang_la_loi_parse_dung_dong(self):
+        for gia_tri in ("GDP", "GDP |  | x", "a | b | c | d"):
+            with self.subTest(gia_tri=gia_tri):
+                text = doc(f"## Cảnh 1\nloai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\nthe: {gia_tri}\nloi: Xin chào.\n")
+                with self.assertRaises(parse.ParseError) as caught:
+                    parse.parse(text)
+                self.assertEqual(caught.exception.line_no, line_of(text, "the: "))
+                self.assertIn("<nhãn> | <giá trị>", str(caught.exception))
+
+    def test_the_o_loai_canh_khong_cho_phep_la_loi_parse(self):
+        for loai, noi in (("quy-trinh", "tieu-de: A\nbuoc: a\nbuoc: b\n"), ("anh", "anh: a.png\nchu-thich: A\n")):
+            for dong in ("the: Nhãn | 12 | x", "tai-lieu: Sách giáo khoa"):
+                with self.subTest(loai=loai, dong=dong):
+                    text = doc(f"## Cảnh 1\nloai: {loai}\n{noi}{dong}\nloi: Xin chào.\n")
+                    with self.assertRaises(parse.ParseError) as caught:
+                        parse.parse(text)
+                    self.assertEqual(caught.exception.line_no, line_of(text, dong))
+                    self.assertIn(f"Cảnh loại `{loai}` không có trường", str(caught.exception))
+
+    def test_the_bi_lap_la_loi_parse(self):
+        text = doc("## Cảnh 1\nloai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\nthe: a | 1\nthe: b | 2\nloi: Xin chào.\n")
+        with self.assertRaises(parse.ParseError) as caught:
+            parse.parse(text)
+        self.assertEqual(caught.exception.line_no, line_of(text, "the: b"))
+
+    def test_gioi_han_the_tinh_tren_chu_hien_thi(self):
+        def canh(the: str) -> str:
+            return doc(f"## Cảnh 1\nloai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\nthe: {the}\nloi: Xin chào.\n")
+        # Đúng giới hạn: nhãn 24, giá trị 16 (số chạy đếm theo chữ hiện: {{1923}} là 4), chú thích 60.
+        ok = canh(f"{'n' * 24} | {'g' * 12}{{{{1923}}}} | {'c' * 60}")
+        self.assertEqual(kiem.kiem(parse.parse(ok), Path(".")), [])
+        self.canh_loi(canh(f"{'n' * 25} | 1"), "the: ", "nhãn")
+        self.canh_loi(canh(f"n | {'g' * 17}"), "the: ", "giá trị")
+        self.canh_loi(canh(f"n | 1 | {'c' * 61}"), "the: ", "chú thích")
+        self.parse_loi(canh("n | {{1,5}}"), "the: ", "{{1,5}}")
+
+    def test_gioi_han_tai_lieu_90(self):
+        def canh(tl: str) -> str:
+            return doc(f"## Cảnh 1\nloai: y-tung-y\ntieu-de: A\ny: B\ntai-lieu: {tl}\nloi: Xin chào.\n")
+        self.assertEqual(kiem.kiem(parse.parse(canh("t" * 90)), Path(".")), [])
+        self.canh_loi(canh("t" * 91), "tai-lieu: ", "tối đa 90")
+        with self.assertRaises(parse.ParseError) as caught:
+            parse.parse(canh("xem https://vi.wikipedia.org"))
+        self.assertIn("địa chỉ web", str(caught.exception))
+
+    def test_loat_la_khoa_dau_tu_do_toi_da_30(self):
+        self.assertIn("loat", parse.META_FREE)
+        self.assertNotIn("loat", parse.META_DEFAULTS)
+        mot = "## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n"
+        video = parse.parse(doc(mot, META + "loat: Kinh tế học nhập môn\n"))
+        self.assertEqual(video.meta["loat"], "Kinh tế học nhập môn")
+        self.assertNotIn("loat", parse.parse(doc(mot)).meta)
+        parse.parse(doc(mot, META + "loat: " + "l" * 30 + "\n"))
+        text = doc(mot, META + "loat: " + "l" * 31 + "\n")
+        with self.assertRaises(parse.ParseError) as caught:
+            parse.parse(text)
+        self.assertEqual(caught.exception.line_no, line_of(text, "loat: "))
+        self.assertIn("tối đa 30", str(caught.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

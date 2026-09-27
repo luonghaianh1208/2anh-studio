@@ -38,6 +38,11 @@ def vi_text(n: int) -> str:
     return s[:-1] + "x" if s.endswith(" ") else s
 
 
+# Biểu thức ở giới hạn 90 ký tự: mỗi phần là một khối không ngắt dòng (spec Q14), nên chuỗi dài chia bốn phần bằng
+# ` | ` (4 × 21 ký tự + 3 khoảng trắng ngăn = 87); một phần dài 90 ký tự là lỗi "phần công thức quá dài".
+BIEU_THUC_TOI_DA = " | ".join(vi_text(21) for _ in range(4))
+
+
 def du_cua(noi_dung: str, giay: float = 6.0, loi: str = "Xin chào các em. Hôm nay học bài mới. Cảm ơn các em."):
     text = f"---\n{META}---\n\n## Cảnh 1\n{noi_dung}loi: {loi}\n"
     canh = parse.parse(text).canh[0]
@@ -193,7 +198,7 @@ class ChromiumTest(unittest.TestCase):
         diem = "\n".join(f"diem: {k}, {k * k % 7}" for k in range(12))
         casos = {
             "y-tung-y": "loai: y-tung-y\ntieu-de: Sáu ý\n" + "".join(f"y: {vi_text(60)}\n" for _ in range(6)),
-            "cong-thuc": ("loai: cong-thuc\nbieu-thuc: " + vi_text(90) + "\n"
+            "cong-thuc": ("loai: cong-thuc\nbieu-thuc: " + BIEU_THUC_TOI_DA + "\n"
                           + "".join(f"giai-thich: {vi_text(60)}\n" for _ in range(4))),
             "quy-trinh": "loai: quy-trinh\ntieu-de: Năm bước\n" + "".join(f"buoc: {vi_text(50)}\n" for _ in range(5)),
             "so-sanh": ("loai: so-sanh\ntieu-de: So sánh\n" + f"trai: {vi_text(24)}\nphai: {vi_text(24)}\n"
@@ -330,7 +335,7 @@ class PictureMotionChromiumTest(unittest.TestCase):
         casos = {
             "khai-niem": f"loai: khai-niem\nthuat-ngu: {vi_text(60)}\ndinh-nghia: {vi_text(220)}\n",
             "y-tung-y": f"loai: y-tung-y\ntieu-de: {vi_text(90)}\n" + "".join(f"y: {vi_text(60)}\n" for _ in range(6)),
-            "cong-thuc": ("loai: cong-thuc\nbieu-thuc: " + vi_text(90) + "\n"
+            "cong-thuc": ("loai: cong-thuc\nbieu-thuc: " + BIEU_THUC_TOI_DA + "\n"
                           + "".join(f"giai-thich: {vi_text(60)}\n" for _ in range(4))),
             "tieu-de": f"loai: tieu-de\nchu: {vi_text(90)}\nphu: {vi_text(90)}\n",
         }
@@ -410,7 +415,7 @@ class PictureMotionChromiumTest(unittest.TestCase):
             "anh": f"loai: anh\nchu-thich: {vi_text(90)}\n",
             "khai-niem": f"loai: khai-niem\nthuat-ngu: {vi_text(60)}\ndinh-nghia: {vi_text(220)}\n",
             "y-tung-y": f"loai: y-tung-y\ntieu-de: {vi_text(90)}\n" + "".join(f"y: {vi_text(60)}\n" for _ in range(6)),
-            "cong-thuc": ("loai: cong-thuc\nbieu-thuc: " + vi_text(90) + "\n"
+            "cong-thuc": ("loai: cong-thuc\nbieu-thuc: " + BIEU_THUC_TOI_DA + "\n"
                           + "".join(f"giai-thich: {vi_text(60)}\n" for _ in range(4))),
             "tieu-de": f"loai: tieu-de\nchu: {vi_text(90)}\nphu: {vi_text(90)}\n",
         }

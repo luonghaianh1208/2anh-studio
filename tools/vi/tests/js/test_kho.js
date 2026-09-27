@@ -97,8 +97,11 @@ test('o bo cuc doc: quy tac cua ban thiet ke', function () {
   ['bieu-do', 'so-do', 'dong-thoi-gian'].forEach(function (ten) {
     assert.ok(K.o(ten).w >= 720 - 2 * 48 - 48, ten + ' ' + JSON.stringify(K.o(ten)));
   });
-  // Ô tạm cho thẻ, dòng tài liệu, nhân vật: không đè ô nội dung hẹp và cột phụ khác chỗ, và ở trên vạch phụ đề.
-  ['the', 'tai-lieu'].forEach(function (ten) { assert.ok(!chong(K.o(ten), hep), ten); });
+  // Dòng tài liệu không đè ô nội dung hẹp. Thẻ nằm ở đỉnh ô nội dung, ngay dưới tiêu đề: cảnh có thẻ dời nội dung
+  // xuống dưới thẻ (khung-video B.o), nên thẻ chỉ cần không đè tiêu đề và cột phụ (test_the.js).
+  assert.ok(!chong(K.o('tai-lieu'), hep));
+  assert.ok(!chong(K.o('the'), td) && !chong(K.o('the'), cot));
+  assert.strictEqual(K.o('the').y, nd.y);
   K.dat(NGANG);
 });
 

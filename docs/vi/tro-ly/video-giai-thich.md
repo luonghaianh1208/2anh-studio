@@ -69,6 +69,7 @@ Khối thông tin:
 | `do-phan-giai` | không | `1080` (mặc định: Full HD, 1920×1080 hoặc 1080×1920) hoặc `720` (1280×720 hoặc 720×1280, dựng nhanh hơn cho máy yếu) |
 | `nhac-nen` | không | tên file nhạc trong thư mục `nhac/` của video (`.mp3`, `.m4a`, `.wav`, `.ogg`); không ghi thì không có nhạc |
 | `nguon-nhac` | không | dòng nguồn của nhạc nền, chỉ ghi kèm `nhac-nen` khi `nhac/nguon.json` không có bản ghi cho file đó (nhạc thầy cô gửi) |
+| `loat` | không | tên loạt video, tối đa 30 ký tự; có thì mỗi cảnh hiện tên loạt ở góc trái trên và số cảnh "03/08" ở góc phải trên; không ghi thì không hiện |
 
 Các khoá `ban-tay`, `may-quay`, `chuyen-canh`, `chu-dong`, `am-thanh` chỉ ghi khi muốn đổi: không ghi thì đều bật (`chuyen-canh` là lau bảng ở `phong-cach: viet-tay`; ở `cat-dan` không ghi thì `ban-tay` mặc định `khong` và `chuyen-canh` mặc định `xe-giay`). Ghi `khong` khi thầy cô thấy rối mắt hay ồn và muốn tắt. Cảnh `thi-nghiem` không có bàn tay, máy quay chỉ đẩy chậm. Kịch bản cũ ghi `phu-de: hinh` vẫn giữ phụ đề kiểu cũ.
 

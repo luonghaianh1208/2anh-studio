@@ -9,8 +9,13 @@
       var nay = !!(du.co && du.co.chuDong);
       // Ô `bia`: chữ, nét gạch (dài 600 nhưng không quá ô trừ 40, giữa ô, dưới chữ 20) rồi dòng phụ (cao 100; khổ dọc
       // hẹp nên cao 150). Không hình: chữ lùi 20 từ đỉnh và kéo tới chỗ chừa cho gạch và dòng phụ (20 + 30 + 100 + lề 20).
-      var o = V.o('bia');
+      // Thẻ thông tin: khổ ngang, không hình thì chữ, gạch và dòng phụ dừng trước ô thẻ (góc phải trên); khổ dọc thì
+      // thẻ ở đỉnh ô bìa, ô bìa dời xuống dưới thẻ (B.o).
+      var oGoc = V.o('bia');
+      var o = B.o('bia');
       var doc = V.doc();
+      if (B.coThe && !doc && !B.coCot) { o.w = V.o('the').x - 20 - o.x; }
+      var oThe = doc ? { x: oGoc.x, y: oGoc.y, w: oGoc.w, h: V.o('the').h } : null;
       var giua = o.x + o.w / 2;
       var dai = Math.min(600, o.w - 40);
       var hPhu = doc ? 150 : 100;
@@ -23,7 +28,7 @@
         var yGach = c.y + c.cao + 20;
         kq.push(gach(yGach, c.batDau + c.thoiLuong));
         if (t.phu) { kq.push(B.chu('phu', t.phu[0], o.x, yGach + 30, o.w, hPhu, 34, c.batDau + c.thoiLuong + 0.4, { can: 'giua' })); }
-        return kq;
+        return B.them(kq, oThe);
       }
       // Có hình: hình 180×180 ở giữa đỉnh ô, vẽ trước; tiêu đề (cao 150; khổ dọc hẹp nên cao 300) dời xuống ngay dưới
       // (cách 5). Dòng nguồn của ảnh nằm bên phải khung, không chen vào ô tiêu đề hai dòng; khổ dọc không đủ chỗ bên
@@ -37,7 +42,7 @@
       var yGach2 = c2.y + c2.cao + 20;
       kq.push(gach(yGach2, c2.batDau + c2.thoiLuong));
       if (t.phu) { kq.push(B.chu('phu', t.phu[0], o.x, yGach2 + 25, o.w, hPhu, 34, c2.batDau + c2.thoiLuong + 0.4, { can: 'giua' })); }
-      return kq;
+      return B.them(kq, oThe);
     }
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

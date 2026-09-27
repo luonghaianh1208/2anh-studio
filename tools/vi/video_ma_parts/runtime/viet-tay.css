@@ -67,5 +67,20 @@ g.hinh.nhan > * { stroke: #1d4ed8; }
 #nhac-nguon { position: absolute; left: 24px; bottom: calc(var(--cao) - var(--day) + 8px); max-width: 760px; font-size: 14px; line-height: 1.25;
   padding: 1px 6px; border-radius: 4px; background: rgba(251, 250, 245, 0.85); color: #374151; z-index: 3;
   pointer-events: none; }
+/* Thẻ thông tin: nhãn chữ hoa nhỏ, giá trị lớn (một khối không ngắt), chú thích; khung vẽ tay là nét SVG. */
+.chu.the-nhan { color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.08em; line-height: 1.4; }
+.chu.the-gia-tri { color: #1f2937; line-height: 1.25; }
+.chu.the-chu-thich { color: #374151; line-height: 1.3; }
+/* Dòng tài liệu (và nguồn ảnh xếp trên): neo đáy ô `tai-lieu`, căn phải, dòng dài thì lên trên. */
+.dong-nguon { position: absolute; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end;
+  gap: 2px; overflow: visible; pointer-events: none; }
+.dong-nguon .dong { max-width: 100%; box-sizing: border-box; line-height: 1.25; padding: 1px 6px; border-radius: 4px;
+  background: rgba(251, 250, 245, 0.85); color: #374151; text-align: right; }
+/* Khung loạt: tên loạt góc trái trên, "0k/N" góc phải trên; đứng yên ngoài lớp bảng. */
+#khung-loat { position: absolute; left: 0; top: 0; width: var(--rong); height: 40px; z-index: 3; pointer-events: none;
+  font-size: 12px; line-height: 1; letter-spacing: 0.12em; text-transform: uppercase; color: #4b5563; }
+#khung-loat span { position: absolute; top: 14px; padding: 2px 6px; border-radius: 3px; background: rgba(251, 250, 245, 0.85); }
+#khung-loat .ten { left: 18px; }
+#khung-loat .so { right: 18px; color: #1d4ed8; }
 #ban-tay { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
 #ban-tay[data-kieu="but"] .gie, #ban-tay[data-kieu="gie"] .but { display: none; }

@@ -147,6 +147,8 @@
       nguon.style.width = m.oNguon.rong + 'px';
     }
     nguon.textContent = m.nguon;
+    // Cảnh có dòng tài liệu: nguồn ảnh hiện trong khối dòng tài liệu (khung-video), không hiện ở đây.
+    if (m.nguonNgoai) { nguon.style.display = 'none'; }
     el.appendChild(nguon);
     goc.appendChild(el);
     return { el: el, img: img, net: net, cua: cua };

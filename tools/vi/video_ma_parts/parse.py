@@ -22,8 +22,9 @@ META_CHOICES = {
     "kho": ("ngang", "doc"),
     "do-phan-giai": ("1080", "720"),
 }
-# Khoá đầu tự do (không có mặc định): nhạc nền là tên file trong nhac/; nguồn nhạc là chữ (chỉ dùng kèm `nhac-nen`).
-META_FREE = ("nhac-nen", "nguon-nhac")
+# Khoá đầu tự do (không có mặc định): nhạc nền là tên file trong nhac/; nguồn nhạc là chữ (chỉ dùng kèm `nhac-nen`);
+# `loat` là tên loạt video (≤ 30 ký tự), có thì hiện tên loạt và "0k/N" ở hai góc trên.
+META_FREE = ("nhac-nen", "nguon-nhac", "loat")
 # `ban-tay` và `chuyen-canh` không có mặt ở đây: mặc định của hai khoá này đổi theo `phong-cach` (lich.mac_dinh),
 # nên kịch bản không ghi thì để trống trong `meta` thay vì điền cứng "co"/"lau-bang".
 META_DEFAULTS = {
@@ -34,10 +35,10 @@ META_DEFAULTS = {
 
 # loại cảnh -> (trường đơn bắt buộc, trường đơn tuỳ chọn, trường lặp {khoá: (tối thiểu, tối đa)})
 SCENE_SPEC = {
-    "tieu-de": (("chu",), ("phu", "hinh", "anh", "nguon"), {}),
-    "khai-niem": (("thuat-ngu", "dinh-nghia"), ("hinh", "anh", "nguon"), {}),
-    "cong-thuc": (("bieu-thuc",), ("hinh", "anh", "nguon"), {"giai-thich": (0, 4)}),
-    "y-tung-y": (("tieu-de",), ("hinh", "anh", "nguon"), {"y": (1, 6)}),
+    "tieu-de": (("chu",), ("phu", "hinh", "anh", "nguon", "the", "tai-lieu"), {}),
+    "khai-niem": (("thuat-ngu", "dinh-nghia"), ("hinh", "anh", "nguon", "the", "tai-lieu"), {}),
+    "cong-thuc": (("bieu-thuc",), ("hinh", "anh", "nguon", "the", "tai-lieu"), {"giai-thich": (0, 4)}),
+    "y-tung-y": (("tieu-de",), ("hinh", "anh", "nguon", "the", "tai-lieu"), {"y": (1, 6)}),
     "quy-trinh": (("tieu-de",), (), {"buoc": (2, 5)}),
     "so-sanh": (("tieu-de", "trai", "phai"), (), {"y-trai": (1, 4), "y-phai": (1, 4)}),
     "do-thi": (("tieu-de", "truc-ngang", "truc-doc"), (), {"diem": (2, 12)}),
@@ -55,6 +56,8 @@ CHU_LUA_CHON = "ABCD"
 CHO_MAC_DINH = 5
 CHO_TOI_THIEU, CHO_TOI_DA = 3, 10
 SO_DAI = 10
+# Tên loạt (`loat`) tối đa 30 ký tự; thẻ thông tin `the: <nhãn> | <giá trị> | <chú thích>` (chú thích bỏ trống được).
+LOAT_DAI = 30
 # `bieu-thuc` của `cong-thuc` tách phần bằng ` | ` (dấu gạch đứng có khoảng trắng hai bên); tối đa 4 phần.
 PHAN_CONG_THUC = " | "
 MAX_PHAN = 4
@@ -81,6 +84,15 @@ def tach_moc(value: str) -> tuple:
     """`<nhãn> | <mô tả>` -> (nhãn, mô tả); None nếu sai dạng. Tách ở dấu `|` đầu tiên."""
     match = _MOC_RE.match(value)
     return (match.group(1), match.group(2).strip()) if match else None
+
+
+def tach_the(value: str):
+    """`<nhãn> | <giá trị> | <chú thích>` -> (nhãn, giá trị, chú thích); chú thích bỏ trống được (hai phần, hoặc phần
+    ba trống). None nếu sai dạng: thiếu nhãn hay giá trị, hoặc hơn ba phần."""
+    phan = [p.strip() for p in value.split("|")]
+    if len(phan) not in (2, 3) or not phan[0] or not phan[1]:
+        return None
+    return (phan[0], phan[1], phan[2] if len(phan) == 3 else "")
 
 
 def phan_cong_thuc(value: str) -> list:
@@ -200,6 +212,8 @@ def _read_meta(lines: list, start: int) -> tuple:
     if "nguon-nhac" in meta and "nhac-nen" not in meta:
         raise ParseError(dong_meta["nguon-nhac"], "`nguon-nhac` chỉ dùng kèm `nhac-nen` (nguồn của file nhạc nền); "
                                                   "thêm dòng `nhac-nen: <file trong nhac/>` hoặc bỏ dòng này.")
+    if len(meta.get("loat", "")) > LOAT_DAI:
+        raise ParseError(dong_meta["loat"], f"`loat` dài {len(meta['loat'])} ký tự, tối đa {LOAT_DAI}. Rút gọn tên loạt.")
     for key, default in META_DEFAULTS.items():
         meta.setdefault(key, default)
     return meta, dong_meta, i + 1
@@ -261,6 +275,9 @@ def _finish(so: int, dong0: int, fields: list) -> Scene:
     for value, no in zip(truong.get("moc", []), dong_truong.get("moc", [])):
         if tach_moc(value) is None:
             raise ParseError(no, "Dòng `moc` phải có dạng `<nhãn> | <mô tả>`, ví dụ `1945 | Cách mạng tháng Tám`.")
+    if "the" in truong and tach_the(truong["the"][0]) is None:
+        raise ParseError(dong_truong["the"][0], "`the` phải có dạng `<nhãn> | <giá trị> | <chú thích>` (chú thích bỏ "
+                                                "trống được), ví dụ `Siêu lạm phát | 1923 | Cộng hoà Weimar (Đức)`.")
     if loai == "cong-thuc":
         _kiem_bieu_thuc(truong["bieu-thuc"][0], dong_truong["bieu-thuc"][0])
     if loai == "cau-hoi":

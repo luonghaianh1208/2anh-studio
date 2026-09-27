@@ -10,7 +10,7 @@ from pathlib import Path
 
 from . import kho, phong
 from .kiem import CanhError, ma_do, tham_so_theo_thoi_gian
-from .parse import Scene, phan_cong_thuc, tach_du_lieu
+from .parse import Scene, phan_cong_thuc, tach_du_lieu, tach_the
 
 FPS = 30
 DAN_DAU = 1.0
@@ -23,6 +23,7 @@ NGUON_NHAC_GIAY = 4.0  # dòng nguồn nhạc nền hiện trong 4 s cuối vide
 VIDEO_DAI = 480.0
 _CAU_RE = re.compile(r"(?<=[.!?…])\s+")
 _KHOA_RE = re.compile(r"[^\w\s]", re.UNICODE)
+_NGUON_RE = re.compile(r"nguồn\s*:", re.IGNORECASE)
 
 
 @dataclass
@@ -237,6 +238,18 @@ def gan_nguon_nhac(du: dict, nguon: str) -> dict:
     return du
 
 
+def gan_loat(cac_du: list, ten: str) -> list:
+    """Khung loạt (khoá đầu `loat`): mỗi cảnh biết tên loạt, số cảnh của mình và tổng số cảnh ("03/08")."""
+    for du in cac_du:
+        du["loat"] = {"ten": ten, "so": du["so"], "tong": len(cac_du)}
+    return cac_du
+
+
+def tai_lieu_hien(chu: str) -> str:
+    """Dòng tài liệu như hiện trên khung: thêm "Nguồn: " khi thầy cô chưa ghi."""
+    return chu if _NGUON_RE.match(chu) else f"Nguồn: {chu}"
+
+
 def du_lieu_canh(scene: Scene, cl: CanhLich, model=None, tai_nguyen: dict | None = None) -> dict:
     tai_nguyen = tai_nguyen or {}
     meta = tai_nguyen.get("meta", {})
@@ -264,6 +277,12 @@ def du_lieu_canh(scene: Scene, cl: CanhLich, model=None, tai_nguyen: dict | None
         "kho": kho.tu_meta(meta).du_lieu(),
         "chuDe": phong.chu_de(meta.get("phong-cach")),
     }
+    # Thẻ thông tin và dòng tài liệu chỉ có mặt khi cảnh ghi (dữ liệu cảnh cũ giữ nguyên).
+    if "the" in scene.truong:
+        nhan, gia_tri, chu_thich = tach_the(scene.truong["the"][0])
+        du["the"] = {"nhan": nhan, "giaTri": gia_tri, "chuThich": chu_thich}
+    if "tai-lieu" in scene.truong:
+        du["taiLieu"] = tai_lieu_hien(scene.truong["tai-lieu"][0])
     if scene.loai == "do-thi":
         du["diem"] = [[float(p) for p in v.split(",")] for v in scene.truong["diem"]]
     if scene.loai == "bieu-do":

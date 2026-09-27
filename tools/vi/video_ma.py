@@ -32,6 +32,8 @@ FIX_NHAC = ("Sửa nhạc nền theo thông báo: dòng `nhac-nen` (tên file n�
             "video.md, hoặc bản ghi của file trong nhac/nguon.json; không cần nhạc nền thì xoá dòng `nhac-nen`.")
 FIX_NGUON_NHAC = ("Rút gọn dòng nguồn nhạc: ghi `nguon-nhac:` ngắn hơn ở khối thông tin đầu video.md (tên bản · tác giả · "
                   "giấy phép), hoặc rút gọn title/creator của file trong nhac/nguon.json, rồi chạy lại.")
+FIX_PHAN = "Tách công thức thành nhiều phần bằng ` | ` (mỗi phần hiện liền một khối), hoặc rút gọn phần đó."
+FIX_TAI_LIEU = "Rút gọn nội dung cảnh (chữ ở góc phải dưới) hoặc dòng `tai-lieu`, rồi chạy lại."
 GIONG_TAM = 8.0
 
 
@@ -87,6 +89,8 @@ def _cac_du(video, cac_lich, models, thu_muc: Path, nhac=None) -> list:
               for c, cl in zip(video.canh, cac_lich)]
     if nhac is not None and cac_du:
         lich.gan_nguon_nhac(cac_du[-1], nhac["nguon"])
+    if video.meta.get("loat"):
+        lich.gan_loat(cac_du, video.meta["loat"])
     return cac_du
 
 
@@ -97,6 +101,11 @@ def _trang(video, cac_lich, models, thu_muc: Path, nhac=None) -> list:
 def _kiem_tran_tat_ca(page, video, trang_html) -> None:
     for canh, html in zip(video.canh, trang_html):
         tran = chup.kiem_tran(page, html)
+        phan = [muc[len("phan:"):] for muc in tran if muc.startswith("phan:")]
+        if phan:
+            raise kiem.CanhError(canh.so, f'phần công thức "{phan[0]}" quá dài cho khổ này', FIX_PHAN)
+        if "tai-lieu" in tran:
+            raise kiem.CanhError(canh.so, "dòng tài liệu (`tai-lieu`) đè lên chữ hoặc ảnh của cảnh.", FIX_TAI_LIEU)
         noi_dung = [muc for muc in tran if muc != "nhac-nguon"]
         if noi_dung:
             raise kiem.CanhError(canh.so, f"chữ ở mục `{', '.join(noi_dung)}` tràn khung. Rút ngắn nội dung hoặc chia thành hai cảnh.")

@@ -42,6 +42,11 @@ LIMITS_HAI_PHAN_CAT_DAN = dict(LIMITS_HAI_PHAN)
 LIMITS_CAT_DAN_DOC = {**LIMITS_DOC, ("khai-niem", "dinh-nghia"): 127, ("cong-thuc", "giai-thich"): 45, ("y-tung-y", "y"): 34,
                       ("do-thi", "truc-doc"): 38, ("bieu-do", "don-vi"): 10, ("bieu-do", "truc-doc"): 36}
 LIMITS_HAI_PHAN_CAT_DAN_DOC = {("bieu-do", "du-lieu"): (16, 7), ("dong-thoi-gian", "moc"): (10, 60)}
+# Thẻ thông tin (`the`, spec Q5): nhãn, giá trị, chú thích tính trên chữ hiện; giống nhau ở mọi khổ và phong cách (ô thẻ
+# đo bằng Chromium ở đúng giới hạn này, test_video_ma_the). Giá trị là một khối không ngắt (như công thức): không có
+# cụm nhấn, chỉ số chạy `{{…}}`. Dòng tài liệu (`tai-lieu`) là chữ thường, không định dạng.
+GIOI_HAN_THE = (("nhãn", 24, True), ("giá trị", 16, False), ("chú thích", 60, True))
+TAI_LIEU_DAI = 90
 LOI_DAI = 700
 MAX_THAM_SO = 3
 MAX_DO = 3
@@ -226,6 +231,17 @@ def _kiem_do_dai(so: int, key: str, value: str, no: int, gioi_han: int, cum: boo
         raise CanhError(so, f"`{key}` dài {so_ky_tu} ký tự, tối đa {gioi_han}{ghi_chu} (dòng {no}). Rút gọn nội dung.")
 
 
+def _kiem_the(scene: Scene) -> None:
+    if "the" in scene.truong:
+        value, no = scene.truong["the"][0], scene.dong_truong["the"][0]
+        for chu, (ten, gioi_han, cum) in zip(parse.tach_the(value), GIOI_HAN_THE):
+            _kiem_do_dai(scene.so, f"the ({ten})", chu, no, gioi_han, cum)
+    if "tai-lieu" in scene.truong:
+        value, no = scene.truong["tai-lieu"][0], scene.dong_truong["tai-lieu"][0]
+        if len(value) > TAI_LIEU_DAI:
+            raise CanhError(scene.so, f"`tai-lieu` dài {len(value)} ký tự, tối đa {TAI_LIEU_DAI} (dòng {no}). Rút gọn dòng tài liệu.")
+
+
 def doc_nhac(video: Video, thu_muc: Path):
     """Nhạc nền của video (`nhac.doc`), None khi không có `nhac-nen`. Lỗi là CanhError số cảnh 0, nêu dòng khoá đầu."""
     ten = video.meta.get("nhac-nen")
@@ -246,6 +262,7 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
     bang, bang_hai_phan = bang_gioi_han(ten_kho, phong_cach)
     ghi_chu = _ghi_chu_gioi_han(ten_kho, phong_cach)
     for scene in video.canh:
+        _kiem_the(scene)
         for key, values in scene.truong.items():
             hai_phan = bang_hai_phan.get((scene.loai, key))
             if hai_phan is not None:
