@@ -19,8 +19,10 @@ O = json.loads((Path(__file__).resolve().parent / "runtime" / "o-bo-cuc.json").r
 
 
 def o(ten_kho: str, ten_o: str) -> dict:
-    """Ô `ten_o` của khổ `ten_kho` (bản sao); khổ chưa có bảng riêng dùng bảng ngang, như runtime/kho.js."""
-    bang = O.get(ten_kho, O["ngang"])
+    """Ô `ten_o` của khổ `ten_kho` (bản sao); mỗi khổ có bảng riêng, khổ lạ hay tên lạ là lỗi, như runtime/kho.js."""
+    if ten_kho not in O:
+        raise ValueError(f"Khổ `{ten_kho}` không có bảng ô bố cục.")
+    bang = O[ten_kho]
     if ten_o not in bang:
         raise ValueError(f"Ô bố cục `{ten_o}` không có ở khổ {ten_kho}.")
     return dict(bang[ten_o])

@@ -15,9 +15,10 @@
     return hien;
   }
   function lay() { return hien; }
-  // Ô bố cục `ten` của khổ hiện tại (bản sao). Khổ chưa có bảng riêng dùng bảng ngang; tên lạ là lỗi.
+  // Ô bố cục `ten` của khổ hiện tại (bản sao). Mỗi khổ có bảng riêng, không mượn bảng khổ khác; khổ lạ hay tên lạ là lỗi.
   function o(ten) {
-    var bang = BANG[hien.ten] || BANG.ngang || {};
+    var bang = BANG[hien.ten];
+    if (!bang) { throw new Error('Khổ ' + hien.ten + ' không có bảng ô bố cục.'); }
     var b = bang[ten];
     if (!b) { throw new Error('Ô bố cục `' + ten + '` không có ở khổ ' + hien.ten + '.'); }
     return { x: b.x, y: b.y, w: b.w, h: b.h };

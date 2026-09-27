@@ -27,6 +27,12 @@ LIMITS = {
 }
 # Trường hai phần `<nhãn> | <…>`: giới hạn của nhãn và của mô tả (None: phần sau là số, parse đã kiểm).
 LIMITS_HAI_PHAN = {("bieu-do", "du-lieu"): (16, None), ("dong-thoi-gian", "moc"): (12, 60)}
+# Khổ dọc 9:16 (`kho: doc`, ô hẹp 624): giới hạn đo bằng Chromium, chuỗi thử "Nghiêng nghiễm nhiên " ở số dòng lặp
+# tối đa, có và không có hình ở cột phụ (bảng đo ở docs/vi/phat-trien/2026-09-27-video-ma-vi12-kiem-thu.md). Không
+# lớn hơn khổ ngang. Ba trường thấp hơn khổ ngang vì cột phụ khổ dọc là khối dưới nội dung (ô nội dung chỉ cao 300).
+# Số của `du-lieu` có giới hạn riêng ở khổ dọc vì cột hẹp (khổ ngang chỉ có parse.SO_DAI).
+LIMITS_DOC = {**LIMITS, ("khai-niem", "dinh-nghia"): 132, ("cong-thuc", "giai-thich"): 51, ("y-tung-y", "y"): 40}
+LIMITS_HAI_PHAN_DOC = {("bieu-do", "du-lieu"): (16, 8), ("dong-thoi-gian", "moc"): (12, 60)}
 LOI_DAI = 700
 MAX_THAM_SO = 3
 MAX_DO = 3
@@ -191,11 +197,12 @@ def _kiem_hinh_anh(scene: Scene, thu_muc: Path) -> None:
             raise CanhError(scene.so, f"{exc} (dòng {no}).") from exc
 
 
-def _kiem_do_dai(so: int, key: str, value: str, no: int, gioi_han: int, cum: bool) -> None:
+def _kiem_do_dai(so: int, key: str, value: str, no: int, gioi_han: int, cum: bool, doc: bool = False) -> None:
     kiem_danh_dau(key, value, no, cum)
     so_ky_tu = hien_thi(value, cum)
     if so_ky_tu > gioi_han:
-        raise CanhError(so, f"`{key}` dài {so_ky_tu} ký tự, tối đa {gioi_han} (dòng {no}). Rút gọn nội dung.")
+        loai = " (giới hạn khổ dọc)" if doc else ""
+        raise CanhError(so, f"`{key}` dài {so_ky_tu} ký tự, tối đa {gioi_han}{loai} (dòng {no}). Rút gọn nội dung.")
 
 
 def doc_nhac(video: Video, thu_muc: Path):
@@ -214,24 +221,26 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
     warnings: list = []
     if doc_nhac_nen:
         doc_nhac(video, thu_muc)
+    doc = video.meta.get("kho") == "doc"
+    bang, bang_hai_phan = (LIMITS_DOC, LIMITS_HAI_PHAN_DOC) if doc else (LIMITS, LIMITS_HAI_PHAN)
     for scene in video.canh:
         for key, values in scene.truong.items():
-            hai_phan = LIMITS_HAI_PHAN.get((scene.loai, key))
+            hai_phan = bang_hai_phan.get((scene.loai, key))
             if hai_phan is not None:
                 tach = parse.tach_du_lieu if key == "du-lieu" else parse.tach_moc
                 for value, no in zip(values, scene.dong_truong[key]):
                     for chu, gioi_han in zip(tach(value), hai_phan):
                         if gioi_han is not None:
-                            _kiem_do_dai(scene.so, key, chu, no, gioi_han, True)
+                            _kiem_do_dai(scene.so, key, chu, no, gioi_han, True, doc)
                 continue
-            gioi_han = LIMITS.get((scene.loai, key))
+            gioi_han = bang.get((scene.loai, key))
             if gioi_han is None:
                 continue
             for value, no in zip(values, scene.dong_truong[key]):
                 cum = (scene.loai, key) not in KHONG_CUM
                 if (scene.loai, key) == ("cong-thuc", "bieu-thuc"):
                     value = value.replace(parse.PHAN_CONG_THUC, " ")
-                _kiem_do_dai(scene.so, key, value, no, gioi_han, cum)
+                _kiem_do_dai(scene.so, key, value, no, gioi_han, cum, doc)
         if len(scene.loi) > LOI_DAI:
             warnings.append(f"Cảnh {scene.so}: lời dài {len(scene.loi)} ký tự (quá {LOI_DAI}); nên tách thành hai cảnh.")
         loi_giai = scene.truong.get("loi-giai", [""])[0]

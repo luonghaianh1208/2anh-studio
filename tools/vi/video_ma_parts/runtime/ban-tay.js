@@ -38,9 +38,10 @@
     // Chuyển cảnh (tuy.chuyen, hoặc tuy.lauBang kiểu cũ): chỉ lau bảng có tay cầm giẻ; kiểu khác tay ẩn tới hết chuyển cảnh.
     var chuyen = tuy.chuyen || (tuy.lauBang ? 'lau-bang' : null);
     if (chuyen && t >= 0 && t <= lau) {
-      // Giẻ đi từ −120 với tốc độ (rộng khổ + 120) mỗi lượt lau, tới mép phải khi xong (khổ ngang: hệ số 1400).
-      var rong = root.THI_KHO.lay().rong;
-      return chuyen === 'lau-bang' ? { x: -120 + (rong + 120) * t / lau, y: 380, hien: true, kieu: 'gie' } : but(nghi, false);
+      // Giẻ đi từ −120 với tốc độ (rộng khổ + 120) mỗi lượt lau, tới mép phải khi xong (khổ ngang: hệ số 1400);
+      // cao hơn tâm vùng nội dung 70 (khổ ngang y 380).
+      var k = root.THI_KHO.lay();
+      return chuyen === 'lau-bang' ? { x: -120 + (k.rong + 120) * t / lau, y: k.tamY + 70, hien: true, kieu: 'gie' } : but(nghi, false);
     }
     var het = typeof tuy.gh === 'number' ? tuy.gh - CUOI : Infinity;
     if (t >= het) { return but(nghi, false); }

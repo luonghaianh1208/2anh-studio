@@ -98,6 +98,15 @@ class DuLieuTrangTest(unittest.TestCase):
         css = (TOOLS_VI / "video_ma_parts" / "runtime" / "viet-tay.css").read_text(encoding="utf-8")
         self.assertNotIn("1280px", css)
         self.assertNotIn("720px", css)
+        # Dòng nguồn nhạc nền đặt theo vạch phụ đề của khổ (biến --day do trang đặt), không theo số cứng 108px.
+        self.assertNotIn("108px", css)
+        self.assertIn("var(--day)", css)
+
+    def test_trang_dat_bien_day(self):
+        du, _ = du_mot_canh("kho: doc\n")
+        self.assertIn("--day: 1080px", trang.dung_trang(du))
+        du, _ = du_mot_canh()
+        self.assertIn("--day: 620px", trang.dung_trang(du))
 
 
 RUNTIME = TOOLS_VI / "video_ma_parts" / "runtime"
@@ -116,6 +125,10 @@ SO_LON_DUOC_PHEP = {
     ("khai-niem.js", 460): "độ dài nét gạch dưới thuật ngữ khi có cột phụ (kích thước)",
     ("khai-niem.js", 600): "độ dài nét gạch dưới thuật ngữ (kích thước)",
     ("tieu-de.js", 600): "độ dài nét gạch dưới tiêu đề, đặt giữa ô bia (kích thước)",
+    ("tieu-de.js", 300): "khổ dọc: chiều cao ô tiêu đề dưới hình (kích thước)",
+    ("cong-thuc.js", 300): "khổ dọc: chiều cao khung biểu thức (kích thước)",
+    ("cau-hoi.js", 230): "khổ dọc: chiều cao ô câu hỏi (kích thước)",
+    ("so-do.js", 210): "góc (độ) của nhánh khổ dọc",
 }
 
 
@@ -140,6 +153,16 @@ class OBoCucTest(unittest.TestCase):
         o = kho.o("ngang", "cot-phu")
         o["x"] = 0
         self.assertEqual(kho.o("ngang", "cot-phu")["x"], 900)
+
+    def test_kho_doc_co_bang_rieng_va_kho_la_la_loi(self):
+        self.assertEqual(set(kho.O), {"ngang", "doc"})
+        self.assertEqual(set(kho.O["doc"]), set(kho.O["ngang"]))
+        self.assertEqual(kho.o("doc", "cot-phu"), {"x": 160, "y": 640, "w": 400, "h": 380})
+        for ten in kho.O["doc"]:
+            self.assertEqual(kho.o("doc", ten), kho.O["doc"][ten])
+        with self.assertRaises(ValueError) as bat:
+            kho.o("vuong", "tieu-de")
+        self.assertIn("vuong", str(bat.exception))
 
     def test_trang_nhung_bang_o_truoc_kho_js(self):
         du, _ = du_mot_canh()

@@ -36,14 +36,15 @@ var TEN_O = ['tieu-de', 'noi-dung', 'noi-dung-hep', 'cot-phu', 'anh-lon', 'hai-c
 test('o bo cuc: kho ngang du ten, moi o nam trong 1280x720 va day o <= vach phu de', function () {
   K.dat(NGANG);
   var bang = require(path.join(RT, 'o-bo-cuc.json'));
-  assert.deepStrictEqual(Object.keys(bang), ['ngang']);
+  assert.deepStrictEqual(Object.keys(bang), ['ngang', 'doc']);
   TEN_O.forEach(function (ten) { assert.ok(bang.ngang[ten], 'thieu o ' + ten); });
   Object.keys(bang.ngang).forEach(function (ten) {
     var o = K.o(ten);
     assert.deepStrictEqual(o, bang.ngang[ten]);
     assert.deepStrictEqual(Object.keys(o).sort(), ['h', 'w', 'x', 'y'], ten);
     assert.ok(o.x >= 0 && o.y >= 0 && o.w > 0 && o.h > 0 && o.x + o.w <= 1280 && o.y + o.h <= 720, ten + ' ' + JSON.stringify(o));
-    assert.ok(o.y + o.h <= NGANG.day, ten + ' xuong vung phu de ' + JSON.stringify(o));
+    // Ô chú thích ảnh giữ đúng toạ độ vi.11 (đáy 625, lố vạch 5; chữ một dòng nằm trên vạch) để hình không đổi.
+    assert.ok(o.y + o.h <= NGANG.day + (ten === 'chu-thich' ? 5 : 0), ten + ' xuong vung phu de ' + JSON.stringify(o));
   });
 });
 
@@ -62,6 +63,63 @@ test('o bo cuc: ten la thi bao loi; ban tra ve la ban sao', function () {
   var o = K.o('cot-phu');
   o.x = 0;
   assert.strictEqual(K.o('cot-phu').x, 900);
+});
+
+function chong(a, b) { return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h; }
+
+test('o bo cuc doc: cung ten voi kho ngang, moi o trong 720x1280, day o <= 1080, le 48 hoac rong hon', function () {
+  var bang = require(path.join(RT, 'o-bo-cuc.json'));
+  assert.deepStrictEqual(Object.keys(bang.doc).sort(), Object.keys(bang.ngang).sort());
+  K.dat(DOC);
+  Object.keys(bang.doc).forEach(function (ten) {
+    var o = K.o(ten);
+    assert.deepStrictEqual(o, bang.doc[ten]);
+    assert.ok(o.x >= 0 && o.y >= 0 && o.w > 0 && o.h > 0 && o.x + o.w <= 720, ten + ' ' + JSON.stringify(o));
+    assert.ok(o.y + o.h <= DOC.day, ten + ' xuong vung phu de ' + JSON.stringify(o));
+  });
+  K.dat(NGANG);
+});
+
+test('o bo cuc doc: quy tac cua ban thiet ke', function () {
+  K.dat(DOC);
+  var td = K.o('tieu-de'), nd = K.o('noi-dung'), hep = K.o('noi-dung-hep'), cot = K.o('cot-phu');
+  assert.strictEqual(td.y, 110);
+  assert.strictEqual(td.x, 48);
+  assert.strictEqual(td.x + td.w, 720 - 48);
+  assert.deepStrictEqual(cot, { x: 160, y: 640, w: 400, h: 380 });
+  // Nội dung hẹp là ô nội dung, chiều cao tới y 620 (cột phụ thành khối dưới nội dung).
+  assert.deepStrictEqual([hep.x, hep.y, hep.w, hep.y + hep.h], [nd.x, nd.y, nd.w, 620]);
+  assert.ok(!chong(hep, cot) && !chong(td, nd));
+  // Hai cột xếp chồng: trên rồi dưới, cùng bề rộng.
+  var a = K.o('hai-cot-trai'), b = K.o('hai-cot-phai');
+  assert.ok(a.y + a.h <= b.y && a.x === b.x && a.w === b.w, JSON.stringify([a, b]));
+  // Biểu đồ, sơ đồ, dòng thời gian dùng gần hết bề rộng (từ lề 48 trở ra).
+  ['bieu-do', 'so-do', 'dong-thoi-gian'].forEach(function (ten) {
+    assert.ok(K.o(ten).w >= 720 - 2 * 48 - 48, ten + ' ' + JSON.stringify(K.o(ten)));
+  });
+  // Ô tạm cho thẻ, dòng tài liệu, nhân vật: không đè ô nội dung hẹp và cột phụ khác chỗ, và ở trên vạch phụ đề.
+  ['the', 'tai-lieu'].forEach(function (ten) { assert.ok(!chong(K.o(ten), hep), ten); });
+  K.dat(NGANG);
+});
+
+test('o bo cuc: kho doc khong bao gio doc o ngang; kho la thi bao loi', function () {
+  var bang = require(path.join(RT, 'o-bo-cuc.json'));
+  K.dat(DOC);
+  Object.keys(bang.doc).forEach(function (ten) { assert.deepStrictEqual(K.o(ten), bang.doc[ten], ten); });
+  assert.notDeepStrictEqual(K.o('cot-phu'), bang.ngang['cot-phu']);
+  K.dat({ ten: 'vuong', rong: 1080, cao: 1080, day: 980, tamX: 540, tamY: 490 });
+  assert.throws(function () { K.o('tieu-de'); }, /vuong/);
+  K.dat(NGANG);
+});
+
+test('ban tay: gie lau bang o giua vung noi dung theo kho (kho ngang y 380 nhu cu)', function () {
+  K.dat(NGANG);
+  var v = T.viTri([], 0.25, function () { return { x: 0, y: 0 }; }, T.NGHI, { chuyen: 'lau-bang', giayLau: 0.5 });
+  assert.strictEqual(v.y, 380);
+  K.dat(DOC);
+  v = T.viTri([], 0.25, function () { return { x: 0, y: 0 }; }, T.NGHI, { chuyen: 'lau-bang', giayLau: 0.5 });
+  assert.strictEqual(v.y, 610);
+  K.dat(NGANG);
 });
 
 test('kho ngang: may quay dua tam hop nho ve (640, 310)', function () {

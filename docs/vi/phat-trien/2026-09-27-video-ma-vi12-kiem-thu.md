@@ -32,3 +32,28 @@ Ngày 2026-09-28. Fixture `tools/vi/fixtures/video-mau` (8 cảnh, video 76,8 gi
 Khung cuối mỗi cảnh của `video-mau` (8 cảnh) và `video-hinh` (6 cảnh) được chụp ở 1280×720 bằng mã vi.11 chưa sửa, qua `--xem-truoc` với giọng giả. Ảnh nằm ở `tools/vi/tests/data/tham-chieu-vi11/` (commit riêng, trước mọi thay đổi mã).
 
 `test_video_ma_kho.ChupKhoTest.test_720_giong_anh_tham_chieu_vi11` dựng lại hai fixture với `do-phan-giai: 720` và so từng ảnh bằng Chromium. Ngưỡng: không quá 0,5 % điểm ảnh có một kênh màu lệch quá 16 mức. Kết quả: cả 14 ảnh lệch 0 %, và giống ảnh tham chiếu tới từng byte.
+
+## Task 3: bố cục dọc và giới hạn chữ khổ dọc
+
+### Cách đo
+
+Ngày 2026-09-28. Khổ dọc 720×1280 điểm CSS, vạch phụ đề y 1080, phong cách `viet-tay` (Itim). Mỗi loại cảnh dựng ở số dòng lặp tối đa, mọi trường chữ là chuỗi "Nghiêng nghiễm nhiên " lặp, cắt đúng độ dài (ký tự cuối là khoảng trắng thì thay bằng "n"). Một cảnh qua khi `THI_VIDEO.kiemTran()` rỗng và mọi phần tử của lớp bảng (chữ, nét, hình, ảnh, bản vẽ thí nghiệm, dòng nguồn) nằm trong 720 bề ngang và có đáy ≤ 1080.
+
+- Biến thể đo: biểu đồ `cot`, `duong`, `tron`; dòng thời gian 6 và 3 mốc; câu hỏi 4 và 3 lựa chọn; và bản có hình ở cột phụ cho `tieu-de`, `khai-niem`, `cong-thuc`, `y-tung-y`, `so-do`.
+- Bắt đầu từ giới hạn khổ ngang. Loại nào không qua thì hạ đồng loạt các trường của loại đó theo cùng tỉ lệ tới khi qua, rồi nâng từng trường lên hết mức còn qua (tìm nhị phân, hai vòng).
+- Test giữ kết quả: `tools/vi/tests/test_video_ma_kho_doc.py` (mọi loại ở `LIMITS_DOC`, có và không có cột phụ).
+
+### Kết quả
+
+Mọi trường không nêu dưới đây qua ở đúng giới hạn khổ ngang, nên `LIMITS_DOC` bằng `LIMITS`.
+
+| Loại, trường | Ngang | Dọc không cột phụ | Dọc có hình ở cột phụ | `LIMITS_DOC` |
+|---|---|---|---|---|
+| `khai-niem`, `dinh-nghia` | 220 | 220 | 132 | 132 |
+| `cong-thuc`, `giai-thich` (4 dòng) | 60 | 60 | 51 | 51 |
+| `y-tung-y`, `y` (6 ý) | 60 | 60 | 40 | 40 |
+| `bieu-do`, `du-lieu` phần số | parse `SO_DAI` 10 | 8 | — | 8 |
+
+- Ba trường đầu thấp hơn vì ở khổ dọc cột phụ là khối dưới nội dung (y 640–1020), nên ô nội dung hẹp chỉ cao 300.
+- Số của `du-lieu` bị giới hạn vì 8 cột trong bề rộng 580 chỉ còn 66 điểm mỗi cột. Số ghi trên cột không được rộng hơn cột.
+- Task 4 đo lại với font của `cat-dan` và hạ giới hạn nếu cần.

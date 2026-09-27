@@ -241,6 +241,8 @@
   }
   // Ô bố cục {x, y, w, h} của khổ hiện tại (runtime/kho.js, bảng o-bo-cuc.json); tên lạ là lỗi.
   function oBoCuc(ten) { return root.THI_KHO.o(ten); }
+  // Khổ dọc 9:16: cảnh nào cần xếp khác (xếp chồng thay cho xếp ngang) hỏi hàm này.
+  function laDoc() { return root.THI_KHO.lay().ten === 'doc'; }
   function giayLau(du) { return typeof du.giayLauBang === 'number' ? du.giayLauBang : LAU_BANG; }
   // Kiểu chuyển cảnh đầu cảnh: du.co.chuyen, hoặc du.co.lauBang của dữ liệu kiểu cũ; không có thì null.
   function kieuChuyen(du) {
@@ -776,6 +778,6 @@
     LAU_BANG: LAU_BANG,
     kep: kep, tienDo: tienDo, thoat: thoat, demKyTu: demKyTu, catDanhDau: catDanhDau, phanTich: phanTich, demRong: demRong, viTriSo: viTriSo,
     thoiGianViet: thoiGianViet, kyTuHien: kyTuHien, lucKyTu: lucKyTu, tachPhan: tachPhan, duongQua: duongQua, hopQua: hopQua, vongTron: vongTron, muiTen: muiTen,
-    rng: rng, vuaKhung: vuaKhung, o: oBoCuc, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
+    rng: rng, vuaKhung: vuaKhung, o: oBoCuc, doc: laDoc, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

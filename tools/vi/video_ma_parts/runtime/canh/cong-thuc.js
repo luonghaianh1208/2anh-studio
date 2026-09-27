@@ -14,9 +14,14 @@
       var bieuThuc = phan.join(' ');
       // Ô nội dung (hẹp khi có cột phụ). Khung lùi 40 trái; không có cột phụ thì chừa thêm lề phải (khung 40,
       // biểu thức 40, giải thích 50) như bản vi.11.
+      // Khung biểu thức cao 150 (khổ dọc không cột phụ: 300, đủ năm dòng); dòng giải thích cách nhau 68 (khổ dọc:
+      // chia đều phần ô còn lại cho 4 dòng, tối đa 110).
       var o = V.o(cot ? 'noi-dung-hep' : 'noi-dung');
+      var doc = V.doc();
+      var hBT = doc && !cot ? 300 : 150;
+      var buoc = doc ? Math.min(110, (o.h - hBT - 16) / 4) : 68;
       var kq = [];
-      kq.push(B.net('khung', V.hopQua(o.x + 40, o.y, cot ? o.w - 40 : o.w - 80, 150, 21), 0.1, 0.7, {}));
+      kq.push(B.net('khung', V.hopQua(o.x + 40, o.y, cot ? o.w - 40 : o.w - 80, hBT, 21), 0.1, 0.7, {}));
       var tuy = { can: 'giua', mau: 'nhan', khongCum: true };
       if (soPhan) {
         var tong = V.demKyTu(bieuThuc, true);
@@ -24,11 +29,11 @@
         ky[soPhan - 1] = tong - ky.slice(0, -1).reduce(function (a, b) { return a + b; }, 0);
         tuy.phan = phan.map(function (_, k) { return { batDau: du.moc[k], ky: ky[k] }; });
       }
-      var bt = B.chu('bieu-thuc', bieuThuc, o.x + 60, o.y + 25, cot ? o.w - 80 : o.w - 120, 120, cot && V.demKyTu(bieuThuc, true) > 30 ? 30 : 40, 0.9, tuy);
+      var bt = B.chu('bieu-thuc', bieuThuc, o.x + 60, o.y + 25, cot ? o.w - 80 : o.w - 120, hBT - 30, cot && V.demKyTu(bieuThuc, true) > 30 ? 30 : 40, 0.9, tuy);
       kq.push(bt);
       (t['giai-thich'] || []).forEach(function (g, k) {
         var bd = Math.max(du.moc[soPhan + k], bt.batDau + bt.thoiLuong + 0.3);
-        kq.push(B.chu('giai-thich-' + k, g, o.x + 50, o.y + 166 + k * 68, cot ? o.w - 50 : o.w - 100, 66, cot ? 24 : 28, bd, {}));
+        kq.push(B.chu('giai-thich-' + k, g, o.x + 50, o.y + hBT + 16 + k * buoc, cot ? o.w - 50 : o.w - 100, buoc - 2, cot ? 24 : 28, bd, {}));
       });
       return kq.concat(B.cot());
     }

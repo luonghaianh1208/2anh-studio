@@ -24,8 +24,11 @@
       var kq = B.tieuDe(t['tieu-de'][0], 0.2);
       kq.push(B.net('truc-x', V.duongQua([[gx, gy], [cuoiX, gy]], 1), 0.3, 0.6, {}));
       kq.push(B.net('truc-y', V.duongQua([[gx, gy], [gx, dinhY]], 2), 0.4, 0.6, {}));
-      kq.push(B.chu('truc-ngang', t['truc-ngang'][0], cuoiX - 0.68 * dai, gy + 42, 0.68 * dai, 40, 20, 1.0, { can: 'phai', mau: 'nhan' }));
-      kq.push(B.chu('truc-doc', t['truc-doc'][0], gx + 20, o.y - 4, 0.7 * dai, 40, 24, 1.0, { mau: 'nhan' }));
+      // Khổ dọc trục ngắn: tên trục ngang trải từ mép trái ô tới cuối trục, tên trục đứng tới cách mép phải ô 20.
+      var doc = V.doc();
+      var rNgang = doc ? cuoiX - o.x : 0.68 * dai, rDoc = doc ? o.x + o.w - 20 - (gx + 20) : 0.7 * dai;
+      kq.push(B.chu('truc-ngang', t['truc-ngang'][0], cuoiX - rNgang, gy + 42, rNgang, 40, 20, 1.0, { can: 'phai', mau: 'nhan' }));
+      kq.push(B.chu('truc-doc', t['truc-doc'][0], gx + 20, o.y - 4, rDoc, 40, 24, 1.0, { mau: 'nhan' }));
       kq.push(B.chu('x-min', soVN(xMin), X0 - 60, gy + 6, 120, 30, 20, 1.0, { can: 'giua' }));
       kq.push(B.chu('x-max', soVN(xMax), X1 - 60, gy + 6, 120, 30, 20, 1.0, { can: 'giua' }));
       kq.push(B.chu('y-min', soVN(yMin), gx - 120, Y0 - 15, 110, 30, 20, 1.0, { can: 'phai' }));

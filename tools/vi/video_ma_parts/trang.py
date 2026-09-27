@@ -34,6 +34,6 @@ def dung_trang(du: dict, model=None) -> str:
     scripts.append(f"window.DU_CANH = {json_nhung(du)};\nTHI_KHO.dat(window.DU_CANH.kho);\nTHI_VIDEO.khoiDong(window.DU_CANH);")
     body = "\n".join(f"<script>\n{s}\n</script>" for s in scripts)
     return ("<!doctype html>\n<html lang=\"vi\"><head><meta charset=\"utf-8\">"
-            f"<style>\n:root {{ --rong: {kho['rong']}px; --cao: {kho['cao']}px; }}\n"
+            f"<style>\n:root {{ --rong: {kho['rong']}px; --cao: {kho['cao']}px; --day: {kho['day']}px; }}\n"
             f"{phong.font_css()}\n{_doc(RUNTIME / 'viet-tay.css')}\n</style></head>\n"
             f"<body><div id=\"khung\"></div>\n{body}\n</body></html>\n")

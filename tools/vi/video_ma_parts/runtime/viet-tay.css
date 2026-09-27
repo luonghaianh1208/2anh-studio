@@ -63,8 +63,8 @@ g.hinh.nhan > * { stroke: #1d4ed8; }
   padding: 0; background: none; text-align: center; }
 .anh .nguon.canh { left: calc(100% + 16px); bottom: 0; right: auto; width: max-content; max-width: 300px;
   padding: 0; background: none; text-align: left; }
-/* Nguồn nhạc nền: góc dưới trái, đáy ở y = 612 (trên vùng phụ đề), dài thì xuống dòng lên trên. */
-#nhac-nguon { position: absolute; left: 24px; bottom: 108px; max-width: 760px; font-size: 14px; line-height: 1.25;
+/* Nguồn nhạc nền: góc dưới trái, đáy cách vạch phụ đề 8 (khổ ngang y = 612), dài thì xuống dòng lên trên. */
+#nhac-nguon { position: absolute; left: 24px; bottom: calc(var(--cao) - var(--day) + 8px); max-width: 760px; font-size: 14px; line-height: 1.25;
   padding: 1px 6px; border-radius: 4px; background: rgba(251, 250, 245, 0.85); color: #374151; z-index: 3;
   pointer-events: none; }
 #ban-tay { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }

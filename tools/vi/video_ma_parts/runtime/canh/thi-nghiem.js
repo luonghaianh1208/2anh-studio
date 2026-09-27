@@ -63,15 +63,19 @@
       var o = V.o('thi-nghiem'), s = V.o('bang-so');
       var kq = B.tieuDe(kb.ten, 0.2);
       kq.push(B.net('khung', V.hopQua(o.x, o.y, o.w, o.h, 5), 0.1, 0.7, {}));
-      // Bảng số: nhãn cao 40, ba dòng thông số cao 56, cách 10 rồi nhãn số đo và ba dòng cao 58.
-      kq.push(B.chu('nhan-tham-so', 'Thông số', s.x, s.y, s.w, 40, 26, 0.4, { mau: 'nhan' }));
+      // Bảng số: nhãn cao 40, ba dòng thông số cao 56, cách 10 rồi nhãn số đo và ba dòng cao 58. Khổ dọc (bảng dưới
+      // bản vẽ, thấp): thông số và số đo thành hai cột cạnh nhau, cách 20.
+      var doc = V.doc();
+      var rong = doc ? (s.w - 20) / 2 : s.w;
+      kq.push(B.chu('nhan-tham-so', 'Thông số', s.x, s.y, rong, 40, 26, 0.4, { mau: 'nhan' }));
       Object.keys(du.thamSo).slice(0, 3).forEach(function (ma, k) {
-        kq.push(B.chu('ts-' + k, '', s.x, s.y + 42 + k * 56, s.w, 56, 20, 0.4, { dong: true }));
+        kq.push(B.chu('ts-' + k, '', s.x, s.y + 42 + k * 56, rong, 56, 20, 0.4, { dong: true }));
       });
-      var yDo = s.y + 42 + 3 * 56 + 10;
-      kq.push(B.chu('nhan-do', 'Số đo', s.x, yDo, s.w, 40, 26, 0.4, { mau: 'nhan' }));
+      var xDo = doc ? s.x + rong + 20 : s.x;
+      var yDo = doc ? s.y : s.y + 42 + 3 * 56 + 10;
+      kq.push(B.chu('nhan-do', 'Số đo', xDo, yDo, rong, 40, 26, 0.4, { mau: 'nhan' }));
       du.do.slice(0, 3).forEach(function (ma, k) {
-        kq.push(B.chu('do-' + k, '', s.x, yDo + 42 + k * 58, s.w, 58, 20, 0.4, { dong: true, mau: 'do' }));
+        kq.push(B.chu('do-' + k, '', xDo, yDo + 42 + k * 58, rong, 58, 20, 0.4, { dong: true, mau: 'do' }));
       });
       return kq;
     },

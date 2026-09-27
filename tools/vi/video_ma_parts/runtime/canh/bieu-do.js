@@ -5,11 +5,15 @@
   // Vùng vẽ cột/đường trong ô `bieu-do`: trục đứng ở X0 (lùi 50), tới mép phải ô (X1); vạch trên cùng ở PT (dưới
   // đỉnh ô 66), vạch dưới cùng ở PB (trên đáy ô 120). Dải 30 px trên PT và dưới PB dành cho nhãn giá trị; nhãn loại
   // dưới PB + 34, tên trục ngang ở PB + 90 (tới đáy ô), tên trục đứng ở đỉnh ô. Hình tròn tâm giữa bề ngang ô.
+  // Khổ dọc cột hẹp: nhãn loại xếp so le hai hàng (hàng hai thấp hơn 56) nên PB cách đáy ô 180 và tên trục ngang ở
+  // PB + 150; hình tròn ở trên (tâm dưới đỉnh ô 60 + R), chú giải xếp thành danh sách bên dưới.
   var R = 150;
   function khung() {
     var o = V.o('bieu-do');
-    var PT = o.y + 66, PB = o.y + o.h - 120;
-    return { o: o, X0: o.x + 50, X1: o.x + o.w, PT: PT, PB: PB, TAM: { x: o.x + o.w / 2, y: (PT + PB) / 2 + 26 } };
+    var doc = V.doc();
+    var PT = o.y + 66, PB = o.y + o.h - (doc ? 180 : 120);
+    return { o: o, doc: doc, X0: o.x + 50, X1: o.x + o.w, PT: PT, PB: PB, YTEN: PB + (doc ? 150 : 90),
+      TAM: { x: o.x + o.w / 2, y: doc ? o.y + 60 + R : (PT + PB) / 2 + 26 } };
   }
   // Máy quay giữ toàn cảnh biểu đồ (mọi mục `quay: false`): phóng vào một cột làm mất phép so sánh giữa các cột.
   var NHAN_TRON = 34;
@@ -86,9 +90,11 @@
     var tenDoc = tt['truc-doc'] ? tt['truc-doc'][0] + (tt['don-vi'] ? ' (' + tt['don-vi'][0] + ')' : '')
       : (tt['don-vi'] ? 'Đơn vị: ' + tt['don-vi'][0] : '');
     // Tên trục đứng từ trái trục 90, rộng bằng ô trừ 220; tên trục ngang canh phải về X1, rộng bằng ô trừ 340.
-    if (tenDoc) { kq.push(B.chu('ten-truc-doc', tenDoc, X0 - 90, K.o.y, K.o.w - 220, 32, 20, 0.8, { mau: 'nhan', quay: false, tay: false })); }
+    // Khổ dọc ô hẹp: trừ 40 và 60.
+    var rDoc = K.o.w - (K.doc ? 40 : 220), rNgang = K.o.w - (K.doc ? 60 : 340);
+    if (tenDoc) { kq.push(B.chu('ten-truc-doc', tenDoc, X0 - 90, K.o.y, rDoc, 32, 20, 0.8, { mau: 'nhan', quay: false, tay: false })); }
     if (tt['truc-ngang']) {
-      kq.push(B.chu('ten-truc-ngang', tt['truc-ngang'][0], X1 - (K.o.w - 340), PB + 90, K.o.w - 340, 30, 20, 0.8, { can: 'phai', mau: 'nhan', quay: false, tay: false }));
+      kq.push(B.chu('ten-truc-ngang', tt['truc-ngang'][0], X1 - rNgang, K.YTEN, rNgang, 30, 20, 0.8, { can: 'phai', mau: 'nhan', quay: false, tay: false }));
     }
     var coNhan = o >= 200 ? 22 : 18;
     var dai = Math.max.apply(null, so.map(function (s) { return s.length; }));
@@ -100,7 +106,10 @@
       var v = d[1];
       var yv = y(v);
       var am = v < 0;
-      kq.push(B.chu('nhan-' + k, d[0], cx - o / 2 + 4, PB + 34, o - 8, 52, coNhan, 0.7 + 0.05 * k, { can: 'giua', quay: false, tay: false }));
+      // Nhãn loại rộng bằng cột trừ 8; khổ dọc so le hai hàng nên rộng gấp đôi cột (nhãn cùng hàng cách nhau hai cột).
+      var rn = K.doc ? 2 * o - 8 : o - 8;
+      kq.push(B.chu('nhan-' + k, d[0], cx - rn / 2, PB + 34 + (K.doc && k % 2 ? 56 : 0), rn, 52, coNhan, 0.7 + 0.05 * k,
+        { can: 'giua', quay: false, tay: false }));
       var ySo;
       if (kieu === 'cot') {
         var c = B.net('cot-' + k, V.duongQua([[cx - rong / 2, y0], [cx - rong / 2, yv], [cx + rong / 2, yv], [cx + rong / 2, y0]], 60 + k),
@@ -151,6 +160,7 @@
       var phai = Math.cos(giua) >= 0;
       nhan.push({ k: k, phai: phai, giua: giua, y: TAM.y + (R + 24) * Math.sin(giua), chu: d[0] + ': {{' + phanTram(d[1], tong) + '}}%' });
     });
+    if (K.doc) { return kq.concat(chuGiai(B, du, K, nhan)); }
     xepNhan(nhan.filter(function (n) { return n.phai; }), K.o);
     xepNhan(nhan.filter(function (n) { return !n.phai; }), K.o);
     // Nhãn lát cách tâm 184 ngang, trải tới cách mép phải ô 20 (bên trái đối xứng); đường chỉ dừng trước nhãn 8.
@@ -165,6 +175,22 @@
       kq.push(B.net('chi-' + k, V.duongQua([tu, khuy, toi], 90 + k), du.moc[k] + 0.5, 0.3, { quay: false }));
       kq.push(B.chu('nhan-' + k, n.chu, n.phai ? TAM.x + 184 : TAM.x - 184 - rongNhan, n.y - 15, rongNhan, 30, 22, du.moc[k] + 0.7,
         { can: n.phai ? 'trai' : 'phai', quay: false }));
+    });
+    return kq;
+  }
+
+  // Khổ dọc: chú giải dưới hình tròn (cách vòng 40), mỗi lát một dòng cao 36: ô màu 24 × 24 (tô cùng màu lát) lùi
+  // 40 từ mép trái ô, nhãn cách ô màu 12 tới cách mép phải ô 20.
+  function chuGiai(B, du, K, nhan) {
+    var kq = [];
+    var x = K.o.x + 40;
+    nhan.forEach(function (n) {
+      var k = n.k;
+      var y = K.TAM.y + R + 40 + k * 36;
+      var o = B.net('chi-' + k, V.hopQua(x, y + 3, 24, 24, 90 + k), du.moc[k] + 0.5, 0.3, { quay: false });
+      o.to = { x: x, rong: 24, y0: y + 27, y: y + 3, mau: TO_LAT[k % TO_LAT.length] };
+      kq.push(o);
+      kq.push(B.chu('nhan-' + k, n.chu, x + 36, y, K.o.x + K.o.w - 20 - (x + 36), 30, 22, du.moc[k] + 0.7, { quay: false }));
     });
     return kq;
   }

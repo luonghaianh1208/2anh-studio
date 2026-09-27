@@ -21,22 +21,29 @@
       kq.push(B.net('truc', V.muiTen(AX0, AY, AX1, AY, 9), 0.3, 0.6, { quay: false }));
       var n = t.moc.length;
       var o = (AX1 - 40 - AX0) / n;
-      var xen = n > 4;
+      // Khổ dọc luôn so le (ô hẹp); nhãn cao hai dòng (70) và mô tả dài tới đỉnh ô (trên) hoặc đáy ô (dưới).
+      var doc = V.doc();
+      var xen = doc || n > 4;
       var w = xen ? 2 * o - 24 : o - 20;
+      var hNhan = doc ? 70 : 38;
       t.moc.forEach(function (v, k) {
         var hai = tach(v);
         var x = AX0 + (k + 0.5) * o;
         var trai = Math.max(b.x, x - w / 2), phai = Math.min(b.x + b.w, x + w / 2);
         var duoi = xen && k % 2 === 1;
         kq.push(B.net('cham-' + k, V.vongTron(Math.round(x * 10) / 10, AY, 10), du.moc[k], 0.3, { mau: 'do', am: 'ting' }));
-        var nhan = B.chu('nhan-' + k, hai[0], trai, duoi ? AY + 26 : AY - 64, phai - trai, 38, 26, du.moc[k] + 0.25,
-          { can: 'giua', mau: 'nhan' });
+        var yNhan = duoi ? AY + 26 : AY - 26 - hNhan;
+        // Nhãn phía trên trục (khổ dọc) dồn xuống sát trục.
+        var tuyNhan = { can: 'giua', mau: 'nhan' };
+        if (doc && !duoi) { tuyNhan.day = true; }
+        var nhan = B.chu('nhan-' + k, hai[0], trai, yNhan, phai - trai, hNhan, 26, du.moc[k] + 0.25, tuyNhan);
         kq.push(nhan);
+        var yDuoi = duoi ? AY + 30 + hNhan : AY + 26;
         var moTa = xen && !duoi
-          ? [b.y, { can: 'giua', day: true }]
-          : [duoi ? AY + 68 : AY + 26, { can: 'giua' }];
-        kq.push(B.chu('mo-ta-' + k, hai[1], trai, moTa[0], phai - trai, xen ? 132 : 150, xen ? 20 : 22,
-          nhan.batDau + nhan.thoiLuong, moTa[1]));
+          ? [b.y, doc ? yNhan - 6 - b.y : 132, { can: 'giua', day: true }]
+          : [yDuoi, doc ? b.y + b.h - yDuoi : (xen ? 132 : 150), { can: 'giua' }];
+        kq.push(B.chu('mo-ta-' + k, hai[1], trai, moTa[0], phai - trai, moTa[1], xen ? 20 : 22,
+          nhan.batDau + nhan.thoiLuong, moTa[2]));
       });
       return kq;
     }

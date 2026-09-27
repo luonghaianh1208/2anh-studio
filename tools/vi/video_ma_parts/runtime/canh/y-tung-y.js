@@ -11,11 +11,13 @@
       var dai = Math.max.apply(null, t.y.map(function (y) { return V.demRong(y, du.co && du.co.chuDong); }));
       // Ý dài quá 60 (vì đệm cụm khoanh) thì nhỏ thêm một cỡ để không xuống dòng quá ô.
       var co = cot && dai > 45 ? (dai > 60 ? 24 : 26) : 30;
+      // Mỗi ý một hàng cao 74 (khổ dọc: chia đều ô cho số ý, tối đa 100).
+      var buoc = V.doc() ? Math.min(100, (o.h + 4) / t.y.length) : 74;
       t.y.forEach(function (y, k) {
         // Chấm ở x + 36, chữ từ x + 64 tới mép ô (không cột phụ: lố mép ô 4 như bản vi.11).
-        var top = o.y - 4 + k * 74;
+        var top = o.y - 4 + k * buoc;
         kq.push(B.net('cham-' + k, V.vongTron(o.x + 36, top + 22, 9), du.moc[k], 0.3, { mau: 'nhan', am: 'ting' }));
-        kq.push(B.chu('y-' + k, y, o.x + 64, top, cot ? o.w - 64 : o.w - 60, 72, co, du.moc[k], {}));
+        kq.push(B.chu('y-' + k, y, o.x + 64, top, cot ? o.w - 64 : o.w - 60, buoc - 2, co, du.moc[k], {}));
       });
       return kq.concat(B.cot());
     }

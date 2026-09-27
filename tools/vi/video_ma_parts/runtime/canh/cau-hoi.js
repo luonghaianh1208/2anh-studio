@@ -21,9 +21,15 @@
 
   // Ô lựa chọn {x, y, w, h}: 2 lựa chọn một hàng cao 120; 3–4 lựa chọn hai hàng cao 105.
   // Hàng đầu dưới đỉnh ô 176 (một hàng thì thêm 28), hàng hai cách 20; cột trái lùi 10, cột phải qua giữa ô 15.
+  // Khổ dọc: lựa chọn xếp một cột cả bề rộng ô trừ 10 mỗi bên, cao 100, cách nhau 16, bắt đầu dưới câu hỏi
+  // (đỉnh ô + CAU_DOC + 20); giải thích ở CAO_GIAI cuối ô.
+  var CAU_DOC = 230;
   function bo(du) {
     var o = oCau();
     var n = du.truong['lua-chon'].length;
+    if (V.doc()) {
+      return du.truong['lua-chon'].map(function (_, k) { return { x: o.x + 10, y: o.y + CAU_DOC + 20 + k * 116, w: o.w - 20, h: 100 }; });
+    }
     var h = n > 2 ? 105 : 120;
     var y0 = o.y + 176;
     var ys = n > 2 ? [y0, y0 + h + 20] : [y0 + 28];
@@ -112,7 +118,8 @@
       var o = bo(du);
       var oc = oCau();
       var cauHoi = t['cau-hoi'][0];
-      var viet = [B.chu('cau-hoi', cauHoi, oc.x, oc.y, oc.w, 150, V.demKyTu(cauHoi) > 100 ? 32 : 36, du.moc[0],
+      var doc = V.doc();
+      var viet = [B.chu('cau-hoi', cauHoi, oc.x, oc.y, oc.w, doc ? CAU_DOC : 150, V.demKyTu(cauHoi) > 100 ? 32 : 36, du.moc[0],
         { mau: 'giua-doc', day: true, quay: false })];
       var coLc = t['lua-chon'].some(function (c) { return V.demKyTu(c) > 34; }) ? 24 : 28;
       o.forEach(function (b, k) {
@@ -125,7 +132,9 @@
           { mau: 'giua-doc', day: true, quay: false }));
       });
       xepLich(viet, q.batDauDem - LUOT);
-      return viet.concat([B.chu('giai-thich', t['giai-thich'][0], oc.x, oc.y + oc.h - 140, oc.w, 140, 28, q.batDauGiai + 0.6,
+      // Giải thích cao 140 ở đáy ô; khổ dọc từ dưới lựa chọn cuối 24 tới đáy ô.
+      var yGiai = doc ? o[o.length - 1].y + o[o.length - 1].h + 24 : oc.y + oc.h - 140;
+      return viet.concat([B.chu('giai-thich', t['giai-thich'][0], oc.x, yGiai, oc.w, oc.y + oc.h - yGiai, 28, q.batDauGiai + 0.6,
         { mau: 'xanh', quay: false })]);
     },
     // Đồng hồ, viền đúng và dấu ✓ không phải mục (không bàn tay, không máy quay): tạo một lần, đặt lại theo t.

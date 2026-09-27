@@ -147,6 +147,66 @@ class LimitTest(unittest.TestCase):
         self.assertIn("700", warnings[0])
 
 
+class LimitDocTest(unittest.TestCase):
+    """Khổ dọc (`kho: doc`) dùng bảng giới hạn riêng kiem.LIMITS_DOC, không lớn hơn khổ ngang."""
+
+    MAU = {
+        ("tieu-de", "chu"): "loai: tieu-de\nchu: {}\n",
+        ("khai-niem", "dinh-nghia"): "loai: khai-niem\nthuat-ngu: Chu kì\ndinh-nghia: {}\n",
+        ("cau-hoi", "giai-thich"): ("loai: cau-hoi\ncau-hoi: Hỏi?\nlua-chon: A\nlua-chon: B\ndap-an: A\n"
+                                    "giai-thich: {}\nloi-giai: Vì A.\n"),
+        ("so-sanh", "y-trai"): "loai: so-sanh\ntieu-de: So sánh\ntrai: A\nphai: B\ny-trai: {}\ny-phai: b\n",
+    }
+
+    def test_bang_doc_cung_khoa_va_khong_lon_hon_ngang(self):
+        self.assertEqual(set(kiem.LIMITS_DOC), set(kiem.LIMITS))
+        for khoa, gioi_han in kiem.LIMITS_DOC.items():
+            with self.subTest(khoa=khoa):
+                self.assertLessEqual(gioi_han, kiem.LIMITS[khoa])
+                self.assertGreater(gioi_han, 0)
+        self.assertEqual(set(kiem.LIMITS_HAI_PHAN_DOC), set(kiem.LIMITS_HAI_PHAN))
+        for khoa, (nhan, mo_ta) in kiem.LIMITS_HAI_PHAN_DOC.items():
+            ngang = kiem.LIMITS_HAI_PHAN[khoa]
+            self.assertLessEqual(nhan, ngang[0])
+            # Phần sau là số (`du-lieu`): khổ ngang chỉ có parse.SO_DAI, khổ dọc có thể chặt hơn.
+            self.assertLessEqual(mo_ta, parse.SO_DAI if ngang[1] is None else ngang[1])
+
+    def test_vuot_gioi_han_doc_la_loi_neu_dung_dong_con_ngang_thi_qua(self):
+        thu = 0
+        for (loai, truong), mau in self.MAU.items():
+            doc_max, ngang_max = kiem.LIMITS_DOC[(loai, truong)], kiem.LIMITS[(loai, truong)]
+            if doc_max >= ngang_max:
+                continue
+            thu += 1
+            canh = "## Cảnh 1\n" + mau.format("a" * (doc_max + 1)) + "loi: Xin chào.\n"
+            with self.subTest(loai=loai, truong=truong):
+                text = doc(canh, META + "kho: doc\n")
+                with self.assertRaises(kiem.CanhError) as caught:
+                    kiem.kiem(parse.parse(text), Path("."))
+                loi = str(caught.exception)
+                self.assertIn(f"dòng {line_of(text, 'a' * (doc_max + 1))}", loi)
+                self.assertIn(f"tối đa {doc_max}", loi)
+                self.assertIn("giới hạn khổ dọc", loi)
+                self.assertEqual(kiem.kiem(parse.parse(doc(canh)), Path(".")), [])
+                ok = "## Cảnh 1\n" + mau.format("a" * doc_max) + "loi: Xin chào.\n"
+                self.assertEqual(kiem.kiem(parse.parse(doc(ok, META + "kho: doc\n")), Path(".")), [])
+        self.assertGreater(thu, 0, "cần ít nhất một trường có giới hạn dọc nhỏ hơn ngang")
+
+    def test_so_du_lieu_bieu_do_theo_gioi_han_doc(self):
+        so_max = kiem.LIMITS_HAI_PHAN_DOC[("bieu-do", "du-lieu")][1]
+        self.assertLess(so_max, parse.SO_DAI)
+        so = "1" * (so_max + 1)
+        canh = f"## Cảnh 1\nloai: bieu-do\ntieu-de: Số\nkieu: cot\ndu-lieu: A | {so}\ndu-lieu: B | 2\nloi: Xin chào.\n"
+        text = doc(canh, META + "kho: doc\n")
+        with self.assertRaises(kiem.CanhError) as caught:
+            kiem.kiem(parse.parse(text), Path("."))
+        self.assertIn("giới hạn khổ dọc", str(caught.exception))
+        self.assertIn(f"dòng {line_of(text, so)}", str(caught.exception))
+        self.assertEqual(kiem.kiem(parse.parse(doc(canh)), Path(".")), [])
+        ok = canh.replace(so, "1" * so_max)
+        self.assertEqual(kiem.kiem(parse.parse(doc(ok, META + "kho: doc\n")), Path(".")), [])
+
+
 class ExperimentSceneTest(unittest.TestCase):
     def check(self, extra: str):
         text = doc(f"## Cảnh 1\nloai: thi-nghiem\nmau: li-con-lac-don\n{extra}loi: Xin chào.\n")

@@ -6,10 +6,12 @@
   // nhánh nằm gọn trong ô `so-do` (khổ ngang: y 110..590).
   // Máy quay giữ toàn cảnh sơ đồ (mọi mục `quay: false`): phóng vào một ô nhánh ở trên đẩy các ô dưới (tới đáy ô)
   // xuống vùng phụ đề, và làm mất quan hệ giữa các nhánh với nút trung tâm.
-  var W = 330, H = 80;
+  // Ô nhánh rộng 330, nhưng không quá 45 % bề rộng ô (khổ dọc) để hai ô nhánh cùng hàng không chạm nhau.
+  var H = 80;
   function khung() {
     var o = V.o('so-do');
-    return { CX: o.x + o.w / 2, CY: o.y + o.h / 2, RX: (o.w - W) / 2, RY: (o.h - H) / 2 };
+    var W = Math.min(330, 0.45 * o.w);
+    return { W: W, CX: o.x + o.w / 2, CY: o.y + o.h / 2, RX: (o.w - W) / 2, RY: (o.h - H) / 2 };
   }
   var GOC = {
     2: [0, 180],
@@ -17,6 +19,14 @@
     4: [-35, 35, 145, 215],
     5: [-90, -18, 54, 126, 198],
     6: [-60, 0, 60, 120, 180, 240]
+  };
+  // Khổ dọc (elip lớn cao và hẹp): không đặt nhánh ngang hàng nút trung tâm; nhánh ở đỉnh, đáy và bốn góc ±30°.
+  var GOC_DOC = {
+    2: [-90, 90],
+    3: [-90, 30, 150],
+    4: [-30, 30, 150, 210],
+    5: [-90, -30, 30, 150, 210],
+    6: [-90, -30, 30, 90, 150, 210]
   };
 
   function lam(x) { return Math.round(x * 10) / 10; }
@@ -52,7 +62,7 @@
       var t = du.truong;
       var coHinh = !!du.hinh;
       var K = khung();
-      var CX = K.CX, CY = K.CY, RX = K.RX, RY = K.RY;
+      var CX = K.CX, CY = K.CY, RX = K.RX, RY = K.RY, W = K.W;
       var rx = 190, ry = coHinh ? 95 : 70;
       var kq = [];
       kq.push(B.net('vong-tam', elip(K, rx, ry, 11), 0.2, 0.6, { mau: 'nhan', day: 5, quay: false }));
@@ -64,7 +74,7 @@
       var n = t.nhanh.length;
       // Mọi ô nhánh cùng cỡ chữ: có nhánh dài hơn 30 ký tự thì cả sơ đồ dùng chữ nhỏ hơn.
       var coNhanh = t.nhanh.some(function (c) { return V.demKyTu(c) > 30; }) ? 22 : 24;
-      GOC[n].forEach(function (g, k) {
+      (V.doc() ? GOC_DOC : GOC)[n].forEach(function (g, k) {
         var a = g * Math.PI / 180;
         var bx = CX + RX * Math.cos(a), by = CY + RY * Math.sin(a);
         var dx = bx - CX, dy = by - CY;
