@@ -1,5 +1,10 @@
 # Nhật ký thay đổi — Bản Việt
 
+## Chưa phát hành
+
+### Sửa
+- ChatGPT Codex chỉ tự đọc `AGENTS.md` nên trước đây bỏ qua toàn bộ quy tắc bản Việt (không hỏi trước, không dùng `venv`). Cuối `AGENTS.md` nay có mục "Vietnamese Edition" trỏ sang `AGENTS.vi.md`, nên Codex, Antigravity, Claude Code và Cursor đều đọc cùng một bộ quy tắc mà không cần câu khởi động. Có test báo lỗi nếu một lần đồng bộ bản gốc làm mất mục này.
+
 ## 6.3.2-vi.11 — 2026-09-26
 
 Hiệu ứng giáo dục cho video giải thích: nhấn ý chính đúng lúc giọng đọc nói tới, số chạy, biểu đồ, sơ đồ tư duy, dòng thời gian, câu hỏi nhanh, năm kiểu chuyển cảnh, phụ đề karaoke, tiếng hiệu ứng tự tạo và nhạc nền giấy phép mở. Học ý tưởng từ HyperFrames (HeyGen, Apache 2.0) nhưng không nhúng thư viện nào: runtime vẫn là JS thuần, Python chỉ thư viện chuẩn cộng edge-tts và playwright.

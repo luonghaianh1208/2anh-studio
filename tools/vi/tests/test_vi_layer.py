@@ -19,6 +19,7 @@ sys.path.insert(0, str(REPO_ROOT / "tools" / "vi"))
 ALLOWED_CHANGES = (
     "README.md",
     "CLAUDE.md",
+    "AGENTS.md",
     "NOTICE",
     ".gitattributes",
     "AGENTS.vi.md",
@@ -114,6 +115,14 @@ def task_table_rows(text: str) -> list:
 
 
 class EditorWiringTest(unittest.TestCase):
+    def test_agents_md_ends_by_pointing_every_agent_to_the_vietnamese_rules(self):
+        """Codex chỉ tự đọc AGENTS.md: mục cuối phải trỏ sang AGENTS.vi.md. Đồng bộ upstream làm mất mục này thì test báo."""
+        text = read("AGENTS.md")
+        self.assertEqual(h2_headings(text)[-1], "## Vietnamese Edition")
+        body = section(text, "## Vietnamese Edition")
+        self.assertIn("(AGENTS.vi.md)", body)
+        self.assertIn("never overrides", body)
+
     def test_claude_md_imports_upstream_and_vietnamese_rules(self):
         lines = [line.strip() for line in read("CLAUDE.md").splitlines()]
         self.assertIn("@AGENTS.md", lines)

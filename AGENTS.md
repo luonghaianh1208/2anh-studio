@@ -87,3 +87,7 @@ For Generate PPTX serial post-processing and export, follow [`generate-pptx.md`]
 - `docs/` — user-facing documentation (FAQ, installation, technical design, templates guide, audio narration).
 - `docs/rules/` — repo-wide style rules.
 - `projects/` — user project workspace.
+
+## Vietnamese Edition
+
+This distribution adds a Vietnamese layer. Every agent working in this repository must also read and follow [`AGENTS.vi.md`](AGENTS.vi.md) before any task; it supplements this file and never overrides it.
