@@ -821,33 +821,48 @@
     var hop = null;
     var dauCuoi = {};
     // Mục có khối không ngắt (công thức, giá trị thẻ): khối nào rộng hơn ô (hay các khối cao quá ô) thì thu cỡ chữ theo
-    // bậc 5 % tới 70 %. Phần công thức vẫn rộng thì ghi vào o.tran (kiemTran báo `phan:<phần>`); giá trị thẻ vẫn rộng,
-    // hay khối vẫn cao quá ô, thì ô chữ tràn như thường.
+    // bậc 5 % tới 70 %. Khối vẫn rộng ở 70 % mà có khoảng trắng (chữ dài kiểu vi.11) được xuống dòng ở khoảng trắng như
+    // vi.11 (m.khoiNgat), rồi thu lại từ 100 % chỉ xét các khối còn lại: số hạng liền trong cùng biểu thức vẫn được thu
+    // tới 70 % như khi đo kiem.DOAN_LIEN. Khối liền vẫn rộng ở 70 % thì ghi vào o.tran (kiemTran báo `phan:<đoạn>`);
+    // giá trị thẻ vẫn rộng, hay khối vẫn cao quá ô, thì ô chữ tràn như thường.
     function thuKhoi(o) {
       var m = o.m;
       function cac() { return Array.prototype.slice.call(o.el.querySelectorAll('span.phan')); }
       function rongQua(sp) { return sp.getBoundingClientRect().width > o.el.clientWidth + 0.5; }
       // Cũng thu khi các khối (mỗi khối một dòng vì không ngắt) cao quá ô: thu chữ thì nhiều khối nằm chung một dòng.
       function cao() { return o.el.scrollHeight > o.el.clientHeight + 1; }
-      var tl = 1;
-      while ((cac().some(rongQua) || cao()) && tl > 0.7 + 1e-9) {
-        tl = Math.round((tl - 0.05) * 100) / 100;
-        o.el.style.fontSize = lam3(m.co * tl) + 'px';
+      function ngat(k) { return !!m.khoiNgat && m.khoiNgat.indexOf(k) >= 0; }
+      function rongCon() { return cac().some(function (sp, k) { return !ngat(k) && rongQua(sp); }); }
+      function thu() {
+        var tl = 1;
+        o.el.style.fontSize = m.co + 'px';
+        while ((rongCon() || cao()) && tl > 0.7 + 1e-9) {
+          tl = Math.round((tl - 0.05) * 100) / 100;
+          o.el.style.fontSize = lam3(m.co * tl) + 'px';
+        }
       }
+      thu();
       o.tran = [];
-      if (!cac().some(rongQua)) { return; }
-      // Vẫn có khối rộng hơn ô ở 70 %: về cỡ gốc. Khối có khoảng trắng (chữ dài kiểu vi.11) xuống dòng ở khoảng trắng
-      // như bản vi.11; khối liền không khoảng trắng thì không ngắt được: phần công thức báo `phan:<đoạn>`.
-      o.el.style.fontSize = m.co + 'px';
-      m.khoiNgat = [];
+      if (!rongCon()) { return; }
+      var ngatMoi = [];
       cac().forEach(function (sp, k) {
         if (!rongQua(sp)) { return; }
         // Bỏ toán tử đầu đoạn (`= `, `≈ `…) trước khi xét: khoảng trắng sau toán tử không phải chỗ ngắt của số hạng.
         var than = (m.khoiChu ? m.khoiChu[k] : sp.textContent).trim();
         if (TOAN_TU.indexOf(than[0]) >= 0 && than[1] === ' ') { than = than.slice(2); }
-        if (/\s/.test(than)) { m.khoiNgat.push(k); } else if (m.khoiChu) { o.tran.push(than); }
+        if (/\s/.test(than)) { ngatMoi.push(k); }
       });
-      datChu(o, 1e6);
+      if (ngatMoi.length) {
+        m.khoiNgat = ngatMoi;
+        datChu(o, 1e6);
+        thu();
+      }
+      cac().forEach(function (sp, k) {
+        if (ngat(k) || !rongQua(sp) || !m.khoiChu) { return; }
+        var than = m.khoiChu[k].trim();
+        if (TOAN_TU.indexOf(than[0]) >= 0 && than[1] === ' ') { than = than.slice(2); }
+        o.tran.push(than);
+      });
     }
 
     function doHop() {

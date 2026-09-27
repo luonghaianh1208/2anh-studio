@@ -174,6 +174,23 @@ class TheChromiumTest(unittest.TestCase):
         finally:
             page.close()
 
+    def test_so_hang_lien_o_gioi_han_cung_chu_dai_kho_doc_khong_qua_kiem_roi_tran(self):
+        # Hồi quy: số hạng liền đúng kiem.DOAN_LIEN (chỉ vừa khi thu tới 70 %) đi cùng một đoạn chữ dài phải xuống dòng
+        # kiểu vi.11, khổ dọc không cột phụ. Qua kiem thì phải dựng sạch; không bao giờ qua kiem rồi tràn ở Chromium.
+        for phong_cach in ("viet-tay", "cat-dan"):
+            n = kiem.DOAN_LIEN[("doc", phong_cach)]
+            bt = f"a = {('Nghiêngnghiễmnhiên' * 3)[:n]} = {chuoi(45)}"
+            self.assertLessEqual(len(bt), kiem.bang_gioi_han("doc", phong_cach)[0][("cong-thuc", "bieu-thuc")])
+            page = chup.trang_moi(self.browser, kho.Kho("doc", 720))
+            try:
+                with self.subTest(phong_cach=phong_cach):
+                    (_, html), = self.trang([("cong-thuc", f"bieu-thuc: {bt}\n")], "doc", phong_cach)
+                    tran, ra = ngoai_vung(page, html, "doc")
+                    self.assertEqual(tran, [])
+                    self.assertEqual(ra, [])
+            finally:
+                page.close()
+
     def test_noi_dung_o_gioi_han_co_the_va_tai_lieu_nam_gon(self):
         # Nội dung ở giới hạn áp dụng (bảng có thẻ), thẻ ở giới hạn, dòng tài liệu 90 ký tự: bốn loại × hai khổ × hai
         # phong cách, có và không có cột phụ.
