@@ -11,6 +11,8 @@ TOOLS_VI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_VI))
 
 from video_ma_parts import ghep, lich  # noqa: E402
+from video_ma_parts import kho as kho_mod  # noqa: E402
+from video_ma_parts.phong import FONT_CAT_DAN  # noqa: E402
 from video_parts import media, srt  # noqa: E402
 
 
@@ -146,6 +148,29 @@ class CommandTest(unittest.TestCase):
         vf = cmd[cmd.index("-vf") + 1]
         self.assertEqual(vf, "subtitles=.khung/phu-de.ass:fontsdir=.khung/fonts")
 
+    def test_video_command_accepts_a_custom_force_style(self):
+        cmd = ghep.lenh_video(Path("am.txt"), Path(".khung/video.mp4"), lich.FPS, ".khung/phu-de.srt", style="X=1")
+        vf = cmd[cmd.index("-vf") + 1]
+        self.assertIn("force_style='X=1'", vf)
+
+
+class ForceStyleTest(unittest.TestCase):
+    """`STYLE` cho `phu-de: hinh` nhận khung nền giống `.ass` karaoke khi `cat-dan` hoặc khổ `doc`."""
+
+    def test_viet_tay_ngang_keeps_the_old_style(self):
+        self.assertEqual(ghep._force_style("viet-tay", "ngang"), ghep.STYLE)
+
+    def test_cat_dan_gets_a_box_with_be_vietnam_pro(self):
+        style = ghep._force_style("cat-dan", "ngang")
+        self.assertIn("BorderStyle=3", style)
+        self.assertIn("BackColour=&H66000000&", style)
+        self.assertIn("FontName=Be Vietnam Pro", style)
+
+    def test_viet_tay_doc_gets_a_box_but_keeps_itim(self):
+        style = ghep._force_style("viet-tay", "doc")
+        self.assertIn("BorderStyle=3", style)
+        self.assertIn("FontName=Itim", style)
+
 
 class AssembleTest(unittest.TestCase):
     def setUp(self):
@@ -166,9 +191,12 @@ class AssembleTest(unittest.TestCase):
             out.append(lich.GiongInfo(mp3=mp3, giay=cl.giay_giong, moc_cau=[], uoc_luong=False, nguon="may"))
         return out
 
-    def fake_run(self, thu_muc, calls, fail=None):
+    def fake_run(self, thu_muc, calls, fail=None, kho=None):
         def run(cmd, **kwargs):
             calls.append((cmd, kwargs.get("cwd")))
+            if cmd[0] == "ffprobe":
+                mong = f"{kho.rong_xuat}x{kho.cao_xuat}" if kho is not None else ""
+                return subprocess.CompletedProcess(cmd, 0, mong, "")
             if cmd[-1].endswith("video.mp4"):
                 Path(cmd[-1] if Path(cmd[-1]).is_absolute() else Path(kwargs["cwd"]) / cmd[-1]).write_bytes(b"mp4")
             if fail:
@@ -277,6 +305,55 @@ class AssembleTest(unittest.TestCase):
         burned = (hinh / ".khung" / "phu-de.srt").read_text(encoding="utf-8")
         self.assertNotIn("\\", burned)
         self.assertIn("a⧵Nb", burned)
+
+    def test_cat_dan_doc_hinh_bundles_be_vietnam_pro_and_burns_a_boxed_style(self):
+        thu_muc = self.project("p-cat-dan-doc")
+        k = kho_mod.Kho("doc", 720)
+        calls = []
+        ghep.ghep_video(thu_muc, PLAN, self.giong(thu_muc), "hinh", run=self.fake_run(thu_muc, calls, kho=k),
+                        kho=k, chu_de="cat-dan")
+        fonts_dir = thu_muc / ".khung" / "fonts"
+        self.assertTrue((fonts_dir / "Itim-Regular.ttf").is_file())
+        for duong_dan in FONT_CAT_DAN.values():
+            self.assertTrue((fonts_dir / duong_dan.name).is_file())
+        joined = " ".join(calls[-1][0])
+        self.assertIn("BorderStyle=3", joined)
+        self.assertIn("FontName=Be Vietnam Pro", joined)
+
+    def test_karaoke_mode_with_doc_kho_bundles_be_vietnam_pro_when_cat_dan(self):
+        thu_muc = self.project("p-cat-dan-karaoke")
+        k = kho_mod.Kho("doc", 720)
+        plan = [canh_lich(1, 0.0, 6.0, 4.0, ["Xin chao cac em."], [0.0])]
+        calls = []
+        ghep.ghep_video(thu_muc, plan, self.giong(thu_muc)[:1], "karaoke",
+                        run=self.fake_run(thu_muc, calls, kho=k), kho=k, chu_de="cat-dan")
+        fonts_dir = thu_muc / ".khung" / "fonts"
+        for duong_dan in FONT_CAT_DAN.values():
+            self.assertTrue((fonts_dir / duong_dan.name).is_file())
+        ass_text = (thu_muc / ".khung" / "phu-de.ass").read_text(encoding="utf-8")
+        style_line = next(l for l in ass_text.splitlines() if l.startswith("Style:"))
+        self.assertEqual(style_line.split(",")[15], "3")  # BorderStyle
+        self.assertIn("Be Vietnam Pro", ass_text)
+
+    def test_karaoke_mode_with_viet_tay_ngang_still_only_bundles_itim(self):
+        thu_muc = self.project("p-viet-tay-ngang")
+        calls = []
+        ghep.ghep_video(thu_muc, PLAN, self.giong(thu_muc), "karaoke", run=self.fake_run(thu_muc, calls))
+        fonts_dir = thu_muc / ".khung" / "fonts"
+        self.assertTrue((fonts_dir / "Itim-Regular.ttf").is_file())
+        for duong_dan in FONT_CAT_DAN.values():
+            self.assertFalse((fonts_dir / duong_dan.name).exists())
+
+    def test_long_doc_sentence_warning_is_collected_into_canh_bao(self):
+        thu_muc = self.project("p-canh-bao")
+        k = kho_mod.Kho("doc", 720)
+        cau = "Chu kì tỉ lệ với căn bậc hai của chiều dài dây, và không phụ thuộc vào biên độ dao động nhỏ."
+        plan = [canh_lich(1, 0.0, 12.0, 8.0, [cau], [0.0])]
+        canh_bao: list = []
+        ghep.ghep_video(thu_muc, plan, self.giong(thu_muc)[:1], "karaoke",
+                        run=self.fake_run(thu_muc, [], kho=k), kho=k, canh_bao=canh_bao)
+        self.assertEqual(len(canh_bao), 1)
+        self.assertIn("Cảnh 1", canh_bao[0])
 
     def test_ffmpeg_failure_is_a_dung_error(self):
         thu_muc = self.project("loi")

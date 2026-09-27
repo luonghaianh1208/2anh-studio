@@ -47,6 +47,38 @@ def _hien_thi(dialogue_text: str) -> str:
     return _KF_TAG_RE.sub("", dialogue_text).replace("\\N", " ")
 
 
+DATA = Path(__file__).resolve().parent / "data"
+
+
+class TuongThichVi11Test(unittest.TestCase):
+    """`viet-tay` khổ ngang phải ra `.ass` giống hệt vi.11 (chụp từ `tao_ass` trước khi thêm khung/khổ dọc ở Task 7)."""
+
+    def test_viet_tay_ngang_ass_is_byte_identical_to_the_vi11_capture(self):
+        cl1 = canh(1, 0.0, 4.0, ["Xin chao cac em."], [lich.DAN_DAU], [
+            {"t": lich.DAN_DAU + 0.0, "d": 0.3, "chu": "Xin", "khoa": "xin"},
+            {"t": lich.DAN_DAU + 0.4, "d": 0.3, "chu": "chao", "khoa": "chao"},
+            {"t": lich.DAN_DAU + 0.9, "d": 0.3, "chu": "cac", "khoa": "cac"},
+            {"t": lich.DAN_DAU + 1.3, "d": 0.3, "chu": "em.", "khoa": "em"},
+        ])
+        cau_text = "Thứ nhất, dây dài hơn thì chu kì lớn hơn."
+        loi_may = ["Thứ", "nhất", "dây", "dài", "hơn", "thì", "chu", "kì", "lớn", "hơn"]
+        tu2 = [{"t": lich.DAN_DAU + i * 0.3, "d": 0.25, "chu": w, "khoa": w.lower()} for i, w in enumerate(loi_may)]
+        cl2 = canh(2, 10.0, len(loi_may) * 0.3, [cau_text], [lich.DAN_DAU], tu2)
+        cau_long = "Chu kì tỉ lệ với căn bậc hai của chiều dài dây."
+        tu_van = cau_long.rstrip(".").split()
+        tu3 = [{"t": lich.DAN_DAU + i * 0.3, "d": 0.25, "chu": w, "khoa": w.lower()} for i, w in enumerate(tu_van)]
+        cl3 = canh(3, 20.0, len(tu_van) * 0.3, [cau_long], [lich.DAN_DAU], tu3)
+        cl4 = canh(4, 30.0, 1.0, ["Tap hop A = {1}."], [lich.DAN_DAU], [
+            {"t": lich.DAN_DAU + 0.0, "d": 0.2, "chu": "Tap", "khoa": "tap"},
+            {"t": lich.DAN_DAU + 0.3, "d": 0.2, "chu": "hop", "khoa": "hop"},
+            {"t": lich.DAN_DAU + 0.6, "d": 0.2, "chu": "A", "khoa": "a"},
+            {"t": lich.DAN_DAU + 0.8, "d": 0.2, "chu": "={1}.", "khoa": "1"},
+        ])
+        text = karaoke.tao_ass([cl1, cl2, cl3, cl4])
+        mong_doi = (DATA / "karaoke_viet_tay_ngang.ass").read_text(encoding="utf-8")
+        self.assertEqual(text, mong_doi)
+
+
 class CauTrucTest(unittest.TestCase):
     def test_has_all_three_required_sections(self):
         text = karaoke.tao_ass([])
@@ -329,6 +361,122 @@ class KichThuocChuTest(unittest.TestCase):
             self.assertTrue(0.75 <= ti_le <= 1.25, (hop_karaoke, hop_hinh, ti_le))
             self.assertGreaterEqual(719 - hop_karaoke["duoi"], 10, "chữ phải cách mép dưới ít nhất 10px")
             self.assertLessEqual(abs(hop_karaoke["giua_x"] - 640), 20, hop_karaoke)
+
+
+class KieuPhuDeTest(unittest.TestCase):
+    def test_viet_tay_ngang_has_no_box_uses_itim_and_42_chars(self):
+        kieu = karaoke.kieu_phu_de("viet-tay", "ngang")
+        self.assertEqual(kieu, {"font": "Itim", "co": 40, "khung": False, "gioi_han": 42})
+
+    def test_cat_dan_ngang_has_a_box_and_be_vietnam_pro(self):
+        kieu = karaoke.kieu_phu_de("cat-dan", "ngang")
+        self.assertTrue(kieu["khung"])
+        self.assertEqual(kieu["font"], "Be Vietnam Pro")
+        self.assertEqual(kieu["gioi_han"], 42)
+
+    def test_viet_tay_doc_has_a_box_keeps_itim_and_22_chars(self):
+        kieu = karaoke.kieu_phu_de("viet-tay", "doc")
+        self.assertTrue(kieu["khung"])
+        self.assertEqual(kieu["font"], "Itim")
+        self.assertEqual(kieu["gioi_han"], 22)
+
+    def test_cat_dan_doc_has_a_box_be_vietnam_pro_and_22_chars(self):
+        kieu = karaoke.kieu_phu_de("cat-dan", "doc")
+        self.assertTrue(kieu["khung"])
+        self.assertEqual(kieu["font"], "Be Vietnam Pro")
+        self.assertEqual(kieu["gioi_han"], 22)
+
+
+class KhungNenTest(unittest.TestCase):
+    """`.ass` của `cat-dan` (hay bất kỳ khổ `doc`) phải có khung nền: BorderStyle=3, nền đen 60%, viền cùng
+    màu nền, chữ trắng, và SecondaryColour vàng cho `\\kf`."""
+
+    def _canh(self):
+        return canh(1, 0.0, 1.5, ["Chu ki dao dong cua con lac don."], [lich.DAN_DAU], [
+            {"t": lich.DAN_DAU + i * 0.25, "d": 0.2, "chu": w, "khoa": w.lower()}
+            for i, w in enumerate(["Chu", "ki", "dao", "dong", "cua", "con", "lac", "don."])
+        ])
+
+    def test_cat_dan_ngang_ass_has_borderstyle_3_and_box_colours(self):
+        text = karaoke.tao_ass([self._canh()], chu_de="cat-dan", kho_ten="ngang")
+        style_line = next(l for l in text.splitlines() if l.startswith("Style:"))
+        fields = style_line.split(",")
+        self.assertEqual(fields[15], "3")  # BorderStyle
+        self.assertEqual(fields[3], "&H00FFFFFF")  # PrimaryColour trắng
+        self.assertEqual(fields[4], "&H0000D7FF")  # SecondaryColour vàng
+        self.assertEqual(fields[5], "&H66000000")  # OutlineColour = nền
+        self.assertEqual(fields[6], "&H66000000")  # BackColour đen 60%
+        self.assertIn("Be Vietnam Pro", style_line)
+
+    def test_viet_tay_doc_ass_also_gets_the_box_but_keeps_itim(self):
+        text = karaoke.tao_ass([self._canh()], chu_de="viet-tay", kho_ten="doc")
+        style_line = next(l for l in text.splitlines() if l.startswith("Style:"))
+        self.assertEqual(style_line.split(",")[15], "3")
+        self.assertIn("Itim", style_line)
+        self.assertNotIn("Be Vietnam Pro", style_line)
+
+    def test_viet_tay_ngang_ass_has_no_box(self):
+        text = karaoke.tao_ass([self._canh()], chu_de="viet-tay", kho_ten="ngang")
+        style_line = next(l for l in text.splitlines() if l.startswith("Style:"))
+        self.assertEqual(style_line.split(",")[15], "1")
+
+
+class KhoDocTest(unittest.TestCase):
+    """Ở khổ dọc, mọi dòng hiển thị phải <= 22 ký tự, tổng \\kf của các phần bằng thời lượng câu, và câu
+    dài hơn 2 dòng phải tách kèm cảnh báo."""
+
+    def _canh_dai(self, so=1, bat_dau=0.0):
+        cau_text = "Chu kì tỉ lệ với căn bậc hai của chiều dài dây, và không phụ thuộc vào biên độ dao động nhỏ."
+        tu_van = cau_text.replace(",", "").rstrip(".").split()
+        tu = [{"t": lich.DAN_DAU + i * 0.28, "d": 0.24, "chu": w, "khoa": w.lower()} for i, w in enumerate(tu_van)]
+        return canh(so, bat_dau, len(tu_van) * 0.28, [cau_text], [lich.DAN_DAU], tu), cau_text
+
+    def test_every_displayed_line_is_at_most_22_characters(self):
+        cl, _ = self._canh_dai()
+        text = karaoke.tao_ass([cl], chu_de="viet-tay", kho_ten="doc")
+        for d in _dialogues(text):
+            chu = _DIALOGUE_RE.match(d).group(3)
+            for dong in chu.split("\\N"):
+                hien = _KF_TAG_RE.sub("", dong)
+                self.assertLessEqual(len(hien), 22, hien)
+
+    def test_kf_total_still_matches_sentence_duration_after_splitting(self):
+        cl, _ = self._canh_dai()
+        text = karaoke.tao_ass([cl], chu_de="viet-tay", kho_ten="doc")
+        dialogues = _dialogues(text)
+        self.assertGreater(len(dialogues), 1, "câu dài phải tách thành nhiều sự kiện ở khổ dọc")
+        tong_kf = 0
+        tong_giay = 0.0
+        for d in dialogues:
+            match = _DIALOGUE_RE.match(d)
+            start, end = _thoi_gian_giay(match.group(1)), _thoi_gian_giay(match.group(2))
+            tong_giay += end - start
+            tong_kf += sum(int(n) for n in _KF_RE.findall(match.group(3)))
+        self.assertLessEqual(abs(tong_kf - round(tong_giay * 100)), len(dialogues))
+
+    def test_long_sentence_in_doc_mode_warns_with_scene_number_and_part_count(self):
+        cl, _ = self._canh_dai(so=7)
+        canh_bao: list = []
+        text = karaoke.tao_ass([cl], chu_de="viet-tay", kho_ten="doc", canh_bao=canh_bao)
+        so_phan = len(_dialogues(text))
+        self.assertEqual(len(canh_bao), 1)
+        self.assertIn("Cảnh 7", canh_bao[0])
+        self.assertIn(f"{so_phan} phần", canh_bao[0])
+
+    def test_short_sentence_in_doc_mode_does_not_warn(self):
+        cl = canh(1, 0.0, 1.0, ["Cau ngan."], [lich.DAN_DAU],
+                  [{"t": lich.DAN_DAU + 0.0, "d": 0.3, "chu": "Cau", "khoa": "cau"},
+                   {"t": lich.DAN_DAU + 0.4, "d": 0.3, "chu": "ngan.", "khoa": "ngan"}])
+        canh_bao: list = []
+        karaoke.tao_ass([cl], chu_de="viet-tay", kho_ten="doc", canh_bao=canh_bao)
+        self.assertEqual(canh_bao, [])
+
+    def test_ngang_khong_tach_theo_dau_phay_giu_duong_cu(self):
+        """Ở khổ ngang (42 ký tự), câu dài vẫn tách theo cách cũ (không ưu tiên dấu phẩy), không cảnh báo mới."""
+        cl, _ = self._canh_dai()
+        canh_bao: list = []
+        karaoke.tao_ass([cl], chu_de="viet-tay", kho_ten="ngang", canh_bao=canh_bao)
+        self.assertEqual(canh_bao, [])
 
 
 class FfmpegBurnTest(unittest.TestCase):

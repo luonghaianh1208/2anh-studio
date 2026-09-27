@@ -14,11 +14,22 @@ from .chup import DUOI_KHUNG, FIX_DUNG, ten_khung
 from .giong import _MARKUP_RE  # cùng bộ dấu giọng đọc bỏ đi: ** ~ ^ == (( )) __ {{ }}
 from .lich import DAN_DAU, FPS, doan_loi
 from .phong import FONT as ITIM_FONT, TEN as ITIM_TEN
+from .phong import FONT_CAT_DAN as _BE_VIETNAM_PRO_FILES
 
 BIEN_DO_NHIEU = 0.002
 HAT_NHIEU = 1234
 STYLE = f"FontName={ITIM_TEN},FontSize=16,Outline=1.5,Shadow=0,Spacing=0.5,MarginV=22"
 FONTS_REL = ".khung/fonts"
+
+
+def _force_style(chu_de: str, kho_ten: str) -> str:
+    """`STYLE` cho `phu-de: hinh` (.srt + force_style); nhận khung nền giống `.ass` karaoke khi `cat-dan`
+    hoặc khổ `doc` (`karaoke.kieu_phu_de`), font theo chủ đề."""
+    kieu = karaoke.kieu_phu_de(chu_de, kho_ten)
+    if not kieu["khung"]:
+        return STYLE
+    return (f"FontName={kieu['font']},FontSize=16,Outline=1.5,Shadow=0,Spacing=0.5,MarginV=22,"
+            "BorderStyle=3,BackColour=&H66000000&,OutlineColour=&H66000000&,PrimaryColour=&H00FFFFFF&")
 KHUNG_DAU = f".khung/anh/{ten_khung(0)}"
 # Nhạc nền: vào/ra dần, mức nền, và bộ nén hạ nhạc khi tiếng chính (giọng) vượt ngưỡng.
 NHAC_VAO_RA = 1.5
@@ -84,7 +95,7 @@ def lenh_nhac(danh_sach_am: Path, nhac: Path, wav_ra: Path, tong: float) -> list
     ]
 
 
-def lenh_video(danh_sach_am: Path, out_mp4: Path, fps: int, phu_de_tuong_doi) -> list:
+def lenh_video(danh_sach_am: Path, out_mp4: Path, fps: int, phu_de_tuong_doi, style: str = STYLE) -> list:
     """`danh_sach_am`: danh sách nối tiếng các cảnh (.txt), hoặc một file tiếng đã trộn nhạc (.wav)."""
     cmd = [
         "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
@@ -97,7 +108,7 @@ def lenh_video(danh_sach_am: Path, out_mp4: Path, fps: int, phu_de_tuong_doi) ->
         if str(phu_de_tuong_doi).endswith(".ass"):
             cmd += ["-vf", f"subtitles={phu_de_tuong_doi}:fontsdir={FONTS_REL}"]
         else:
-            cmd += ["-vf", f"subtitles={phu_de_tuong_doi}:fontsdir={FONTS_REL}:force_style='{STYLE}'"]
+            cmd += ["-vf", f"subtitles={phu_de_tuong_doi}:fontsdir={FONTS_REL}:force_style='{style}'"]
     cmd += ["-r", str(fps), "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
             "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", str(out_mp4)]
     return cmd
@@ -130,10 +141,14 @@ def _chay(cmd: list, run, cwd: Path) -> None:
 
 
 def ghep_video(thu_muc: Path, cac_lich: list, cac_giong: list, phu_de: str, fps: int = FPS, run=subprocess.run,
-               su_kien: list | None = None, nhac: dict | None = None, kho=None) -> list:
+               su_kien: list | None = None, nhac: dict | None = None, kho=None, chu_de: str = "viet-tay",
+               canh_bao: list | None = None) -> list:
     """`su_kien`: sự kiện âm thanh của từng cảnh (cùng thứ tự `cac_lich`) để trộn hiệu ứng; None là không có hiệu ứng.
     `nhac`: kết quả `nhac.doc` (nhạc nền trộn sau khi nối tiếng các cảnh); None là không có nhạc.
-    `kho` (kho.Kho): kiểm kích thước khung chụp và đặt khung phụ đề karaoke theo điểm CSS; None là khổ ngang cũ."""
+    `kho` (kho.Kho): kiểm kích thước khung chụp và đặt khung phụ đề karaoke theo điểm CSS; None là khổ ngang cũ.
+    `chu_de` (`phong-cach`): chọn font và khung nền của phụ đề (`karaoke.kieu_phu_de`).
+    `canh_bao`: câu phụ đề dài phải tách ở khổ dọc thì ghi cảnh báo vào đây (mutate)."""
+    kho_ten = kho.ten if kho is not None else "ngang"
     kich_ass = {}
     if kho is not None:
         _kiem_khung(thu_muc, kho, run)
@@ -167,25 +182,30 @@ def ghep_video(thu_muc: Path, cac_lich: list, cac_giong: list, phu_de: str, fps:
     cues = srt.render_srt(cac_cue)
     files = ["video.mp4"]
     burn = None
+    style = STYLE
+    if phu_de in ("hinh", "karaoke"):
+        fonts_dir = lam / "fonts"
+        fonts_dir.mkdir(exist_ok=True)
+        shutil.copy2(ITIM_FONT, fonts_dir / ITIM_FONT.name)
+        if karaoke.kieu_phu_de(chu_de, kho_ten)["font"] == karaoke.FONT_CAT_DAN:
+            for duong_dan in _BE_VIETNAM_PRO_FILES.values():
+                shutil.copy2(duong_dan, fonts_dir / duong_dan.name)
     if phu_de == "hinh":
         thoat = [srt.Cue(index=c.index, start=c.start, end=c.end, text=c.text.replace("\\", "⧵").replace("{", "\\{").replace("}", "\\}"))
                  for c in cac_cue]
         (lam / "phu-de.srt").write_text(srt.render_srt(thoat), encoding="utf-8")
-        fonts_dir = lam / "fonts"
-        fonts_dir.mkdir(exist_ok=True)
-        shutil.copy2(ITIM_FONT, fonts_dir / ITIM_FONT.name)
         burn = ".khung/phu-de.srt"
+        style = _force_style(chu_de, kho_ten)
     elif phu_de == "karaoke":
-        (lam / "phu-de.ass").write_text(karaoke.tao_ass(cac_lich, **kich_ass), encoding="utf-8")
-        fonts_dir = lam / "fonts"
-        fonts_dir.mkdir(exist_ok=True)
-        shutil.copy2(ITIM_FONT, fonts_dir / ITIM_FONT.name)
+        (lam / "phu-de.ass").write_text(
+            karaoke.tao_ass(cac_lich, chu_de=chu_de, kho_ten=kho_ten, canh_bao=canh_bao, **kich_ass),
+            encoding="utf-8")
         burn = ".khung/phu-de.ass"
     elif phu_de == "file":
         (thu_muc / "phu-de.srt").write_text(cues, encoding="utf-8")
         files.append("phu-de.srt")
     tam = lam / "video.mp4"
-    _chay(lenh_video(am, tam, fps, burn), run, thu_muc)
+    _chay(lenh_video(am, tam, fps, burn, style=style), run, thu_muc)
     try:
         os.replace(tam, thu_muc / "video.mp4")
     except PermissionError as exc:

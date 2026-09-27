@@ -192,7 +192,8 @@ def _dung(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> dict:
                                       thu_muc_su_kien=lam / "su-kien" if co_am else None, kho=k)
         su_kien = [ket.get(du["so"], []) for du in cac_du] if co_am and ket is not None else None
         log("Ghép video bằng FFmpeg...")
-        files = ghep.ghep_video(thu_muc, cac_lich, cac_giong, video.meta["phu-de"], su_kien=su_kien, nhac=nhac, kho=k)
+        files = ghep.ghep_video(thu_muc, cac_lich, cac_giong, video.meta["phu-de"], su_kien=su_kien, nhac=nhac, kho=k,
+                                chu_de=video.meta["phong-cach"], canh_bao=warnings)
     finally:
         shutil.rmtree(lam, ignore_errors=True)
     if video.meta["phu-de"] != "file":
