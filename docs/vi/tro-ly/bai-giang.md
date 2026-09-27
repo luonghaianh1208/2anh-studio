@@ -20,8 +20,8 @@ Ví dụ câu lệnh:
    Gợi ý: 1 tiết × 45 phút (Tiểu học: 35 phút).
 4. Mục tiêu về kiến thức, năng lực và phẩm chất của bài là gì?
    Gợi ý: AI đề xuất 2–3 ý cho mỗi nhóm theo chương trình giáo dục phổ thông 2018 để thầy cô sửa.
-5. Thầy cô muốn có những hoạt động nào (trò chơi khởi động, thảo luận nhóm, phiếu học tập, câu hỏi trắc nghiệm, video), và slide cần hiệu ứng ở mức nào: không, vừa, hay nhiều?
-   Gợi ý: một trò chơi khởi động ngắn, 3–5 câu trắc nghiệm ở phần luyện tập; hiệu ứng mức vừa — hiện từng ý khi bấm, bấm để hiện đáp án, chuyển trang nổi bật khi sang hoạt động mới.
+5. Thầy cô muốn có những hoạt động nào (trò chơi khởi động, thảo luận nhóm, phiếu học tập, câu hỏi trắc nghiệm, video), và slide cần hiệu ứng ở mức nào: không, vừa, hay nhiều? Chữ trên slide nên ít chữ, vừa, hay nhiều chữ?
+   Gợi ý: một trò chơi khởi động ngắn, 3–5 câu trắc nghiệm ở phần luyện tập; hiệu ứng mức vừa — hiện từng ý khi bấm, bấm để hiện đáp án, chuyển trang nổi bật khi sang hoạt động mới; ít chữ — mỗi trang một ý, lời giải thích để ở lời giảng.
 6. Học sinh của lớp có đặc điểm gì, và phòng học dùng thiết bị gì (máy chiếu 16:9, máy chiếu 4:3, TV)?
    Gợi ý: lớp có trình độ trung bình, dùng máy chiếu 16:9.
 7. Thầy cô có tài liệu sẵn không (giáo án Word, ảnh trong sách giáo khoa, đề bài)?
@@ -61,5 +61,6 @@ Ví dụ câu lệnh:
 - Thầy cô yêu cầu: môn, lớp, tên bài, bộ sách, số tiết, các hoạt động thầy cô chọn, đặc điểm học sinh, thiết bị, tài liệu có sẵn — ghi đúng lời thầy cô.
 - AI đề xuất (thầy cô đã đồng ý): mục tiêu và các gợi ý thầy cô chấp nhận.
 - Mức hiệu ứng: không, vừa hoặc nhiều, theo `docs/vi/tro-ly/hieu-ung-lop-hoc.md`; kèm "(AI đề xuất, chưa duyệt)" khi thầy cô chưa chọn.
+- Mật độ chữ: ít chữ, vừa hoặc nhiều chữ, theo mục "Mật độ chữ" của `docs/vi/tro-ly/quy-trinh-hoi.md`; kèm "(AI đề xuất, chưa duyệt)" khi thầy cô chưa chọn.
 - Cấu trúc gợi ý, Phong cách gợi ý, Khổ slide: theo các mục tương ứng của file này.
 - Viết theo mẫu `docs/vi/tro-ly/mau-brief.md`.

@@ -24,8 +24,8 @@ Ví dụ câu lệnh:
    Gợi ý: huy hiệu Đoàn và màu chủ đạo trong hồ sơ.
 6. Có ảnh hoạt động sẵn không, hay để AI tạo ảnh minh hoạ?
    Gợi ý: dùng ảnh thầy cô gửi; thiếu thì để AI tìm ảnh thật hoặc tạo ảnh minh hoạ.
-7. Slide cần hiệu ứng ở mức nào: không, vừa, hay nhiều?
-   Gợi ý: vừa — hiện từng ý khi bấm, chuyển trang nổi bật khi sang phần mới.
+7. Slide cần hiệu ứng ở mức nào: không, vừa, hay nhiều? Chữ trên slide nên ít chữ, vừa, hay nhiều chữ?
+   Gợi ý: vừa — hiện từng ý khi bấm, chuyển trang nổi bật khi sang phần mới; ít chữ — mỗi trang một ý, ảnh hoạt động thay cho câu dài, lời dẫn để ở lời giảng.
 
 ## Câu hỏi tuỳ chọn
 
@@ -58,4 +58,5 @@ Ví dụ câu lệnh:
 - AI đề xuất (thầy cô đã đồng ý): cấu trúc theo mục đích và các gợi ý thầy cô chấp nhận.
 - Cấu trúc gợi ý, Phong cách gợi ý, Khổ slide: theo các mục tương ứng của file này.
 - Mức hiệu ứng: không, vừa hoặc nhiều, theo `docs/vi/tro-ly/hieu-ung-lop-hoc.md`; kèm "(AI đề xuất, chưa duyệt)" khi thầy cô chưa chọn.
+- Mật độ chữ: ít chữ, vừa hoặc nhiều chữ, theo mục "Mật độ chữ" của `docs/vi/tro-ly/quy-trinh-hoi.md`; kèm "(AI đề xuất, chưa duyệt)" khi thầy cô chưa chọn.
 - Viết theo mẫu `docs/vi/tro-ly/mau-brief.md`.

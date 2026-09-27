@@ -86,6 +86,24 @@ Mục này làm rõ, bằng ví dụ ở trường học, các quy tắc ảnh s
 - Ghi vào brief, mục "AI đề xuất": nguồn ảnh dự kiến, kèm "(AI đề xuất, chưa duyệt)" khi thầy cô chưa nêu.
 - Khi báo kết quả, nêu số trang có ảnh hoặc sơ đồ, và nhắc thầy cô soát ảnh tìm trên mạng trước khi dùng.
 
+## Mật độ chữ
+
+Mục này quy đổi lựa chọn của thầy cô về lượng chữ trên slide sang chế độ đọc của upstream (`skills/ppt-master/references/plan-core.md` mục 2, khoá `delivery_purpose`); upstream vẫn là nơi quyết định cách dựng.
+
+Áp dụng khi tạo bài mới cho Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop; cả khi tạo nhanh. Poster vốn ít chữ nên không hỏi.
+
+| Thầy cô chọn | Chế độ đọc | Trên slide | Phần giải thích |
+|---|---|---|---|
+| ít chữ | `presentation` | mỗi trang một ý chính; từ khoá hoặc cụm ngắn, số lớn, ảnh hoặc sơ đồ; định hướng tối đa khoảng 5 dòng, không đoạn văn nào dài quá 2 dòng | vào lời giảng (ghi chú người trình bày), bật ghi chú |
+| vừa | `balanced` | một ý chính kèm giải thích ngắn hoặc danh sách cần thiết; định hướng tối đa khoảng 7 dòng | phần chính trên slide, phần thêm vào lời giảng |
+| nhiều chữ | `text` | câu đầy đủ, đoạn văn ngắn, bảng; dùng khi slide là tài liệu để đọc hoặc gửi đi | trên slide |
+
+- Thầy cô chưa chọn: Bài giảng, Tập huấn/workshop, Hoạt động Đoàn – sự kiện dùng ít chữ; Báo cáo – tổng kết dùng vừa. Ghi vào brief kèm "(AI đề xuất, chưa duyệt)".
+- Số dòng là định hướng để soát bài, không phải hạn mức cứng của upstream.
+- Ít chữ là chuyển chữ đi chỗ khác, không bỏ thông tin: phần giải thích vào lời giảng; nội dung không vừa một trang thì chia thêm trang; quá trình, so sánh, số liệu thì vẽ sơ đồ hoặc biểu đồ thay cho câu chữ. Quy tắc của upstream vẫn giữ nguyên: không bỏ thông tin chỉ để vừa bố cục.
+- Ở bước xác nhận của upstream, điền chế độ đọc đúng theo bảng; tạo nhanh thì áp chế độ đó khi tự quyết.
+- Làm đẹp slide có sẵn (Beautify) giữ nguyên văn từng chữ và từng trang. Thầy cô muốn làm đẹp mà ít chữ hơn, rút gọn, tách hay gộp trang: không dùng Beautify, mà tạo mới từ file đó (file PPTX cũ làm tài liệu nguồn) theo loại việc phù hợp và mật độ chữ thầy cô chọn. Nói trước với thầy cô một dòng rằng bài sẽ được dựng lại, không chỉ đổi giao diện.
+
 ## Ghi brief và đưa vào dự án
 
 1. Tạo hoặc cập nhật `projects/_ho-so-don-vi.md`.
@@ -113,7 +131,7 @@ Mục này làm rõ, bằng ví dụ ở trường học, các quy tắc ảnh s
 - Không hỏi hồ sơ đơn vị. Nếu đã có `projects/_ho-so-don-vi.md` thì dùng; nếu chưa có thì ghi "(chưa có hồ sơ đơn vị)" dưới mục Đơn vị của brief.
 - Câu lệnh có "không cần hỏi lại" hoặc "không hỏi gì" (kể cả khi có thêm "tạo nhanh"): không hỏi câu nào, kể cả khi còn thiếu thông tin, rồi viết brief và chạy chế độ tạo nhanh. Tin nhắn gửi thầy cô trong lượt này vẫn xưng "em", gọi "thầy cô".
 - Câu lệnh chỉ có "tạo nhanh" hoặc "làm nhanh": hỏi đủ các câu còn thiếu trong mục "Tạo nhanh" của file loại việc, đánh số như mục "Cách hỏi", trong một tin nhắn. Nếu câu lệnh đã có đủ các thông tin đó thì không hỏi; không tự bỏ bớt câu vì nghĩ có thể đoán mặc định. Các câu này là điều kiện của lớp Việt, được hỏi trước khi chế độ tạo nhanh của upstream bắt đầu; chúng không phải điểm dừng trong lượt chạy tạo nhanh.
-- Viết brief như mục trên; mọi mục thầy cô chưa nêu trong câu lệnh hoặc câu trả lời ghi kèm "(AI đề xuất, chưa duyệt)". Loại việc có dòng "Mức hiệu ứng" mà thầy cô chưa chọn thì ghi "Mức hiệu ứng: vừa (AI đề xuất, chưa duyệt)" và vẫn làm hiệu ứng theo `hieu-ung-lop-hoc.md`.
+- Viết brief như mục trên; mọi mục thầy cô chưa nêu trong câu lệnh hoặc câu trả lời ghi kèm "(AI đề xuất, chưa duyệt)". Loại việc có dòng "Mức hiệu ứng" mà thầy cô chưa chọn thì ghi "Mức hiệu ứng: vừa (AI đề xuất, chưa duyệt)" và vẫn làm hiệu ứng theo `hieu-ung-lop-hoc.md`. Loại việc có dòng "Mật độ chữ" mà thầy cô chưa chọn thì ghi mức mặc định theo mục "Mật độ chữ" kèm "(AI đề xuất, chưa duyệt)" và áp chế độ đọc tương ứng.
 - Chạy chế độ tạo nhanh của upstream theo `skills/ppt-master/workflows/profiles/quick-generate.md`, không có bước xác nhận.
 
 ## Đổi ý giữa chừng

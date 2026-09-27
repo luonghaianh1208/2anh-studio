@@ -384,6 +384,7 @@ COMMON_HEADINGS = (
     "## Hồ sơ đơn vị",
     "## Cách hỏi",
     "## Ảnh minh hoạ",
+    "## Mật độ chữ",
     "## Ghi brief và đưa vào dự án",
     "## Tạo nhanh",
     "## Đổi ý giữa chừng",
@@ -1307,6 +1308,28 @@ class EffectsGuideTest(unittest.TestCase):
                 items = numbered_items(section(text, "## Câu hỏi bắt buộc"))
                 self.assertEqual(sum("không, vừa, hay nhiều" in item for item in items), 1)
                 self.assertIn("Mức hiệu ứng:", section(text, "## Ghi vào brief"))
+
+    def test_four_guides_ask_the_text_density_and_record_it(self):
+        for name in EFFECT_QUESTION_GUIDES:
+            with self.subTest(guide=name):
+                text = read(f"docs/vi/tro-ly/{name}")
+                items = numbered_items(section(text, "## Câu hỏi bắt buộc"))
+                self.assertEqual(sum("ít chữ, vừa, hay nhiều chữ" in item for item in items), 1)
+                self.assertIn("Mật độ chữ:", section(text, "## Ghi vào brief"))
+
+    def test_common_rules_define_text_density_levels(self):
+        body = section(read("docs/vi/tro-ly/quy-trinh-hoi.md"), "## Mật độ chữ")
+        for phrase in ("`presentation`", "`balanced`", "`text`", "ít chữ", "nhiều chữ", "lời giảng",
+                       "chia thêm trang", "không bỏ thông tin", "Beautify", "tạo mới từ file", "(AI đề xuất, chưa duyệt)"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+        self.assertIn("Mật độ chữ", read("docs/vi/tro-ly/mau-brief.md"))
+
+    def test_antigravity_rule_carries_the_text_density_rule_inline(self):
+        body = section(read(".agents/rules/ppt-master-vi.md"), "## Mật độ chữ")
+        for phrase in ("`presentation`", "ít chữ", "lời giảng", "tạo mới từ file", "làm đẹp"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
 
     def test_video_guide_asks_keep_or_drop_effects(self):
         text = read("docs/vi/tro-ly/video-bai-giang.md")

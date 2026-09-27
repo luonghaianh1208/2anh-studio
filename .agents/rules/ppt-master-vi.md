@@ -45,6 +45,14 @@ Với bài mới thuộc 5 loại việc tạo PPTX ở bảng trên (không áp
 - Thiếu khoá API tạo ảnh không phải lý do bỏ ảnh `web`; không mở file cấu hình để dò khoá.
 - Chi tiết: mục "Ảnh minh hoạ" của `docs/vi/tro-ly/quy-trinh-hoi.md`.
 
+## Mật độ chữ
+
+Bài mới thuộc Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop hỏi mật độ chữ: ít chữ → chế độ đọc `presentation`, vừa → `balanced`, nhiều chữ → `text`. Thầy cô chưa chọn: báo cáo dùng vừa, ba loại còn lại dùng ít chữ.
+
+- Ít chữ: mỗi trang một ý, từ khoá hoặc cụm ngắn, khoảng 5 dòng; phần giải thích vào lời giảng (ghi chú người trình bày). Không bỏ thông tin: nội dung không vừa thì chia thêm trang.
+- Thầy cô muốn làm đẹp slide có sẵn mà ít chữ hơn, rút gọn, tách hay gộp trang: không dùng chế độ làm đẹp (Beautify giữ nguyên văn từng chữ), mà tạo mới từ file đó như tài liệu nguồn; nói trước với thầy cô một dòng.
+- Chi tiết: mục "Mật độ chữ" của `docs/vi/tro-ly/quy-trinh-hoi.md`.
+
 ## Hiệu ứng
 
 Bài mới thuộc Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop có câu hỏi mức hiệu ứng (không, vừa, nhiều); thầy cô chưa chọn thì dùng mức vừa. Không áp dụng cho làm đẹp hay sửa PPTX có sẵn.

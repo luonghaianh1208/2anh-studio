@@ -2,6 +2,10 @@
 
 ## Chưa phát hành
 
+### Thêm
+- Mật độ chữ cho Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop: câu hỏi hiệu ứng hỏi thêm "ít chữ, vừa, hay nhiều chữ" (vẫn tối đa 7 câu), brief ghi dòng "Mật độ chữ", và mục mới "Mật độ chữ" trong `quy-trinh-hoi.md` quy đổi sang chế độ đọc `presentation` / `balanced` / `text` của upstream. Ít chữ là mặc định cho bài giảng, tập huấn, hoạt động Đoàn; báo cáo mặc định vừa. Ít chữ chuyển phần giải thích vào lời giảng hoặc chia thêm trang, không bỏ thông tin.
+- "Làm đẹp slide mà cho ít chữ hơn / rút gọn / tách trang" nay được chỉ rõ là tạo mới từ file cũ, không dùng Beautify (Beautify giữ nguyên văn từng chữ). Quy tắc này có cả trong luật Antigravity, nơi AI trước đây hay kẹt ở chế độ làm đẹp và trả về slide vẫn dày chữ.
+
 ### Sửa
 - ChatGPT Codex chỉ tự đọc `AGENTS.md` nên trước đây bỏ qua toàn bộ quy tắc bản Việt (không hỏi trước, không dùng `venv`). Cuối `AGENTS.md` nay có mục "Vietnamese Edition" trỏ sang `AGENTS.vi.md`, nên Codex, Antigravity, Claude Code và Cursor đều đọc cùng một bộ quy tắc mà không cần câu khởi động. Có test báo lỗi nếu một lần đồng bộ bản gốc làm mất mục này.
 
