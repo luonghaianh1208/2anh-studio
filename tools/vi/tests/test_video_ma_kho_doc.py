@@ -86,6 +86,14 @@ def canh_toi_da(gioi_han: dict | None = None, hai_phan: dict | None = None, cot:
     return ds
 
 
+def bieu_do_cot(n: int) -> str:
+    """Biểu đồ cột `n` cột, nhãn và số ở đúng giới hạn khổ dọc (kiem.LIMITS_HAI_PHAN_DOC)."""
+    nhan_du_lieu, so_du_lieu = kiem.LIMITS_HAI_PHAN_DOC[("bieu-do", "du-lieu")]
+    so = "-" + "8765432109"[:so_du_lieu - 3] + ".5"
+    return ("tieu-de: T\nkieu: cot\ndon-vi: dv\ntruc-ngang: X\ntruc-doc: Y\n"
+            + "".join(f"du-lieu: {chuoi(nhan_du_lieu)} | {so if k % 2 else '12'}\n" for k in range(n)))
+
+
 def video_md(ds: list, meta: str = META_DOC) -> str:
     return f"---\n{meta}---\n\n" + "".join(f"## Cảnh {k}\nloai: {loai}\n{noi}loi: Xin chào các em.\n\n"
                                            for k, (loai, noi) in enumerate(ds, 1))
@@ -161,6 +169,15 @@ class KhoDocGioiHanTest(unittest.TestCase):
               if loai in ("tieu-de", "khai-niem", "cong-thuc", "y-tung-y", "so-do")]
         for canh, html in self.dung(ds, "cot"):
             with self.subTest(so=canh.so, loai=canh.loai):
+                tran, ra = ngoai_vung(self.page, html)
+                self.assertEqual(tran, [])
+                self.assertEqual(ra, [])
+
+    def test_bieu_do_cot_it_cot_khong_tran_o_khop_doc(self):
+        # Task 3 để lại: nhãn cột cuối (rộng gấp đôi cột để so le hai hàng) tràn mép khi có ít hơn 8 cột.
+        ds = [("bieu-do", bieu_do_cot(n)) for n in (2, 3, 5, 8)]
+        for canh, html in self.dung(ds, "it-cot"):
+            with self.subTest(so_cot=canh.so):
                 tran, ra = ngoai_vung(self.page, html)
                 self.assertEqual(tran, [])
                 self.assertEqual(ra, [])

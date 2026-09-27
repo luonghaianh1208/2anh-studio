@@ -65,9 +65,10 @@
     return { z: z, tx: tx, ty: ty };
   }
 
+  // Ngưỡng cao khi ngắm mục tiêu: đáy vùng nội dung trừ 60 px lề trên (khổ ngang: 620 − 60 = 560, như cũ).
   function ngam(h) {
     var k = kho();
-    var z = kep(Math.min(0.6 * k.rong / h.w, 0.6 * 560 / h.h), 1, ZMAX);
+    var z = kep(Math.min(0.6 * k.rong / h.w, 0.6 * (k.day - 60) / h.h), 1, ZMAX);
     return kepHop({ z: z, tx: k.tamX - z * (h.x + h.w / 2), ty: k.tamY - z * (h.y + h.h / 2) }, h);
   }
 

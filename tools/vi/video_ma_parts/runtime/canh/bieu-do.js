@@ -107,8 +107,10 @@
       var yv = y(v);
       var am = v < 0;
       // Nhãn loại rộng bằng cột trừ 8; khổ dọc so le hai hàng nên rộng gấp đôi cột (nhãn cùng hàng cách nhau hai cột).
+      // Cột đầu/cuối (ít cột) nới ra ngoài ô: kẹp trong bề ngang ô để không tràn mép.
       var rn = K.doc ? 2 * o - 8 : o - 8;
-      kq.push(B.chu('nhan-' + k, d[0], cx - rn / 2, PB + 34 + (K.doc && k % 2 ? 56 : 0), rn, 52, coNhan, 0.7 + 0.05 * k,
+      var xNhan = K.doc ? kep(cx - rn / 2, K.o.x, K.o.x + K.o.w - rn) : cx - rn / 2;
+      kq.push(B.chu('nhan-' + k, d[0], xNhan, PB + 34 + (K.doc && k % 2 ? 56 : 0), rn, 52, coNhan, 0.7 + 0.05 * k,
         { can: 'giua', quay: false, tay: false }));
       var ySo;
       if (kieu === 'cot') {
