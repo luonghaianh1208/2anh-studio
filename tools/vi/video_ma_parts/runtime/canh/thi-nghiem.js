@@ -1,7 +1,11 @@
 (function (root) {
   'use strict';
   var V = root.THI_VIDEO;
-  var RONG = 792, CAO = 422;
+  // Bản vẽ mô hình nằm trong khung ô `thi-nghiem`, lùi 4 mỗi bên; bảng số ở ô `bang-so`.
+  function banVe() {
+    var o = V.o('thi-nghiem');
+    return { x: o.x + 4, y: o.y + 4, rong: o.w - 8, cao: o.h - 8 };
+  }
 
   function thamSoTai(du, t) {
     var K = root.THI_NGHIEM_KHUNG;
@@ -56,28 +60,32 @@
     muc: function (du) {
       var B = V.tao(du);
       var kb = du.khaiBao;
+      var o = V.o('thi-nghiem'), s = V.o('bang-so');
       var kq = B.tieuDe(kb.ten, 0.2);
-      kq.push(B.net('khung', V.hopQua(40, 190, 800, 430, 5), 0.1, 0.7, {}));
-      kq.push(B.chu('nhan-tham-so', 'Thông số', 880, 190, 360, 40, 26, 0.4, { mau: 'nhan' }));
+      kq.push(B.net('khung', V.hopQua(o.x, o.y, o.w, o.h, 5), 0.1, 0.7, {}));
+      // Bảng số: nhãn cao 40, ba dòng thông số cao 56, cách 10 rồi nhãn số đo và ba dòng cao 58.
+      kq.push(B.chu('nhan-tham-so', 'Thông số', s.x, s.y, s.w, 40, 26, 0.4, { mau: 'nhan' }));
       Object.keys(du.thamSo).slice(0, 3).forEach(function (ma, k) {
-        kq.push(B.chu('ts-' + k, '', 880, 232 + k * 56, 360, 56, 20, 0.4, { dong: true }));
+        kq.push(B.chu('ts-' + k, '', s.x, s.y + 42 + k * 56, s.w, 56, 20, 0.4, { dong: true }));
       });
-      kq.push(B.chu('nhan-do', 'Số đo', 880, 410, 360, 40, 26, 0.4, { mau: 'nhan' }));
+      var yDo = s.y + 42 + 3 * 56 + 10;
+      kq.push(B.chu('nhan-do', 'Số đo', s.x, yDo, s.w, 40, 26, 0.4, { mau: 'nhan' }));
       du.do.slice(0, 3).forEach(function (ma, k) {
-        kq.push(B.chu('do-' + k, '', 880, 452 + k * 58, 360, 58, 20, 0.4, { dong: true, mau: 'do' }));
+        kq.push(B.chu('do-' + k, '', s.x, yDo + 42 + k * 58, s.w, 58, 20, 0.4, { dong: true, mau: 'do' }));
       });
       return kq;
     },
     dung: function (goc) {
       // Chữ mô hình vẽ trên canvas (ví dụ "Số dao động") cũng dùng Itim như cả khung hình; chỉ đổi trong trang video.
       root.THI_NGHIEM_KHUNG.PHONG = "'Itim', sans-serif";
+      var b = banVe();
       var c = document.createElement('canvas');
       c.id = 'ban-ve';
-      c.width = RONG;
-      c.height = CAO;
+      c.width = b.rong;
+      c.height = b.cao;
       c.style.position = 'absolute';
-      c.style.left = '44px';
-      c.style.top = '194px';
+      c.style.left = b.x + 'px';
+      c.style.top = b.y + 'px';
       c.style.background = '#ffffff';
       goc.appendChild(c);
     },
@@ -85,11 +93,12 @@
       var K = root.THI_NGHIEM_KHUNG;
       var M = root.THI_NGHIEM_MO_HINH;
       var g = giaTri(du, t);
+      var b = banVe();
       var ctx = goc.querySelector('#ban-ve').getContext('2d');
-      ctx.clearRect(0, 0, RONG, CAO);
+      ctx.clearRect(0, 0, b.rong, b.cao);
       var tm = thoiGianMoHinh(du, t);
       if (typeof M.thoiLuong === 'function') { tm = Math.min(tm, M.thoiLuong(g.tham, g.dai)); }
-      M.ve(ctx, g.tham, tm, { rong: RONG, cao: CAO }, g.dai);
+      M.ve(ctx, g.tham, tm, { rong: b.rong, cao: b.cao }, g.dai);
       Object.keys(du.thamSo).slice(0, 3).forEach(function (ma, k) {
         var ts = tim(du.khaiBao.thamSo, ma);
         goc.querySelector('[data-id="ts-' + k + '"]').innerHTML =

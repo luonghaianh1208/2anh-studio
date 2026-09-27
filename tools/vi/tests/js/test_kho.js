@@ -30,6 +30,40 @@ test('kho: mac dinh la kho ngang cu; dat() gan V.kho', function () {
   delete globalThis.THI_VIDEO;
 });
 
+var TEN_O = ['tieu-de', 'noi-dung', 'noi-dung-hep', 'cot-phu', 'anh-lon', 'hai-cot-trai', 'hai-cot-phai', 'bieu-do', 'so-do',
+  'dong-thoi-gian', 'cau-hoi', 'thi-nghiem', 'the', 'tai-lieu', 'nhan-vat'];
+
+test('o bo cuc: kho ngang du ten, moi o nam trong 1280x720 va day o <= vach phu de', function () {
+  K.dat(NGANG);
+  var bang = require(path.join(RT, 'o-bo-cuc.json'));
+  assert.deepStrictEqual(Object.keys(bang), ['ngang']);
+  TEN_O.forEach(function (ten) { assert.ok(bang.ngang[ten], 'thieu o ' + ten); });
+  Object.keys(bang.ngang).forEach(function (ten) {
+    var o = K.o(ten);
+    assert.deepStrictEqual(o, bang.ngang[ten]);
+    assert.deepStrictEqual(Object.keys(o).sort(), ['h', 'w', 'x', 'y'], ten);
+    assert.ok(o.x >= 0 && o.y >= 0 && o.w > 0 && o.h > 0 && o.x + o.w <= 1280 && o.y + o.h <= 720, ten + ' ' + JSON.stringify(o));
+    assert.ok(o.y + o.h <= NGANG.day, ten + ' xuong vung phu de ' + JSON.stringify(o));
+  });
+});
+
+test('o bo cuc: gia tri ngang chep dung toa do vi.11', function () {
+  K.dat(NGANG);
+  assert.deepStrictEqual(K.o('cot-phu'), { x: 900, y: 200, w: 320, h: 380 });
+  assert.deepStrictEqual(K.o('anh-lon'), { x: 80, y: 70, w: 1120, h: 490 });
+  assert.deepStrictEqual(K.o('tieu-de'), { x: 60, y: 30, w: 1160, h: 116 });
+  assert.deepStrictEqual(K.o('noi-dung'), { x: 60, y: 190, w: 1160, h: 430 });
+  assert.deepStrictEqual(K.o('noi-dung-hep'), { x: 60, y: 190, w: 800, h: 430 });
+});
+
+test('o bo cuc: ten la thi bao loi; ban tra ve la ban sao', function () {
+  K.dat(NGANG);
+  assert.throws(function () { K.o('cot-phai-khong-co'); }, /cot-phai-khong-co/);
+  var o = K.o('cot-phu');
+  o.x = 0;
+  assert.strictEqual(K.o('cot-phu').x, 900);
+});
+
 test('kho ngang: may quay dua tam hop nho ve (640, 310)', function () {
   K.dat(NGANG);
   var hop = { a: { x: 600, y: 290, w: 80, h: 40 } };

@@ -7,22 +7,32 @@
       var t = du.truong;
       var kq = [];
       var nay = !!(du.co && du.co.chuDong);
+      // Ô `bia`: chữ, nét gạch (dài 600, giữa ô, dưới chữ 20) rồi dòng phụ. Không hình: chữ lùi 20 từ đỉnh và kéo
+      // tới chỗ chừa cho gạch và dòng phụ (20 + 30 + 100 + lề 20).
+      var o = V.o('bia');
+      var giua = o.x + o.w / 2;
+      function gach(y, sau) {
+        return B.net('gach', V.duongQua([[giua - 600 / 2, y], [giua + 600 / 2, y]], 3), sau, 0.4, { mau: 'nhan', quay: false });
+      }
       if (!B.coCot) {
-        var c = B.chu('chu', t.chu[0], 80, 60, 1120, 320, 60, 0.3, { can: 'giua', mau: 'nhan', day: true, nay: nay });
+        var c = B.chu('chu', t.chu[0], o.x, o.y + 20, o.w, o.h - 170, 60, 0.3, { can: 'giua', mau: 'nhan', day: true, nay: nay });
         kq.push(c);
-        kq.push(B.net('gach', V.duongQua([[340, 400], [940, 400]], 3), c.batDau + c.thoiLuong, 0.4, { mau: 'nhan', quay: false }));
-        if (t.phu) { kq.push(B.chu('phu', t.phu[0], 80, 430, 1120, 100, 34, c.batDau + c.thoiLuong + 0.4, { can: 'giua' })); }
+        var yGach = c.y + c.cao + 20;
+        kq.push(gach(yGach, c.batDau + c.thoiLuong));
+        if (t.phu) { kq.push(B.chu('phu', t.phu[0], o.x, yGach + 30, o.w, 100, 34, c.batDau + c.thoiLuong + 0.4, { can: 'giua' })); }
         return kq;
       }
-      // Có hình: hình 180×180 ở giữa phía trên (y 40–220), vẽ trước; tiêu đề dời xuống ngay dưới.
+      // Có hình: hình 180×180 ở giữa đỉnh ô, vẽ trước; tiêu đề dời xuống ngay dưới (cách 5).
       // Dòng nguồn của ảnh nằm bên phải khung, không chen vào ô tiêu đề hai dòng.
-      var h = du.hinh ? B.hinh('hinh', du.hinh, 550, 40, 180, 0.3) : B.anh('anh', du.anh, 550, 40, 180, 180, 0.3, { viTriNguon: 'canh' });
+      var xh = giua - 180 / 2;
+      var h = du.hinh ? B.hinh('hinh', du.hinh, xh, o.y, 180, 0.3) : B.anh('anh', du.anh, xh, o.y, 180, 180, 0.3, { viTriNguon: 'canh' });
       kq.push(h);
       var co = V.demKyTu(t.chu[0]) <= 40 ? 56 : 44;
-      var c2 = B.chu('chu', t.chu[0], 80, 225, 1120, 150, co, h.batDau + h.thoiLuong, { can: 'giua', mau: 'nhan', day: true, nay: nay });
+      var c2 = B.chu('chu', t.chu[0], o.x, o.y + 180 + 5, o.w, 150, co, h.batDau + h.thoiLuong, { can: 'giua', mau: 'nhan', day: true, nay: nay });
       kq.push(c2);
-      kq.push(B.net('gach', V.duongQua([[340, 395], [940, 395]], 3), c2.batDau + c2.thoiLuong, 0.4, { mau: 'nhan', quay: false }));
-      if (t.phu) { kq.push(B.chu('phu', t.phu[0], 80, 420, 1120, 100, 34, c2.batDau + c2.thoiLuong + 0.4, { can: 'giua' })); }
+      var yGach2 = c2.y + c2.cao + 20;
+      kq.push(gach(yGach2, c2.batDau + c2.thoiLuong));
+      if (t.phu) { kq.push(B.chu('phu', t.phu[0], o.x, yGach2 + 25, o.w, 100, 34, c2.batDau + c2.thoiLuong + 0.4, { can: 'giua' })); }
       return kq;
     }
   };

@@ -1,7 +1,6 @@
 (function (root) {
   'use strict';
   var V = root.THI_VIDEO;
-  var X0 = 190, X1 = 1090, Y0 = 500, Y1 = 270;
 
   function soVN(v) { return String(Math.round(v * 1000) / 1000).replace('.', ','); }
   function tyLe(v, thap, cao, a, b) { return cao === thap ? (a + b) / 2 : a + (v - thap) * (b - a) / (cao - thap); }
@@ -14,15 +13,23 @@
       var ys = du.diem.map(function (p) { return p[1]; });
       var xMin = Math.min.apply(null, xs), xMax = Math.max.apply(null, xs);
       var yMin = Math.min.apply(null, ys), yMax = Math.max.apply(null, ys);
+      // Gốc trục lùi 80 từ mép trái và mép đáy ô nội dung; trục ngang tới cách mép phải 80, trục đứng tới dưới đỉnh
+      // 40. Điểm vẽ trong [X0, X1] × [Y1, Y0], lùi 50 (ngang) và 40 (đứng) khỏi hai trục. Tên trục ngang rộng 68 %
+      // trục, canh phải về cuối trục; tên trục đứng rộng 70 % trục.
+      var o = V.o('noi-dung');
+      var gx = o.x + 80, gy = o.y + o.h - 80;
+      var cuoiX = o.x + o.w - 80, dinhY = o.y + 40;
+      var dai = cuoiX - gx;
+      var X0 = gx + 50, X1 = cuoiX - 50, Y0 = gy - 40, Y1 = dinhY + 40;
       var kq = B.tieuDe(t['tieu-de'][0], 0.2);
-      kq.push(B.net('truc-x', V.duongQua([[140, 540], [1140, 540]], 1), 0.3, 0.6, {}));
-      kq.push(B.net('truc-y', V.duongQua([[140, 540], [140, 230]], 2), 0.4, 0.6, {}));
-      kq.push(B.chu('truc-ngang', t['truc-ngang'][0], 460, 582, 680, 40, 20, 1.0, { can: 'phai', mau: 'nhan' }));
-      kq.push(B.chu('truc-doc', t['truc-doc'][0], 160, 186, 700, 40, 24, 1.0, { mau: 'nhan' }));
-      kq.push(B.chu('x-min', soVN(xMin), X0 - 60, 546, 120, 30, 20, 1.0, { can: 'giua' }));
-      kq.push(B.chu('x-max', soVN(xMax), X1 - 60, 546, 120, 30, 20, 1.0, { can: 'giua' }));
-      kq.push(B.chu('y-min', soVN(yMin), 20, Y0 - 15, 110, 30, 20, 1.0, { can: 'phai' }));
-      kq.push(B.chu('y-max', soVN(yMax), 20, Y1 - 15, 110, 30, 20, 1.0, { can: 'phai' }));
+      kq.push(B.net('truc-x', V.duongQua([[gx, gy], [cuoiX, gy]], 1), 0.3, 0.6, {}));
+      kq.push(B.net('truc-y', V.duongQua([[gx, gy], [gx, dinhY]], 2), 0.4, 0.6, {}));
+      kq.push(B.chu('truc-ngang', t['truc-ngang'][0], cuoiX - 0.68 * dai, gy + 42, 0.68 * dai, 40, 20, 1.0, { can: 'phai', mau: 'nhan' }));
+      kq.push(B.chu('truc-doc', t['truc-doc'][0], gx + 20, o.y - 4, 0.7 * dai, 40, 24, 1.0, { mau: 'nhan' }));
+      kq.push(B.chu('x-min', soVN(xMin), X0 - 60, gy + 6, 120, 30, 20, 1.0, { can: 'giua' }));
+      kq.push(B.chu('x-max', soVN(xMax), X1 - 60, gy + 6, 120, 30, 20, 1.0, { can: 'giua' }));
+      kq.push(B.chu('y-min', soVN(yMin), gx - 120, Y0 - 15, 110, 30, 20, 1.0, { can: 'phai' }));
+      kq.push(B.chu('y-max', soVN(yMax), gx - 120, Y1 - 15, 110, 30, 20, 1.0, { can: 'phai' }));
       var truoc = null;
       du.diem.forEach(function (p, k) {
         var px = tyLe(p[0], xMin, xMax, X0, X1);

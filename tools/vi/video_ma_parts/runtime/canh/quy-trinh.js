@@ -7,13 +7,16 @@
       var t = du.truong;
       var kq = B.tieuDe(t['tieu-de'][0], 0.2);
       var n = t.buoc.length;
-      var w = (1160 - (n - 1) * 70) / n;
+      // Các bước chia đều bề rộng ô nội dung (cách nhau 70 cho mũi tên); hộp lùi 40 từ đỉnh, cách đáy 90.
+      var o = V.o('noi-dung');
+      var w = (o.w - (n - 1) * 70) / n;
+      var y = o.y + 40, h = o.h - 130;
       t.buoc.forEach(function (b, k) {
-        var x = 60 + k * (w + 70);
-        kq.push(B.net('hop-' + k, V.hopQua(x, 230, w, 300, 20 + k), Math.max(0.1, du.moc[k] - 0.4), 0.5, { am: 'ting' }));
-        kq.push(B.chu('buoc-' + k, b, x + 14, 250, w - 28, 260, 24, du.moc[k], {}));
+        var x = o.x + k * (w + 70);
+        kq.push(B.net('hop-' + k, V.hopQua(x, y, w, h, 20 + k), Math.max(0.1, du.moc[k] - 0.4), 0.5, { am: 'ting' }));
+        kq.push(B.chu('buoc-' + k, b, x + 14, y + 20, w - 28, h - 40, 24, du.moc[k], {}));
         if (k > 0) {
-          kq.push(B.net('mui-' + k, V.muiTen(x - 64, 380, x - 6, 380, 30 + k), Math.max(0.1, du.moc[k] - 0.6), 0.3, { mau: 'nhan' }));
+          kq.push(B.net('mui-' + k, V.muiTen(x - 64, y + h / 2, x - 6, y + h / 2, 30 + k), Math.max(0.1, du.moc[k] - 0.6), 0.3, { mau: 'nhan' }));
         }
       });
       return kq;

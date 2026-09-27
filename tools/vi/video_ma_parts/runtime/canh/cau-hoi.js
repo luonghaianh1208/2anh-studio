@@ -2,28 +2,36 @@
   'use strict';
   var V = root.THI_VIDEO;
   var NS = 'http://www.w3.org/2000/svg';
-  // Câu hỏi nhanh. Bút viết câu hỏi (y 36..186) rồi từng lựa chọn (ô 555 px, hai cột, căn giữa ô lẻ cuối) theo mốc câu
-  // của lời câu hỏi, xong trước đếm ngược LUOT giây để bàn tay kịp rời bảng. Đếm ngược: đồng hồ vòng tròn ở vùng giải
-  // thích (chưa có chữ), máy quay đẩy rất nhẹ; không có bàn tay. Tại batDauGiai: lựa chọn đúng có viền xanh, dấu ✓ và
-  // nảy; lựa chọn khác mờ còn 0,35; rồi bút viết giải thích (y 470..610). Mọi trạng thái là hàm của t.
+  // Câu hỏi nhanh trong ô `cau-hoi` (khổ ngang y 36..610). Bút viết câu hỏi (cao 150 ở đỉnh ô) rồi từng lựa chọn
+  // (hai cột rộng nửa ô trừ 25, căn giữa ô lẻ cuối) theo mốc câu của lời câu hỏi, xong trước đếm ngược LUOT giây để
+  // bàn tay kịp rời bảng. Đếm ngược: đồng hồ vòng tròn ở vùng giải thích (chưa có chữ), máy quay đẩy rất nhẹ; không
+  // có bàn tay. Tại batDauGiai: lựa chọn đúng có viền xanh, dấu ✓ và nảy; lựa chọn khác mờ còn 0,35; rồi bút viết
+  // giải thích (cao 140 ở đáy ô). Mọi trạng thái là hàm của t.
   var CHU = 'ABCD';
-  var O_RONG = 555, O_X = [70, 655];
-  var DONG_HO = { x: 640, y: 540, r: 52 };
   var LUOT = 0.45; // bàn tay rời bảng mất 0,4 s (ban-tay.js), thêm lề
   var MO = 0.35;
-  var DAY_Z = 0.05, TAM_Z = { x: 640, y: 330 }, VE_Z = 0.8;
+  var DAY_Z = 0.05, VE_Z = 0.8;
+  function oCau() { return V.o('cau-hoi'); }
+  // Đồng hồ giữa bề ngang ô, trên đáy ô 70. Máy quay đẩy quanh giữa ô (lệch xuống 7).
+  function dongHo() { var o = oCau(); return { x: o.x + o.w / 2, y: o.y + o.h - 70, r: 52 }; }
+  function tamZ() { var o = oCau(); return { x: o.x + o.w / 2, y: o.y + o.h / 2 + 7 }; }
 
   function kep01(x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
   function D() { return root.THI_DONG; }
 
   // Ô lựa chọn {x, y, w, h}: 2 lựa chọn một hàng cao 120; 3–4 lựa chọn hai hàng cao 105.
+  // Hàng đầu dưới đỉnh ô 176 (một hàng thì thêm 28), hàng hai cách 20; cột trái lùi 10, cột phải qua giữa ô 15.
   function bo(du) {
+    var o = oCau();
     var n = du.truong['lua-chon'].length;
     var h = n > 2 ? 105 : 120;
-    var ys = n > 2 ? [212, 337] : [240];
+    var y0 = o.y + 176;
+    var ys = n > 2 ? [y0, y0 + h + 20] : [y0 + 28];
+    var rong = o.w / 2 - 25;
+    var xs = [o.x + 10, o.x + o.w / 2 + 15];
     return du.truong['lua-chon'].map(function (_, k) {
-      var x = n % 2 === 1 && k === n - 1 ? (1280 - O_RONG) / 2 : O_X[k % 2];
-      return { x: x, y: ys[Math.floor(k / 2)], w: O_RONG, h: h };
+      var x = n % 2 === 1 && k === n - 1 ? o.x + (o.w - rong) / 2 : xs[k % 2];
+      return { x: x, y: ys[Math.floor(k / 2)], w: rong, h: h };
     });
   }
 
@@ -82,7 +90,8 @@
     }
     if (p <= 0) { return cam; }
     var z = 1 + DAY_Z * p;
-    return { z: z, tx: TAM_Z.x * (1 - z), ty: TAM_Z.y * (1 - z) };
+    var tam = tamZ();
+    return { z: z, tx: tam.x * (1 - z), ty: tam.y * (1 - z) };
   }
 
   function taoSvg(the, thuocTinh, cha) {
@@ -94,14 +103,16 @@
   function co(s, x, y) { return s === 1 ? '' : 'matrix(' + s + ',0,0,' + s + ',' + (x * (1 - s)) + ',' + (y * (1 - s)) + ')'; }
 
   var canh = {
-    CHU: CHU, DONG_HO: DONG_HO, bo: bo, trangThai: trangThai, mayQuay: mayQuay,
+    CHU: CHU, bo: bo, trangThai: trangThai, mayQuay: mayQuay,
+    get DONG_HO() { return dongHo(); },
     muc: function (du) {
       var B = V.tao(du);
       var t = du.truong;
       var q = du.cauHoi;
       var o = bo(du);
+      var oc = oCau();
       var cauHoi = t['cau-hoi'][0];
-      var viet = [B.chu('cau-hoi', cauHoi, 60, 36, 1160, 150, V.demKyTu(cauHoi) > 100 ? 32 : 36, du.moc[0],
+      var viet = [B.chu('cau-hoi', cauHoi, oc.x, oc.y, oc.w, 150, V.demKyTu(cauHoi) > 100 ? 32 : 36, du.moc[0],
         { mau: 'giua-doc', day: true, quay: false })];
       var coLc = t['lua-chon'].some(function (c) { return V.demKyTu(c) > 34; }) ? 24 : 28;
       o.forEach(function (b, k) {
@@ -114,7 +125,7 @@
           { mau: 'giua-doc', day: true, quay: false }));
       });
       xepLich(viet, q.batDauDem - LUOT);
-      return viet.concat([B.chu('giai-thich', t['giai-thich'][0], 60, 470, 1160, 140, 28, q.batDauGiai + 0.6,
+      return viet.concat([B.chu('giai-thich', t['giai-thich'][0], oc.x, oc.y + oc.h - 140, oc.w, 140, 28, q.batDauGiai + 0.6,
         { mau: 'xanh', quay: false })]);
     },
     // Đồng hồ, viền đúng và dấu ✓ không phải mục (không bàn tay, không máy quay): tạo một lần, đặt lại theo t.
@@ -123,6 +134,7 @@
       var o = bo(du);
       var dung = CHU.indexOf(du.cauHoi.dapAn);
       var b = o[dung];
+      var DONG_HO = dongHo();
       var el = {};
       el.dongHo = taoSvg('g', { id: 'dong-ho' }, svg);
       taoSvg('circle', { class: 'nen', cx: DONG_HO.x, cy: DONG_HO.y, r: DONG_HO.r }, el.dongHo);
@@ -147,6 +159,7 @@
       var el = goc.cauHoi;
       var s = trangThai(du, t);
       var d = s.dem;
+      var DONG_HO = dongHo();
       el.dongHo.style.opacity = String(d.a);
       el.dongHo.setAttribute('transform', co(d.s, DONG_HO.x, DONG_HO.y));
       el.cung.style.strokeDashoffset = String(1 - d.f);

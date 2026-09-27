@@ -239,6 +239,8 @@
     var w = rong * s, h = cao * s;
     return { x: x + (o - w) / 2, y: y + (c - h) / 2, rong: w, cao: h };
   }
+  // Ô bố cục {x, y, w, h} của khổ hiện tại (runtime/kho.js, bảng o-bo-cuc.json); tên lạ là lỗi.
+  function oBoCuc(ten) { return root.THI_KHO.o(ten); }
   function giayLau(du) { return typeof du.giayLauBang === 'number' ? du.giayLauBang : LAU_BANG; }
   // Kiểu chuyển cảnh đầu cảnh: du.co.chuyen, hoặc du.co.lauBang của dữ liệu kiểu cũ; không có thì null.
   function kieuChuyen(du) {
@@ -296,20 +298,25 @@
       return gan({ id: id, kieu: 'anh', dataUrl: a.dataUrl, nguon: a.nguon, x: k.x, y: k.y, rong: k.rong, cao: k.cao,
         batDau: batDau, thoiLuong: Math.min(0.4, gh - 0.2 - batDau) }, tuy);
     }
+    // Tiêu đề trong ô `tieu-de`; `rong` (bỏ trống là cả ô) hẹp hơn ô khi cảnh có cột phụ. Nét gạch dưới cách ô 14.
     function tieuDe(noiDung, batDau, rong) {
-      rong = rong || 1160;
-      var co = rong < 1160 && demKyTu(noiDung) > 40 ? 32 : 40;
-      var c = chu('tieu-de', noiDung, 60, 30, rong, 116, co, batDau, { mau: 'nhan', day: true });
+      var o = oBoCuc('tieu-de');
+      rong = rong || o.w;
+      var co = rong < o.w && demKyTu(noiDung) > 40 ? 32 : 40;
+      var c = chu('tieu-de', noiDung, o.x, o.y, rong, o.h, co, batDau, { mau: 'nhan', day: true });
       var w = Math.min(rong, Math.max(240, demKyTu(noiDung) * co * 0.6));
-      return [c, net('gach', duongQua([[60, 160], [60 + w, 160]], 7), c.batDau + c.thoiLuong, 0.4, { mau: 'nhan', quay: false })];
+      var y = o.y + o.h + 14;
+      return [c, net('gach', duongQua([[o.x, y], [o.x + w, y]], 7), c.batDau + c.thoiLuong, 0.4, { mau: 'nhan', quay: false })];
     }
-    // Cột hình bên phải (ô x 900, y 200, rộng 320, cao 380) cho cảnh có `hinh` hoặc `anh`.
-    // Ảnh cao 350 để hai dòng nguồn dưới khung (trải hết bề rộng cột) vẫn nằm trên y = 620.
+    // Cột phụ (ô `cot-phu`, khổ ngang là cột phải x 900, y 200, rộng 320, cao 380) cho cảnh có `hinh` hoặc `anh`.
+    // Hình lùi 10 hai bên, 40 từ đỉnh. Ảnh thấp hơn ô 30 để hai dòng nguồn dưới khung (trải hết bề rộng cột) vẫn
+    // nằm trên vạch phụ đề.
     var coCot = !!(du.hinh || du.anh);
     function cot() {
       var batDau = du.moc && du.moc.length ? du.moc[0] : 1.0;
-      if (du.hinh) { return [hinh('hinh', du.hinh, 910, 240, 300, batDau)]; }
-      if (du.anh) { return [anh('anh', du.anh, 900, 200, 320, 350, batDau, { viTriNguon: 'duoi', oNguon: { x: 900, rong: 320 } })]; }
+      var o = oBoCuc('cot-phu');
+      if (du.hinh) { return [hinh('hinh', du.hinh, o.x + 10, o.y + 40, o.w - 20, batDau)]; }
+      if (du.anh) { return [anh('anh', du.anh, o.x, o.y, o.w, o.h - 30, batDau, { viTriNguon: 'duoi', oNguon: { x: o.x, rong: o.w } })]; }
       return [];
     }
     return { chu: chu, net: net, hinh: hinh, anh: anh, tieuDe: tieuDe, cot: cot, coCot: coCot, gh: gh };
@@ -769,6 +776,6 @@
     LAU_BANG: LAU_BANG,
     kep: kep, tienDo: tienDo, thoat: thoat, demKyTu: demKyTu, catDanhDau: catDanhDau, phanTich: phanTich, demRong: demRong, viTriSo: viTriSo,
     thoiGianViet: thoiGianViet, kyTuHien: kyTuHien, lucKyTu: lucKyTu, tachPhan: tachPhan, duongQua: duongQua, hopQua: hopQua, vongTron: vongTron, muiTen: muiTen,
-    rng: rng, vuaKhung: vuaKhung, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
+    rng: rng, vuaKhung: vuaKhung, o: oBoCuc, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

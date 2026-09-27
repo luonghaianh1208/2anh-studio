@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from . import kho as kho_py
 from . import phong
 
 RUNTIME = Path(__file__).resolve().parent / "runtime"
@@ -20,9 +21,10 @@ def _doc(path: Path) -> str:
 
 
 def dung_trang(du: dict, model=None) -> str:
-    # kho.js nạp đầu tiên: mọi runtime khác đọc khổ qua THI_KHO; du["kho"] (kho.py) được đặt trước khi dựng cảnh.
+    # kho.js nạp đầu tiên (sau bảng ô bố cục nó đọc): mọi runtime khác đọc khổ và ô qua THI_KHO;
+    # du["kho"] (kho.py) được đặt trước khi dựng cảnh.
     kho = du["kho"]
-    scripts = [_doc(RUNTIME / "kho.js")]
+    scripts = [f"window.THI_O_BO_CUC = {json_nhung(kho_py.O)};\n", _doc(RUNTIME / "kho.js")]
     if du["loai"] == "thi-nghiem":
         scripts.append(_doc(NGHIEM / "khung.js"))
         scripts.append(model.js)

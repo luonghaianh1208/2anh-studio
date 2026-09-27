@@ -2,10 +2,15 @@
   'use strict';
   var V = root.THI_VIDEO;
   var NS = 'http://www.w3.org/2000/svg';
-  // Vùng vẽ cột/đường: trục đứng ở X0, vạch trên cùng ở PT, vạch dưới cùng ở PB. Dải 30 px trên PT và dưới PB dành
-  // cho nhãn giá trị; nhãn loại dưới PB + 34, tên trục ngang ở y 586..616, tên trục đứng ở y 170..202.
-  var X0 = 150, X1 = 1180, PT = 236, PB = 496;
-  var TAM = { x: 640, y: 392 }, R = 150;
+  // Vùng vẽ cột/đường trong ô `bieu-do`: trục đứng ở X0 (lùi 50), tới mép phải ô (X1); vạch trên cùng ở PT (dưới
+  // đỉnh ô 66), vạch dưới cùng ở PB (trên đáy ô 120). Dải 30 px trên PT và dưới PB dành cho nhãn giá trị; nhãn loại
+  // dưới PB + 34, tên trục ngang ở PB + 90 (tới đáy ô), tên trục đứng ở đỉnh ô. Hình tròn tâm giữa bề ngang ô.
+  var R = 150;
+  function khung() {
+    var o = V.o('bieu-do');
+    var PT = o.y + 66, PB = o.y + o.h - 120;
+    return { o: o, X0: o.x + 50, X1: o.x + o.w, PT: PT, PB: PB, TAM: { x: o.x + o.w / 2, y: (PT + PB) / 2 + 26 } };
+  }
   // Máy quay giữ toàn cảnh biểu đồ (mọi mục `quay: false`): phóng vào một cột làm mất phép so sánh giữa các cột.
   var NHAN_TRON = 34;
   var TO_COT = { duong: 'rgba(59, 130, 246, 0.28)', am: 'rgba(239, 68, 68, 0.26)' };
@@ -62,6 +67,8 @@
   }
 
   function cotDuong(B, du, kieu, so) {
+    var K = khung();
+    var X0 = K.X0, X1 = K.X1, PT = K.PT, PB = K.PB;
     var kq = [];
     var n = du.duLieu.length;
     var o = (X1 - X0) / n;
@@ -74,13 +81,14 @@
     kq.push(B.net('truc-doc', V.duongQua([[X0, PB + 8], [X0, PT - 18]], 3), 0.3, 0.5, { quay: false }));
     kq.push(B.net('truc-ngang', V.duongQua([[X0 - 8, y0], [X1 + 10, y0]], 4), 0.4, 0.6, { quay: false }));
     th.vach.forEach(function (v, i) {
-      kq.push(B.chu('vach-' + i, soVN(v), 20, y(v) - 14, 120, 28, 18, 0.6, { can: 'phai', quay: false, tay: false }));
+      kq.push(B.chu('vach-' + i, soVN(v), X0 - 130, y(v) - 14, 120, 28, 18, 0.6, { can: 'phai', quay: false, tay: false }));
     });
     var tenDoc = tt['truc-doc'] ? tt['truc-doc'][0] + (tt['don-vi'] ? ' (' + tt['don-vi'][0] + ')' : '')
       : (tt['don-vi'] ? 'Đơn vị: ' + tt['don-vi'][0] : '');
-    if (tenDoc) { kq.push(B.chu('ten-truc-doc', tenDoc, 60, 170, 860, 32, 20, 0.8, { mau: 'nhan', quay: false, tay: false })); }
+    // Tên trục đứng từ trái trục 90, rộng bằng ô trừ 220; tên trục ngang canh phải về X1, rộng bằng ô trừ 340.
+    if (tenDoc) { kq.push(B.chu('ten-truc-doc', tenDoc, X0 - 90, K.o.y, K.o.w - 220, 32, 20, 0.8, { mau: 'nhan', quay: false, tay: false })); }
     if (tt['truc-ngang']) {
-      kq.push(B.chu('ten-truc-ngang', tt['truc-ngang'][0], 440, 586, 740, 30, 20, 0.8, { can: 'phai', mau: 'nhan', quay: false, tay: false }));
+      kq.push(B.chu('ten-truc-ngang', tt['truc-ngang'][0], X1 - (K.o.w - 340), PB + 90, K.o.w - 340, 30, 20, 0.8, { can: 'phai', mau: 'nhan', quay: false, tay: false }));
     }
     var coNhan = o >= 200 ? 22 : 18;
     var dai = Math.max.apply(null, so.map(function (s) { return s.length; }));
@@ -119,13 +127,15 @@
     return String(Number(p.toFixed(chuSo))).indexOf('e') < 0 ? String(Number(p.toFixed(chuSo))) : p.toFixed(chuSo);
   }
   // Nhãn lát xếp thành hai cột hai bên hình tròn, dãn đều để không chồng nhau (cách nhau ít nhất NHAN_TRON px).
-  function xepNhan(ds) {
+  function xepNhan(ds, o) {
     ds.sort(function (a, b) { return a.y - b.y; });
-    var tren = 190, duoi = 600;
+    var tren = o.y + 20, duoi = o.y + o.h - 16;
     ds.forEach(function (d, i) { d.y = Math.max(d.y, i ? ds[i - 1].y + NHAN_TRON : tren); });
     for (var i = ds.length - 1; i >= 0; i--) { ds[i].y = Math.min(ds[i].y, i < ds.length - 1 ? ds[i + 1].y - NHAN_TRON : duoi); }
   }
   function tron(B, du) {
+    var K = khung();
+    var TAM = K.TAM;
     var kq = [];
     var tong = du.duLieu.reduce(function (s, d) { return s + d[1]; }, 0);
     var goc = -90;
@@ -141,17 +151,19 @@
       var phai = Math.cos(giua) >= 0;
       nhan.push({ k: k, phai: phai, giua: giua, y: TAM.y + (R + 24) * Math.sin(giua), chu: d[0] + ': {{' + phanTram(d[1], tong) + '}}%' });
     });
-    xepNhan(nhan.filter(function (n) { return n.phai; }));
-    xepNhan(nhan.filter(function (n) { return !n.phai; }));
+    xepNhan(nhan.filter(function (n) { return n.phai; }), K.o);
+    xepNhan(nhan.filter(function (n) { return !n.phai; }), K.o);
+    // Nhãn lát cách tâm 184 ngang, trải tới cách mép phải ô 20 (bên trái đối xứng); đường chỉ dừng trước nhãn 8.
+    var rongNhan = K.o.w / 2 + 20 - 184;
     nhan.sort(function (a, b) { return a.k - b.k; });
     nhan.forEach(function (n) {
       var k = n.k;
       // Đường chỉ gấp khúc: ra theo bán kính rồi sang ngang tới nhãn.
       var tu = [TAM.x + (R + 6) * Math.cos(n.giua), TAM.y + (R + 6) * Math.sin(n.giua)];
       var khuy = [TAM.x + (R + 22) * Math.cos(n.giua), TAM.y + (R + 22) * Math.sin(n.giua)];
-      var toi = [n.phai ? 816 : 464, n.y];
+      var toi = [n.phai ? TAM.x + 176 : TAM.x - 176, n.y];
       kq.push(B.net('chi-' + k, V.duongQua([tu, khuy, toi], 90 + k), du.moc[k] + 0.5, 0.3, { quay: false }));
-      kq.push(B.chu('nhan-' + k, n.chu, n.phai ? 824 : 80, n.y - 15, 376, 30, 22, du.moc[k] + 0.7,
+      kq.push(B.chu('nhan-' + k, n.chu, n.phai ? TAM.x + 184 : TAM.x - 184 - rongNhan, n.y - 15, rongNhan, 30, 22, du.moc[k] + 0.7,
         { can: n.phai ? 'trai' : 'phai', quay: false }));
     });
     return kq;
@@ -159,6 +171,7 @@
 
   function duongTo(to, p) {
     if (to.a0 !== undefined) {
+      var TAM = khung().TAM;
       var a1 = (to.a0 + (to.a1 - to.a0) * root.THI_DONG.easeInOut(p)) * Math.PI / 180;
       var a0 = to.a0 * Math.PI / 180;
       var lon = a1 - a0 > Math.PI ? 1 : 0;

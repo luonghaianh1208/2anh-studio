@@ -6,11 +6,24 @@ nên khung xuất là 1920×1080 / 1080×1920 ở 1080, và giữ nguyên điể
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 # tên khổ -> (rộng, cao, đáy vùng nội dung = mép trên vùng phụ đề), điểm CSS
 CAC_KHO = {"ngang": (1280, 720, 620), "doc": (720, 1280, 1080)}
 TI_LE = {1080: 1.5, 720: 1.0}
+
+# Ô bố cục {khổ: {tên ô: {x, y, w, h}}}, điểm CSS. Một nguồn cho trang (runtime/kho.js, qua trang.py) và Python.
+O = json.loads((Path(__file__).resolve().parent / "runtime" / "o-bo-cuc.json").read_text(encoding="utf-8"))
+
+
+def o(ten_kho: str, ten_o: str) -> dict:
+    """Ô `ten_o` của khổ `ten_kho` (bản sao); khổ chưa có bảng riêng dùng bảng ngang, như runtime/kho.js."""
+    bang = O.get(ten_kho, O["ngang"])
+    if ten_o not in bang:
+        raise ValueError(f"Ô bố cục `{ten_o}` không có ở khổ {ten_kho}.")
+    return dict(bang[ten_o])
 
 
 @dataclass(frozen=True)

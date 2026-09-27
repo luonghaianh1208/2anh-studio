@@ -1,11 +1,16 @@
 (function (root) {
   'use strict';
   var V = root.THI_VIDEO;
-  // Nút trung tâm là elip ở (CX, CY); ô nhánh (W × H) đặt trên elip lớn (RX, RY) theo góc cố định theo số nhánh
-  // (độ, 0 là bên phải, chiều kim đồng hồ), nhánh 0 ở trên bên phải rồi đi vòng. Mọi ô nằm trong y 110..590.
-  // Máy quay giữ toàn cảnh sơ đồ (mọi mục `quay: false`): phóng vào một ô nhánh ở trên đẩy các ô dưới (tới y 590)
+  // Nút trung tâm là elip ở tâm ô `so-do` (CX, CY); ô nhánh (W × H) đặt trên elip lớn (RX, RY) theo góc cố định theo
+  // số nhánh (độ, 0 là bên phải, chiều kim đồng hồ), nhánh 0 ở trên bên phải rồi đi vòng. Elip lớn chọn để mọi ô
+  // nhánh nằm gọn trong ô `so-do` (khổ ngang: y 110..590).
+  // Máy quay giữ toàn cảnh sơ đồ (mọi mục `quay: false`): phóng vào một ô nhánh ở trên đẩy các ô dưới (tới đáy ô)
   // xuống vùng phụ đề, và làm mất quan hệ giữa các nhánh với nút trung tâm.
-  var CX = 640, CY = 350, RX = 420, RY = 200, W = 330, H = 80;
+  var W = 330, H = 80;
+  function khung() {
+    var o = V.o('so-do');
+    return { CX: o.x + o.w / 2, CY: o.y + o.h / 2, RX: (o.w - W) / 2, RY: (o.h - H) / 2 };
+  }
   var GOC = {
     2: [0, 180],
     3: [-40, 90, 220],
@@ -15,11 +20,11 @@
   };
 
   function lam(x) { return Math.round(x * 10) / 10; }
-  function elip(rx, ry, hat) {
+  function elip(k, rx, ry, hat) {
     var diem = [];
     for (var i = 0; i <= 30; i++) {
       var a = (-100 + 372 * i / 30) * Math.PI / 180;
-      diem.push([CX + rx * Math.cos(a), CY + ry * Math.sin(a)]);
+      diem.push([k.CX + rx * Math.cos(a), k.CY + ry * Math.sin(a)]);
     }
     return V.duongQua(diem, hat);
   }
@@ -41,18 +46,21 @@
 
   var canh = {
     GOC: GOC,
-    TAM: { x: CX, y: CY },
+    get TAM() { var k = khung(); return { x: k.CX, y: k.CY }; },
     muc: function (du) {
       var B = V.tao(du);
       var t = du.truong;
       var coHinh = !!du.hinh;
+      var K = khung();
+      var CX = K.CX, CY = K.CY, RX = K.RX, RY = K.RY;
       var rx = 190, ry = coHinh ? 95 : 70;
       var kq = [];
-      kq.push(B.net('vong-tam', elip(rx, ry, 11), 0.2, 0.6, { mau: 'nhan', day: 5, quay: false }));
+      kq.push(B.net('vong-tam', elip(K, rx, ry, 11), 0.2, 0.6, { mau: 'nhan', day: 5, quay: false }));
       var tam = t['trung-tam'][0];
       var co = V.demKyTu(tam) > 20 ? 26 : 30;
       if (coHinh) { kq.push(B.hinh('hinh', du.hinh, CX - 30, CY - 82, 60, 0.3, { mau: 'nhan', quay: false })); }
-      kq.push(B.chu('trung-tam', tam, CX - 145, coHinh ? CY - 18 : CY - 37, 290, 74, co, 0.5, { can: 'giua', mau: 'nhan giua-doc', day: true, quay: false }));
+      // Chữ trung tâm rộng bằng elip tâm trừ 45 mỗi bên.
+      kq.push(B.chu('trung-tam', tam, CX - (rx - 45), coHinh ? CY - 18 : CY - 37, 2 * (rx - 45), 74, co, 0.5, { can: 'giua', mau: 'nhan giua-doc', day: true, quay: false }));
       var n = t.nhanh.length;
       // Mọi ô nhánh cùng cỡ chữ: có nhánh dài hơn 30 ký tự thì cả sơ đồ dùng chữ nhỏ hơn.
       var coNhanh = t.nhanh.some(function (c) { return V.demKyTu(c) > 30; }) ? 22 : 24;

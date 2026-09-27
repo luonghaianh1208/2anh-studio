@@ -100,6 +100,74 @@ class DuLieuTrangTest(unittest.TestCase):
         self.assertNotIn("720px", css)
 
 
+RUNTIME = TOOLS_VI / "video_ma_parts" / "runtime"
+# Số nguyên ≥ 200 còn được phép trong runtime/canh/*.js: (file, số) -> lý do. Mọi toạ độ khác lấy từ ô bố cục.
+SO_LON_DUOC_PHEP = {
+    ("bieu-do.js", 200): "ngưỡng bề rộng một cột (px) để chọn cỡ nhãn, không phải vị trí",
+    ("bieu-do.js", 360): "số độ của một vòng tròn khi chia lát",
+    ("bieu-do.js", 220): "ô tên trục đứng hẹp hơn ô biểu đồ 220 (khoảng lùi tính từ ô)",
+    ("bieu-do.js", 340): "ô tên trục ngang hẹp hơn ô biểu đồ 340 (khoảng lùi tính từ ô)",
+    ("do-thi.js", 1000): "làm tròn nhãn số tới 3 chữ số thập phân",
+    ("so-do.js", 215): "góc (độ) của nhánh theo số nhánh",
+    ("so-do.js", 220): "góc (độ) của nhánh theo số nhánh",
+    ("so-do.js", 240): "góc (độ) của nhánh theo số nhánh",
+    ("so-do.js", 372): "cung (độ) của nét elip tâm, vẽ chồng mép 12°",
+    ("so-do.js", 330): "bề rộng ô nhánh (kích thước; vị trí tính từ ô so-do)",
+    ("khai-niem.js", 460): "độ dài nét gạch dưới thuật ngữ khi có cột phụ (kích thước)",
+    ("khai-niem.js", 600): "độ dài nét gạch dưới thuật ngữ (kích thước)",
+    ("tieu-de.js", 600): "độ dài nét gạch dưới tiêu đề, đặt giữa ô bia (kích thước)",
+}
+
+
+def so_nguyen_lon(ma: str) -> list:
+    """Các số nguyên ≥ 200 trong mã JS, bỏ chú thích và chuỗi (số thập phân như 0.575 không tính)."""
+    import re
+    ma = re.sub(r"/\*.*?\*/", " ", ma, flags=re.S)
+    ma = re.sub(r"'(?:\\.|[^'\\\n])*'|\"(?:\\.|[^\"\\\n])*\"", "''", ma)
+    ma = re.sub(r"//[^\n]*", " ", ma)
+    return [int(m) for m in re.findall(r"(?<![\w.])\d+(?![\w.])", ma) if int(m) >= 200]
+
+
+class OBoCucTest(unittest.TestCase):
+    def test_bang_o_python_la_file_json_chung(self):
+        bang = json.loads((RUNTIME / "o-bo-cuc.json").read_text(encoding="utf-8"))
+        self.assertEqual(kho.O, bang)
+        self.assertEqual(kho.o("ngang", "cot-phu"), {"x": 900, "y": 200, "w": 320, "h": 380})
+        self.assertEqual(kho.o("ngang", "anh-lon"), {"x": 80, "y": 70, "w": 1120, "h": 490})
+        with self.assertRaises(ValueError) as bat:
+            kho.o("ngang", "cot-phai-khong-co")
+        self.assertIn("cot-phai-khong-co", str(bat.exception))
+        o = kho.o("ngang", "cot-phu")
+        o["x"] = 0
+        self.assertEqual(kho.o("ngang", "cot-phu")["x"], 900)
+
+    def test_trang_nhung_bang_o_truoc_kho_js(self):
+        du, _ = du_mot_canh()
+        html = trang.dung_trang(du)
+        dau = html.index("window.THI_O_BO_CUC = ") + len("window.THI_O_BO_CUC = ")
+        self.assertEqual(json.loads(html[dau:html.index(";\n", dau)]), kho.O)
+        self.assertLess(dau, html.index("root.THI_KHO ="))
+        # kho.js không giữ bản sao của bảng: một nguồn duy nhất là o-bo-cuc.json.
+        self.assertNotIn("1120", (RUNTIME / "kho.js").read_text(encoding="utf-8"))
+
+    def test_canh_khong_con_toa_do_cung(self):
+        con = {}
+        for f in sorted((RUNTIME / "canh").glob("*.js")):
+            for so in so_nguyen_lon(f.read_text(encoding="utf-8")):
+                if (f.name, so) not in SO_LON_DUOC_PHEP:
+                    con.setdefault(f.name, []).append(so)
+        self.assertEqual(con, {}, "số nguyên ≥ 200 dùng làm toạ độ: lấy từ V.o(tên ô)")
+
+    def test_ngoai_le_con_dung_va_co_ly_do(self):
+        for (ten, so), ly_do in SO_LON_DUOC_PHEP.items():
+            with self.subTest(file=ten, so=so):
+                self.assertTrue(ly_do.strip())
+                self.assertIn(so, so_nguyen_lon((RUNTIME / "canh" / ten).read_text(encoding="utf-8")))
+
+    def test_bo_loc_so(self):
+        self.assertEqual(so_nguyen_lon("a(640, 0.575, 1e3) // 900\n'2000' /* 300 */ x.y2000 250"), [640, 250])
+
+
 class GhepKhoTest(unittest.TestCase):
     def setUp(self):
         tmp = tempfile.TemporaryDirectory()
