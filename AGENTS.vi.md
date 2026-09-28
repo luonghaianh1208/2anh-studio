@@ -15,7 +15,7 @@ File này bổ sung ngữ cảnh Việt Nam cho [AGENTS.md](AGENTS.md). Nó khô
 
 ## 3. Câu lệnh tiếng Việt kích hoạt skill `ppt-master`
 
-"tạo PPT", "làm slide", "làm bài giảng", "tạo bài thuyết trình", "làm poster", "làm báo cáo", "thêm thuyết minh", "làm đẹp slide", "làm video bài giảng", "lồng tiếng", "xuất video", "soạn đề", "làm đề kiểm tra", "đề tiếng Anh", "soạn giáo án", "kế hoạch bài dạy", "KHBD", "thí nghiệm ảo", "mô phỏng thí nghiệm", "video giải thích", "video viết tay", "video whiteboard", "video hoạt hình chữ".
+"tạo PPT", "làm slide", "làm bài giảng", "tạo bài thuyết trình", "làm poster", "làm báo cáo", "thêm thuyết minh", "làm đẹp slide", "làm video bài giảng", "lồng tiếng", "xuất video", "soạn đề", "làm đề kiểm tra", "đề tiếng Anh", "soạn giáo án", "kế hoạch bài dạy", "KHBD", "thí nghiệm ảo", "mô phỏng thí nghiệm", "video giải thích", "video viết tay", "video whiteboard", "video hoạt hình chữ", "video kể chuyện", "video dọc", "video cắt dán".
 
 Các cụm "tạo nhanh", "làm nhanh", "không cần hỏi lại" là yêu cầu Quick tường minh (với bài tạo mới thông thường là hồ sơ `workflows/profiles/quick-generate.md` của upstream). Việc chọn hồ sơ và các bước thực hiện vẫn theo đúng `SKILL.md`.
 
@@ -185,7 +185,7 @@ Khi người dùng cần một thí nghiệm ảo hoặc mô phỏng tương tá
 
 ## 15. Làm video giải thích
 
-Khi người dùng cần một video giải thích bài học từ nội dung chữ (video viết tay, video whiteboard, video hoạt hình chữ), đọc [docs/vi/tro-ly/video-giai-thich.md](docs/vi/tro-ly/video-giai-thich.md) và [docs/vi/tro-ly/canh-video.md](docs/vi/tro-ly/canh-video.md) rồi làm đúng thứ tự dưới. Câu chỉ có "làm video" hoặc "xuất video" thì hỏi câu phân loại ở đầu mục 11 trước. Như mục 4: có `venv\Scripts\python.exe` ở thư mục gốc repo thì dùng nó cho mọi lệnh Python dưới đây, không có thì dùng `python`.
+Khi người dùng cần một video giải thích bài học từ nội dung chữ (video giải thích, video viết tay, video whiteboard, video hoạt hình chữ, video kể chuyện, video dọc, video cắt dán), đọc [docs/vi/tro-ly/video-giai-thich.md](docs/vi/tro-ly/video-giai-thich.md) và [docs/vi/tro-ly/canh-video.md](docs/vi/tro-ly/canh-video.md) rồi làm đúng thứ tự dưới. Câu chỉ có "làm video" hoặc "xuất video" thì hỏi câu phân loại ở đầu mục 11 trước. Như mục 4: có `venv\Scripts\python.exe` ở thư mục gốc repo thì dùng nó cho mọi lệnh Python dưới đây, không có thì dùng `python`.
 
 1. Hỏi một lượt theo file hướng dẫn, chờ trả lời.
 2. Tạo `projects/_video/<tên_video>/` và viết `video.md` theo đúng ngữ pháp trong file hướng dẫn; thầy cô đưa file giọng thu sẵn thì đặt vào `giong/canh-N.mp3` của thư mục đó (đè lên giọng máy cũ cũng được: công cụ vẫn nhận ra file thầy cô dù `giong/canh-N.json` còn đó, và không bao giờ ghi đè nó; xoá file `.json` đó cũng không sao).

@@ -10,6 +10,7 @@ Ví dụ câu lệnh:
 - "Làm video giải thích bài Con lắc đơn bằng kiểu viết tay"
 - "Làm video viết tay giải thích phản ứng trao đổi ion"
 - "Làm video whiteboard về hàm số bậc ba cho Toán 12"
+- "Làm video dọc kiểu cắt dán giải thích vì sao in thêm tiền gây lạm phát, có người que dẫn chuyện"
 
 Khác loại việc "Video bài giảng": loại đó dựng video từ một bài giảng slide đã có. Câu lệnh chỉ có "làm video" hoặc "xuất video" (không nói rõ từ slide hay video giải thích) thì hỏi đúng một câu trước khi làm gì khác: "Thầy cô muốn làm video từ bài giảng slide đã có, hay dựng video giải thích mới từ nội dung chữ?". Trả lời slide thì dùng video-bai-giang.md; trả lời video mới thì dùng file này.
 

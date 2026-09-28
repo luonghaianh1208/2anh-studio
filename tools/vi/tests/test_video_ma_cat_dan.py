@@ -40,6 +40,22 @@ class GioiHanCatDanTest(unittest.TestCase):
                     if b is not None:
                         self.assertLessEqual(a, b, (ten_kho, k))
 
+    def test_doc_khong_lon_hon_ngang_o_ca_hai_phong_cach(self):
+        """Luật Task 3: mọi giới hạn khổ dọc ≤ giới hạn khổ ngang cùng phong cách (kể cả cảnh có thẻ)."""
+        for phong_cach in ("viet-tay", "cat-dan"):
+            for co_the in (False, True):
+                L, H = kiem.bang_gioi_han("ngang", phong_cach, co_the)
+                Ld, Hd = kiem.bang_gioi_han("doc", phong_cach, co_the)
+                self.assertEqual(set(Ld), set(L))
+                self.assertEqual(set(Hd), set(H))
+                for k in L:
+                    with self.subTest(phong_cach=phong_cach, co_the=co_the, khoa=k):
+                        self.assertLessEqual(Ld[k], L[k])
+                for k in H:
+                    for a, b in zip(Hd[k], H[k]):
+                        with self.subTest(phong_cach=phong_cach, co_the=co_the, khoa=k):
+                            self.assertLessEqual(a, parse.SO_DAI if b is None else b)
+
     def test_viet_tay_khong_ha(self):
         self.assertEqual(kiem.bang_gioi_han("ngang", "viet-tay"), (kiem.LIMITS, kiem.LIMITS_HAI_PHAN))
         self.assertEqual(kiem.bang_gioi_han("doc", "viet-tay"), (kiem.LIMITS_DOC, kiem.LIMITS_HAI_PHAN_DOC))

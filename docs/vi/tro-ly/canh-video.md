@@ -71,17 +71,17 @@ Từ cảnh 2, nửa giây đầu mỗi cảnh chuyển từ khung cuối của 
 
 ## Giới hạn theo khổ và phong cách
 
-Giới hạn ghi trong bảng của từng loại cảnh là của khổ ngang, phong cách viết tay. Khổ dọc (ô chữ hẹp 624 điểm) và phong cách cắt dán (font Be Vietnam Pro rộng hơn Itim) hạ các trường dưới đây; trường không có trong bảng giữ nguyên giới hạn ở mọi khổ và phong cách. Các số đo bằng Chromium với chữ nhiều dấu ở số dòng tối đa, nên ở đúng giới hạn chữ vẫn không tràn khung và không đè vùng phụ đề. Vượt giới hạn là lỗi `canh`; thông báo ghi rõ giới hạn nào đang áp dụng, ví dụ "(giới hạn khổ dọc, phong cách cắt dán)".
+Giới hạn ghi trong bảng của từng loại cảnh là của khổ ngang, phong cách viết tay. Khổ dọc (ô chữ hẹp 624 điểm) và phong cách cắt dán (font Be Vietnam Pro rộng hơn Itim) hạ các trường dưới đây; khổ dọc không bao giờ cho nhiều chữ hơn khổ ngang cùng phong cách; trường không có trong bảng giữ nguyên giới hạn ở mọi khổ và phong cách. Các số đo bằng Chromium với chữ nhiều dấu ở số dòng tối đa, nên ở đúng giới hạn chữ vẫn không tràn khung và không đè vùng phụ đề. Vượt giới hạn là lỗi `canh`; thông báo ghi rõ giới hạn nào đang áp dụng, ví dụ "(giới hạn khổ dọc, phong cách cắt dán)".
 
 | Trường | Ngang, viết tay | Ngang, cắt dán | Dọc, viết tay | Dọc, cắt dán |
 |---|---|---|---|---|
-| `tieu-de` `chu` | 90 | 88 | 90 | 90 |
+| `tieu-de` `chu` | 90 | 88 | 90 | 88 |
 | `khai-niem` `dinh-nghia` | 220 | 220 | 132 | 127 |
-| `cong-thuc` `bieu-thuc` | 90 | 89 | 90 | 90 |
+| `cong-thuc` `bieu-thuc` | 90 | 89 | 90 | 89 |
 | `cong-thuc` `giai-thich` | 60 | 59 | 51 | 45 |
 | `y-tung-y` `y` | 60 | 54 | 40 | 34 |
 | `do-thi` `truc-doc` | 40 | 40 | 40 | 38 |
-| `anh` `chu-thich` | 90 | 89 | 90 | 90 |
+| `anh` `chu-thich` | 90 | 89 | 90 | 89 |
 | `bieu-do` `don-vi` | 12 | 12 | 12 | 10 |
 | `bieu-do` `truc-doc` | 40 | 40 | 40 | 36 |
 | `ke-chuyen` `tieu-de` | 36 | 36 | 28 | 28 |

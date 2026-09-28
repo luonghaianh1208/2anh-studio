@@ -42,8 +42,11 @@ LIMITS_HAI_PHAN_DOC = {("bieu-do", "du-lieu"): (16, 8), ("dong-thoi-gian", "moc"
 LIMITS_CAT_DAN = {**LIMITS, ("tieu-de", "chu"): 88, ("cong-thuc", "bieu-thuc"): 89, ("cong-thuc", "giai-thich"): 59,
                   ("y-tung-y", "y"): 54, ("anh", "chu-thich"): 89}
 LIMITS_HAI_PHAN_CAT_DAN = dict(LIMITS_HAI_PHAN)
-LIMITS_CAT_DAN_DOC = {**LIMITS_DOC, ("khai-niem", "dinh-nghia"): 127, ("cong-thuc", "giai-thich"): 45, ("y-tung-y", "y"): 34,
-                      ("do-thi", "truc-doc"): 38, ("bieu-do", "don-vi"): 10, ("bieu-do", "truc-doc"): 36}
+_DO_CAT_DAN_DOC = {**LIMITS_DOC, ("khai-niem", "dinh-nghia"): 127, ("cong-thuc", "giai-thich"): 45, ("y-tung-y", "y"): 34,
+                   ("do-thi", "truc-doc"): 38, ("bieu-do", "don-vi"): 10, ("bieu-do", "truc-doc"): 36}
+# Khổ dọc không bao giờ lớn hơn khổ ngang cùng phong cách: chặn bằng bảng cat-dan ngang (tieu-de chu 88, bieu-thuc 89,
+# chu-thich 89 dù đo dọc cho 90).
+LIMITS_CAT_DAN_DOC = {k: min(v, LIMITS_CAT_DAN[k]) for k, v in _DO_CAT_DAN_DOC.items()}
 LIMITS_HAI_PHAN_CAT_DAN_DOC = {("bieu-do", "du-lieu"): (16, 7), ("dong-thoi-gian", "moc"): (10, 60)}
 # Thẻ thông tin (`the`, spec Q5): nhãn, giá trị, chú thích tính trên chữ hiện; giống nhau ở mọi khổ và phong cách (ô thẻ
 # đo bằng Chromium ở đúng giới hạn này, test_video_ma_the). Giá trị là một khối không ngắt (như công thức): không có

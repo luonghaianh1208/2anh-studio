@@ -455,7 +455,8 @@
     // Cột phụ (ô `cot-phu`, khổ ngang là cột phải x 900, y 200, rộng 320, cao 380) cho cảnh có `hinh` hoặc `anh`.
     // Hình lùi 10 hai bên, 40 từ đỉnh. Ảnh thấp hơn ô 30 để hai dòng nguồn dưới khung (trải hết bề rộng cột) vẫn
     // nằm trên vạch phụ đề.
-    // Nhân vật dẫn chuyện (du.nhanVat, cảnh có `tu-the`) cũng chiếm cột phụ; chỉ người que được vẽ ở đây.
+    // Nhân vật dẫn chuyện (du.nhanVat, cảnh có `tu-the`) cũng chiếm cột phụ: người que vẽ SVG, hoặc ảnh nhân vật AI
+    // trong suốt (kieu `anh`), cả hai qua nhanVat() bên dưới.
     var coCot = !!(du.hinh || du.anh || du.nhanVat);
     // Nhân vật trong ô `o`: cao 310 đơn vị (kể cả bật nhảy) co giãn vừa ô, chân ở đáy ô lùi 10 (chỗ cho giày và viền sticker), giữa ô; quay mặt về
     // phía nội dung (lật khi ô nằm ở nửa phải khung, `lat` đưa vào thì theo đó). Bật vào ở 0,2 s trong 0,4 s;

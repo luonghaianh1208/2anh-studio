@@ -2025,6 +2025,29 @@ class ExplainerVi12DocsTest(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
 
+    def test_new_trigger_phrases_route_to_the_explainer(self):
+        agents = read("AGENTS.vi.md")
+        triggers = section(agents, "## 3. Câu lệnh tiếng Việt kích hoạt skill `ppt-master`")
+        intro = section(agents, AGENTS_VI_EXPLAINER_HEADING).strip().split("\n\n")[0]
+        rows = [r for r in task_table_rows(read("docs/vi/tro-ly/quy-trinh-hoi.md")) if r[2] == "video-giai-thich.md"]
+        self.assertEqual(len(rows), 1)
+        for phrase in ("video giải thích", "video viết tay", "video whiteboard", "video hoạt hình chữ",
+                       "video kể chuyện", "video dọc", "video cắt dán"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(f'"{phrase}"', triggers)
+                self.assertIn(phrase, intro)
+                self.assertIn(f'"{phrase}"', rows[0][1])
+        # Bảng loại việc của luật Antigravity khớp quy-trinh-hoi.md (test_antigravity_rule_task_table_matches_common_rules).
+
+    def test_teacher_doc_is_up_to_date_with_vi12(self):
+        text = read(TEACHER_EXPLAINER_DOC)
+        self.assertNotIn("Chưa có khổ dọc", text)
+        self.assertNotIn("Video 1280×720,", text)
+        for phrase in ("1920×1080", "1080×1920", "720", "khổ dọc", "cắt dán", "kể chuyện", "người que", "nền mẫu",
+                       "tên loạt", "thẻ thông tin", "Antigravity", "Codex", "Claude Code", "Be Vietnam Pro"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
+
     def test_changelog_and_maintenance_cover_vi12(self):
         unreleased = section(read("CHANGELOG-VI.md"), "## Chưa phát hành")
         for phrase in ("khổ dọc", "cắt dán", "ke-chuyen", "người que", "anh_ai.py", "loat", "Be Vietnam Pro", "Full HD"):
