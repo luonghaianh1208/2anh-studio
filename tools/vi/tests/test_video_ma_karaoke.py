@@ -12,7 +12,7 @@ TOOLS_VI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_VI))
 
 from video_ma_parts import ghep, karaoke, lich  # noqa: E402
-from video_ma_parts.phong import FONT as ITIM_FONT  # noqa: E402
+from video_ma_parts.phong import FONT as ITIM_FONT, FONT_CAT_DAN  # noqa: E402
 from video_parts import srt  # noqa: E402
 
 _KF_RE = re.compile(r"\\kf(\d+)")
@@ -45,6 +45,28 @@ def _dialogues(text: str) -> list:
 def _hien_thi(dialogue_text: str) -> str:
     """Chữ hiển thị của một Dialogue: bỏ thẻ `\\kf`, đổi `\\N` (xuống dòng) thành khoảng trắng."""
     return _KF_TAG_RE.sub("", dialogue_text).replace("\\N", " ")
+
+
+_OVERRIDE_RE = re.compile(r"\{[^}]*\}")
+
+
+def _hien_thi_day_du(dialogue_text: str) -> str:
+    """Như `_hien_thi`, nhưng bỏ MỌI khối override `{...}` (kể `{\\an7\\pos(...)}` của khung nền), không chỉ `\\kf`."""
+    return _OVERRIDE_RE.sub("", dialogue_text).replace("\\N", " ")
+
+
+def _truong_dialogue(dialogue_line: str) -> list:
+    """Tách một dòng `Dialogue:` thành field theo Format (Text là phần còn lại, có thể chứa dấu phẩy)."""
+    return dialogue_line.split(",", 9)
+
+
+def _kieu_dialogue(dialogue_line: str) -> str:
+    return _truong_dialogue(dialogue_line)[3]
+
+
+def _dialogues_chu(text: str) -> list:
+    """Các dòng `Dialogue:` là CHỮ (kiểu `Itim`/`Khung`), bỏ hộp nền (kiểu `KhungNen`, vẽ bằng `\\p1`)."""
+    return [d for d in _dialogues(text) if _kieu_dialogue(d) in ("Itim", "Khung")]
 
 
 DATA = Path(__file__).resolve().parent / "data"
@@ -363,6 +385,77 @@ class KichThuocChuTest(unittest.TestCase):
             self.assertLessEqual(abs(hop_karaoke["giua_x"] - 640), 20, hop_karaoke)
 
 
+class KichThuocChuKhungTest(unittest.TestCase):
+    """Cỡ chữ giữa `.ass` karaoke có khung và `phu-de: hinh` (force_style) có khung phải cùng tầm ở CẢ khổ
+    dọc lẫn khổ ngang `cat-dan` — carry-over Task 1: cỡ chữ `hinh` khổ dọc từng bị to gấp ~1,78 lần vì FFmpeg
+    đốt `.srt` không đọc `PlayResY` của khổ, chỉ phóng theo độ phân giải pixel thật (xem `ghep._force_style`)."""
+
+    CHU = "Chu ki dao dong."
+
+    def _tu(self) -> list:
+        return [
+            {"t": lich.DAN_DAU + 0.0, "d": 0.3, "chu": "Chu", "khoa": "chu"},
+            {"t": lich.DAN_DAU + 0.3, "d": 0.3, "chu": "ki", "khoa": "ki"},
+            {"t": lich.DAN_DAU + 0.6, "d": 0.3, "chu": "dao", "khoa": "dao"},
+            {"t": lich.DAN_DAU + 0.9, "d": 0.3, "chu": "dong.", "khoa": "dong"},
+        ]
+
+    def _dung(self, thu_muc: Path, vf: str, ten: str, rong: int, cao: int) -> Path:
+        out = thu_muc / ten
+        subprocess.run(
+            ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-f", "lavfi",
+             "-i", f"color=c=0x2f4f9e:s={rong}x{cao}:d=2.5", "-vf", vf, "-r", "30", "-pix_fmt", "yuv420p", str(out)],
+            cwd=thu_muc, check=True, timeout=60)
+        return out
+
+    def _so_sanh(self, chu_de: str, kho_ten: str, rong_css: int, cao_css: int):
+        with tempfile.TemporaryDirectory() as tmp:
+            thu_muc = Path(tmp)
+            lam = thu_muc / ".khung"
+            fonts_dir = lam / "fonts"
+            fonts_dir.mkdir(parents=True)
+            shutil.copy2(ITIM_FONT, fonts_dir / ITIM_FONT.name)
+            for duong_dan in FONT_CAT_DAN.values():
+                shutil.copy2(duong_dan, fonts_dir / duong_dan.name)
+
+            cl = canh(1, 0.0, 1.2, [self.CHU], [lich.DAN_DAU], self._tu())
+            (lam / "phu-de.ass").write_text(
+                karaoke.tao_ass([cl], rong=rong_css, cao=cao_css, chu_de=chu_de, kho_ten=kho_ten), encoding="utf-8")
+            cmd_ass = ghep.lenh_video(Path("am.txt"), Path("out-karaoke.mp4"), 30, ".khung/phu-de.ass")
+            vf_ass = cmd_ass[cmd_ass.index("-vf") + 1]
+
+            cue = srt.Cue(index=1, start=lich.DAN_DAU, end=lich.DAN_DAU + 1.2, text=self.CHU)
+            (lam / "phu-de.srt").write_text(srt.render_srt([cue]), encoding="utf-8")
+            style = ghep._force_style(chu_de, kho_ten, cao=cao_css)
+            cmd_srt = ghep.lenh_video(Path("am.txt"), Path("out-hinh.mp4"), 30, ".khung/phu-de.srt", style=style)
+            vf_srt = cmd_srt[cmd_srt.index("-vf") + 1]
+
+            rong_xuat, cao_xuat = round(rong_css * 1.5), round(cao_css * 1.5)
+            video_karaoke = self._dung(thu_muc, vf_ass, "karaoke.mp4", rong_xuat, cao_xuat)
+            video_hinh = self._dung(thu_muc, vf_srt, "hinh.mp4", rong_xuat, cao_xuat)
+
+            moc = lich.DAN_DAU + 0.6
+            hop_karaoke = _hop_chu(_khung_tho(video_karaoke, moc, rong_xuat, cao_xuat), rong_xuat, cao_xuat,
+                                   day_duoi=min(300, cao_xuat))
+            hop_hinh = _hop_chu(_khung_tho(video_hinh, moc, rong_xuat, cao_xuat), rong_xuat, cao_xuat,
+                                day_duoi=min(300, cao_xuat))
+            self.assertIsNotNone(hop_karaoke, "không thấy chữ karaoke trong khung")
+            self.assertIsNotNone(hop_hinh, "không thấy chữ SRT (hinh) trong khung")
+            return hop_karaoke, hop_hinh
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "máy không có FFmpeg")
+    def test_boxed_hinh_portrait_is_not_oversized_versus_karaoke(self):
+        hop_karaoke, hop_hinh = self._so_sanh("cat-dan", "doc", 720, 1280)
+        ti_le = hop_hinh["cao"] / hop_karaoke["cao"]
+        self.assertTrue(0.6 <= ti_le <= 1.5, (hop_karaoke, hop_hinh, ti_le))
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "máy không có FFmpeg")
+    def test_boxed_hinh_cat_dan_landscape_matches_karaoke(self):
+        hop_karaoke, hop_hinh = self._so_sanh("cat-dan", "ngang", 1280, 720)
+        ti_le = hop_hinh["cao"] / hop_karaoke["cao"]
+        self.assertTrue(0.6 <= ti_le <= 1.5, (hop_karaoke, hop_hinh, ti_le))
+
+
 class KieuPhuDeTest(unittest.TestCase):
     def test_viet_tay_ngang_has_no_box_uses_itim_and_42_chars(self):
         kieu = karaoke.kieu_phu_de("viet-tay", "ngang")
@@ -388,8 +481,9 @@ class KieuPhuDeTest(unittest.TestCase):
 
 
 class KhungNenTest(unittest.TestCase):
-    """`.ass` của `cat-dan` (hay bất kỳ khổ `doc`) phải có khung nền: BorderStyle=3, nền đen 60%, viền cùng
-    màu nền, chữ trắng, và SecondaryColour vàng cho `\\kf`."""
+    """`.ass` của `cat-dan` (hay bất kỳ khổ `doc`) phải có khung nền: một hộp bo góc liền cho MỖI DÒNG VẬT LÝ
+    (vẽ bằng `\\p1`, không phải `BorderStyle=3` từng-từ hay `BorderStyle=4` gộp cả khối — xem karaoke.py),
+    nền đen 60%, chữ trắng, và SecondaryColour vàng cho `\\kf`."""
 
     def _canh(self):
         return canh(1, 0.0, 1.5, ["Chu ki dao dong cua con lac don."], [lich.DAN_DAU], [
@@ -397,28 +491,42 @@ class KhungNenTest(unittest.TestCase):
             for i, w in enumerate(["Chu", "ki", "dao", "dong", "cua", "con", "lac", "don."])
         ])
 
-    def test_cat_dan_ngang_ass_has_borderstyle_3_and_box_colours(self):
+    def test_cat_dan_ngang_has_a_khung_and_khungnen_style_with_box_colours(self):
         text = karaoke.tao_ass([self._canh()], chu_de="cat-dan", kho_ten="ngang")
-        style_line = next(l for l in text.splitlines() if l.startswith("Style:"))
-        fields = style_line.split(",")
-        self.assertEqual(fields[15], "3")  # BorderStyle
-        self.assertEqual(fields[3], "&H00FFFFFF")  # PrimaryColour trắng
-        self.assertEqual(fields[4], "&H0000D7FF")  # SecondaryColour vàng
-        self.assertEqual(fields[5], "&H66000000")  # OutlineColour = nền
-        self.assertEqual(fields[6], "&H66000000")  # BackColour đen 60%
-        self.assertIn("Be Vietnam Pro", style_line)
+        style_lines = {l.split(",")[0].split(": ")[1]: l for l in text.splitlines() if l.startswith("Style:")}
+        self.assertEqual(set(style_lines), {"Khung", "KhungNen"})
+        chu = style_lines["Khung"].split(",")
+        self.assertEqual(chu[15], "1")  # BorderStyle thường (hộp vẽ riêng, không dùng BorderStyle)
+        self.assertEqual(chu[3], "&H00FFFFFF")  # PrimaryColour trắng
+        self.assertEqual(chu[4], "&H0000D7FF")  # SecondaryColour vàng
+        self.assertIn("Be Vietnam Pro", style_lines["Khung"])
+        nen = style_lines["KhungNen"].split(",")
+        self.assertEqual(nen[3], "&H66000000")  # PrimaryColour = màu tô hộp `\p1`, đen 60%
 
-    def test_viet_tay_doc_ass_also_gets_the_box_but_keeps_itim(self):
+    def test_viet_tay_doc_also_gets_the_box_but_keeps_itim(self):
         text = karaoke.tao_ass([self._canh()], chu_de="viet-tay", kho_ten="doc")
-        style_line = next(l for l in text.splitlines() if l.startswith("Style:"))
-        self.assertEqual(style_line.split(",")[15], "3")
-        self.assertIn("Itim", style_line)
-        self.assertNotIn("Be Vietnam Pro", style_line)
+        style_lines = {l.split(",")[0].split(": ")[1]: l for l in text.splitlines() if l.startswith("Style:")}
+        self.assertEqual(set(style_lines), {"Khung", "KhungNen"})
+        self.assertIn("Itim", style_lines["Khung"])
+        self.assertNotIn("Be Vietnam Pro", style_lines["Khung"])
 
-    def test_viet_tay_ngang_ass_has_no_box(self):
+    def test_viet_tay_ngang_has_no_box_style(self):
         text = karaoke.tao_ass([self._canh()], chu_de="viet-tay", kho_ten="ngang")
-        style_line = next(l for l in text.splitlines() if l.startswith("Style:"))
-        self.assertEqual(style_line.split(",")[15], "1")
+        style_names = {l.split(",")[0].split(": ")[1] for l in text.splitlines() if l.startswith("Style:")}
+        self.assertEqual(style_names, {"Itim"})
+
+    def test_box_dialogues_are_a_rounded_p1_shape_one_per_physical_line(self):
+        text = karaoke.tao_ass([self._canh()], chu_de="cat-dan", kho_ten="ngang")
+        hop = [d for d in _dialogues(text) if _kieu_dialogue(d) == "KhungNen"]
+        chu = _dialogues_chu(text)
+        self.assertEqual(len(hop), len(chu))  # đúng một hộp cho mỗi dòng chữ
+        for d in hop:
+            self.assertIn(r"\p1", d)
+            self.assertIn(r"\p0", d)
+            self.assertIn(r"\an7", d)
+        for d in chu:
+            self.assertIn(r"\an7", d)
+            self.assertNotIn(r"\p1", d)
 
 
 class KhoDocTest(unittest.TestCase):
@@ -434,31 +542,34 @@ class KhoDocTest(unittest.TestCase):
     def test_every_displayed_line_is_at_most_22_characters(self):
         cl, _ = self._canh_dai()
         text = karaoke.tao_ass([cl], chu_de="viet-tay", kho_ten="doc")
-        for d in _dialogues(text):
+        for d in _dialogues_chu(text):
             chu = _DIALOGUE_RE.match(d).group(3)
             for dong in chu.split("\\N"):
-                hien = _KF_TAG_RE.sub("", dong)
+                hien = _hien_thi_day_du(dong)
                 self.assertLessEqual(len(hien), 22, hien)
 
     def test_kf_total_still_matches_sentence_duration_after_splitting(self):
+        """Mỗi dòng vật lý (chữ) nay là một sự kiện riêng, nhưng tất cả dòng của cùng một "phần" (cùng
+        Start/End) phải cộng lại đúng thời lượng của phần đó."""
         cl, _ = self._canh_dai()
         text = karaoke.tao_ass([cl], chu_de="viet-tay", kho_ten="doc")
-        dialogues = _dialogues(text)
+        dialogues = _dialogues_chu(text)
         self.assertGreater(len(dialogues), 1, "câu dài phải tách thành nhiều sự kiện ở khổ dọc")
-        tong_kf = 0
-        tong_giay = 0.0
+        theo_phan: dict = {}
         for d in dialogues:
             match = _DIALOGUE_RE.match(d)
-            start, end = _thoi_gian_giay(match.group(1)), _thoi_gian_giay(match.group(2))
-            tong_giay += end - start
-            tong_kf += sum(int(n) for n in _KF_RE.findall(match.group(3)))
-        self.assertLessEqual(abs(tong_kf - round(tong_giay * 100)), len(dialogues))
+            khoang = (match.group(1), match.group(2))
+            theo_phan.setdefault(khoang, []).append(sum(int(n) for n in _KF_RE.findall(match.group(3))))
+        for (start_nhan, end_nhan), kf_list in theo_phan.items():
+            start, end = _thoi_gian_giay(start_nhan), _thoi_gian_giay(end_nhan)
+            self.assertLessEqual(abs(sum(kf_list) - round((end - start) * 100)), len(kf_list))
 
     def test_long_sentence_in_doc_mode_warns_with_scene_number_and_part_count(self):
         cl, _ = self._canh_dai(so=7)
         canh_bao: list = []
         text = karaoke.tao_ass([cl], chu_de="viet-tay", kho_ten="doc", canh_bao=canh_bao)
-        so_phan = len(_dialogues(text))
+        so_phan = len({(_DIALOGUE_RE.match(d).group(1), _DIALOGUE_RE.match(d).group(2))
+                       for d in _dialogues_chu(text)})
         self.assertEqual(len(canh_bao), 1)
         self.assertIn("Cảnh 7", canh_bao[0])
         self.assertIn(f"{so_phan} phần", canh_bao[0])

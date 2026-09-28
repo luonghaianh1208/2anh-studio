@@ -22,14 +22,29 @@ STYLE = f"FontName={ITIM_TEN},FontSize=16,Outline=1.5,Shadow=0,Spacing=0.5,Margi
 FONTS_REL = ".khung/fonts"
 
 
-def _force_style(chu_de: str, kho_ten: str) -> str:
+def _force_style(chu_de: str, kho_ten: str, cao: int = 720) -> str:
     """`STYLE` cho `phu-de: hinh` (.srt + force_style); nhận khung nền giống `.ass` karaoke khi `cat-dan`
-    hoặc khổ `doc` (`karaoke.kieu_phu_de`), font theo chủ đề."""
+    hoặc khổ `doc` (`karaoke.kieu_phu_de`), font theo chủ đề.
+
+    `.srt` không cho chèn lệnh vẽ `\\p1` riêng từng dòng như đường `.ass` karaoke (`karaoke.py`), nên chỉ
+    dùng được `BorderStyle=4` của libass — một hộp liền cho CẢ KHỐI nhiều dòng (không co riêng theo từng
+    dòng như đường karaoke, nhưng vẫn là một khối liền, không vỡ theo từng từ như `BorderStyle=3`); `Shadow`
+    là đệm quanh chữ của `BorderStyle=4` (đã kiểm bằng đốt FFmpeg thật).
+
+    `cao` (điểm CSS, `kho.cao`: 720 ngang, 1280 dọc) chỉnh cỡ chữ theo tỉ lệ `720/cao`: FFmpeg đốt `.srt`
+    (khác `.ass`) không đọc được `PlayResY` của khổ — nó luôn giả định khung 384x288 rồi phóng theo
+    ĐỘ PHÂN GIẢI PIXEL thật, nên khổ dọc (khung xuất cao gấp ~1,78 lần dù cùng độ phân giải) sẽ ra chữ to gấp
+    ~1,78 lần nếu vẫn dùng nguyên cỡ đã hiệu chỉnh cho khổ ngang; xem báo cáo Task 7 (đã kiểm bằng đốt
+    FFmpeg thật: `original_size` của bộ lọc `subtitles` không có tác dụng với phụ đề `.srt` thường)."""
     kieu = karaoke.kieu_phu_de(chu_de, kho_ten)
     if not kieu["khung"]:
         return STYLE
-    return (f"FontName={kieu['font']},FontSize=16,Outline=1.5,Shadow=0,Spacing=0.5,MarginV=22,"
-            "BorderStyle=3,BackColour=&H66000000&,OutlineColour=&H66000000&,PrimaryColour=&H00FFFFFF&")
+    ti_le = 720 / cao
+    return (f"FontName={kieu['font']},FontSize={16 * ti_le:.2f},Outline=0,Shadow={8 * ti_le:.2f},"
+            f"Spacing={0.5 * ti_le:.3f},MarginV={22 * ti_le:.2f},"
+            "BorderStyle=4,BackColour=&H66000000&,OutlineColour=&H66000000&,PrimaryColour=&H00FFFFFF&")
+
+
 KHUNG_DAU = f".khung/anh/{ten_khung(0)}"
 # Nhạc nền: vào/ra dần, mức nền, và bộ nén hạ nhạc khi tiếng chính (giọng) vượt ngưỡng.
 NHAC_VAO_RA = 1.5
@@ -195,7 +210,7 @@ def ghep_video(thu_muc: Path, cac_lich: list, cac_giong: list, phu_de: str, fps:
                  for c in cac_cue]
         (lam / "phu-de.srt").write_text(srt.render_srt(thoat), encoding="utf-8")
         burn = ".khung/phu-de.srt"
-        style = _force_style(chu_de, kho_ten)
+        style = _force_style(chu_de, kho_ten, cao=kho.cao if kho is not None else 720)
     elif phu_de == "karaoke":
         (lam / "phu-de.ass").write_text(
             karaoke.tao_ass(cac_lich, chu_de=chu_de, kho_ten=kho_ten, canh_bao=canh_bao, **kich_ass),

@@ -29,12 +29,48 @@ _ESCAPE = (("\\", "⧵"), ("{", "\\{"), ("}", "\\}"))
 _STYLE_ITIM = ("Style: Itim,Itim,40,&H0000D7FF,&H00FFFFFF,&H00000000,&H00000000,"
                "0,0,0,0,100,100,1.25,0,1,3,0,2,10,10,55,1")
 
+# Khung nền (`cat-dan` hoặc khổ `doc`): một hộp bo góc liền cho MỖI DÒNG VẬT LÝ, vẽ bằng `\p1` (không dùng
+# BorderStyle=3: libass vẽ hộp theo từng cụm `\kf` nên ra nhiều hộp rời theo từ; BorderStyle=4 cũng không hợp vì
+# libass gộp cả khối nhiều dòng thành một hộp theo dòng rộng nhất, không co theo từng dòng). Cả hộp lẫn chữ neo
+# `\an7\pos(x,y)` ở góc trên-trái: dùng `\an5` (giữa) cùng lúc với một sự kiện `\p1` khác đang hiển thị khiến
+# libass (bản FFmpeg 8.1.2 kèm) lệch vị trí chữ xuống dưới-phải một cách sai (đã kiểm bằng đốt FFmpeg thật,
+# xem báo cáo Task 7); `\an7` không bị lỗi này.
+KHUNG_CAO_HOP = 50       # chiều cao hộp, điểm CSS
+KHUNG_BAN_KINH = 14      # bán kính bo góc
+KHUNG_DEM_NGANG = 14     # đệm ngang mỗi bên giữa chữ và mép hộp
+KHUNG_DEM_DOC_CHU = 6    # khoảng từ mép trên hộp tới đỉnh chữ
+KHUNG_RONG_KY_TU = 15    # ước lượng bảo thủ độ rộng một ký tự ở Fontsize 40 (đo bằng đốt FFmpeg thật)
+KHUNG_KHOANG_DONG = 56   # khoảng cách theo chiều dọc giữa tâm hai dòng liền nhau
+KHUNG_LE_DUOI = 60       # khoảng từ tâm dòng cuối tới mép dưới khung hình
 
-def _style_khung(font: str) -> str:
-    """Kiểu có khung nền (`cat-dan` hoặc khổ `doc`): chữ trắng (Primary), từ đang đọc tô vàng (Secondary, `\\kf`
-    sáng dần từ Secondary sang Primary); nền đen 60% (`BackColour`), viền cùng màu nền để khung liền (`OutlineColour`)."""
-    return (f"Style: Khung,{font},40,&H00FFFFFF,&H0000D7FF,&H66000000,&H66000000,"
-            "0,0,0,0,100,100,1.25,0,3,3,0,2,10,10,55,1")
+_STYLE_KHUNG_NEN = ("Style: KhungNen,Itim,40,&H66000000,&H66000000,&H00000000,&H00000000,"
+                    "0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1")
+
+
+def _style_khung_chu(font: str) -> str:
+    """Kiểu chữ trong khung nền: chữ trắng (Primary), từ đang đọc tô vàng (Secondary, `\\kf` sáng dần từ
+    Secondary sang Primary); không viền/bóng riêng vì độ tương phản đã có từ hộp nền."""
+    return f"Style: Khung,{font},40,&H00FFFFFF,&H0000D7FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1"
+
+
+def _duong_ve_hop(rong_hop: float, cao_hop: float, ban_kinh: float) -> str:
+    """Đường vẽ ASS (`\\p1`) hình chữ nhật bo góc, gốc toạ độ ở góc trên-trái (dùng với `\\an7\\pos`)."""
+    def f(v: float) -> str:
+        return f"{v:.0f}"
+    r, w, h = ban_kinh, rong_hop, cao_hop
+    return (f"m {f(r)} 0 l {f(w - r)} 0 "
+            f"b {f(w)} 0 {f(w)} 0 {f(w)} {f(r)} "
+            f"l {f(w)} {f(h - r)} "
+            f"b {f(w)} {f(h)} {f(w)} {f(h)} {f(w - r)} {f(h)} "
+            f"l {f(r)} {f(h)} "
+            f"b 0 {f(h)} 0 {f(h)} 0 {f(h - r)} "
+            f"l 0 {f(r)} "
+            f"b 0 0 0 0 {f(r)} 0")
+
+
+def _do_rong_dong(chi_so: list, tokens: list) -> float:
+    """Ước lượng độ rộng hiển thị (điểm CSS) của một dòng vật lý, từ số ký tự (kể khoảng trắng)."""
+    return _do_dai_dong(chi_so, tokens) * KHUNG_RONG_KY_TU
 
 
 def kieu_phu_de(chu_de: str, kho_ten: str) -> dict:
@@ -48,7 +84,8 @@ def kieu_phu_de(chu_de: str, kho_ten: str) -> dict:
     }
 
 
-def _header(rong: int, cao: int, style_line: str) -> str:
+def _header(rong: int, cao: int, style_lines: list) -> str:
+    style_block = "\n".join(style_lines)
     return f"""[Script Info]
 Title: Phụ đề karaoke
 ScriptType: v4.00+
@@ -59,7 +96,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-{style_line}
+{style_block}
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -202,8 +239,8 @@ def _kf_cs(neo: float, moc: list) -> list:
     return [cs[i + 1] - cs[i] for i in range(len(cs) - 1)]
 
 
-def _dialogue(bat_dau_canh: float, start: float, end: float, style: str) -> str:
-    return (f"Dialogue: 0,{_thoi_gian(bat_dau_canh + start)},{_thoi_gian(bat_dau_canh + end)},"
+def _dialogue(bat_dau_canh: float, start: float, end: float, style: str, layer: int = 0) -> str:
+    return (f"Dialogue: {layer},{_thoi_gian(bat_dau_canh + start)},{_thoi_gian(bat_dau_canh + end)},"
             f"{style},,0,0,0,,")
 
 
@@ -257,8 +294,38 @@ def _dialogue_tu_nhom(nhom_dong: list, tokens: list, texts: list, moc: list, bat
     return _dialogue(bat_dau_canh, g_start, g_end, style) + "".join(parts)
 
 
+def _dialogues_khung_tu_nhom(nhom_dong: list, tokens: list, texts: list, moc: list, bat_dau_canh: float,
+                              rong: int, cao: int) -> list:
+    """Khung nền: mỗi dòng vật lý trong `nhom_dong` (1-2 dòng) ra 2 sự kiện cùng Start/End — hộp nền (Layer 0,
+    kiểu `KhungNen`) và chữ (Layer 1, kiểu `Khung`) — neo cùng `\\an7\\pos` nên hộp luôn khít đúng dòng của nó,
+    không phải một hộp chung cho cả khối nhiều dòng."""
+    k = len(nhom_dong)
+    g_start = moc[nhom_dong[0][0]]
+    g_end = moc[nhom_dong[-1][-1] + 1]
+    giua_x = rong / 2
+    y_duoi = cao - KHUNG_LE_DUOI
+    ket: list = []
+    for li, dong_k in enumerate(nhom_dong):
+        cy = y_duoi - (k - 1 - li) * KHUNG_KHOANG_DONG
+        cuc_bo_end = moc[nhom_dong[li + 1][0]] if li + 1 < k else g_end
+        kf = _kf_cs(g_start, [moc[j] for j in dong_k] + [cuc_bo_end])
+        w_hop = _do_rong_dong(dong_k, tokens) + 2 * KHUNG_DEM_NGANG
+        x0_hop = giua_x - w_hop / 2
+        y0_hop = cy - KHUNG_CAO_HOP / 2
+        duong = _duong_ve_hop(w_hop, KHUNG_CAO_HOP, KHUNG_BAN_KINH)
+        ket.append(_dialogue(bat_dau_canh, g_start, g_end, "KhungNen", layer=0)
+                   + f"{{\\an7\\pos({x0_hop:.0f},{y0_hop:.0f})\\p1}}{duong}{{\\p0}}")
+        x0_chu, y0_chu = x0_hop + KHUNG_DEM_NGANG, y0_hop + KHUNG_DEM_DOC_CHU
+        chu = "".join(f"{{\\kf{kf[i]}}}{texts[idx]}" + (" " if i < len(dong_k) - 1 else "")
+                      for i, idx in enumerate(dong_k))
+        ket.append(_dialogue(bat_dau_canh, g_start, g_end, "Khung", layer=1)
+                   + f"{{\\an7\\pos({x0_chu:.0f},{y0_chu:.0f})}}{chu}")
+    return ket
+
+
 def _dialogues_cau(bat_dau_canh: float, start: float, end: float, tu: list, cau_text: str,
-                    gioi_han: int = GIOI_HAN_NGANG, style: str = "Itim", tach_menh_de: bool = False,
+                    gioi_han: int = GIOI_HAN_NGANG, style: str = "Itim", khung: bool = False,
+                    rong: int = 1280, cao: int = 720, tach_menh_de: bool = False,
                     canh_bao: list | None = None, so_canh=None) -> list:
     tokens = _MARKUP_RE.sub("", cau_text).split()
     if not tokens:
@@ -273,6 +340,11 @@ def _dialogues_cau(bat_dau_canh: float, start: float, end: float, tu: list, cau_
             canh_bao.append(f"Cảnh {so_canh}: câu phụ đề dài, đã tách thành {len(cac_phan)} phần.")
     else:
         cac_phan = _nhom_theo_dong_doi(dong, tokens, gioi_han)
+    if khung:
+        ket: list = []
+        for nhom in cac_phan:
+            ket.extend(_dialogues_khung_tu_nhom(nhom, tokens, texts, moc, bat_dau_canh, rong, cao))
+        return ket
     return [_dialogue_tu_nhom(nhom, tokens, texts, moc, bat_dau_canh, style) for nhom in cac_phan]
 
 
@@ -282,14 +354,14 @@ def tao_ass(cac_lich: list, rong: int = 1280, cao: int = 720, chu_de: str = "vie
     (`kieu_phu_de`); mặc định giữ đúng đường `viet-tay` khổ ngang cũ (Itim, không khung, 42 ký tự)."""
     kieu = kieu_phu_de(chu_de, kho_ten)
     if kieu["khung"]:
-        style_name, style_line = "Khung", _style_khung(kieu["font"])
+        style_name, style_lines = "Khung", [_style_khung_chu(kieu["font"]), _STYLE_KHUNG_NEN]
     else:
-        style_name, style_line = "Itim", _STYLE_ITIM
+        style_name, style_lines = "Itim", [_STYLE_ITIM]
     tach_menh_de = kho_ten == "doc"
     dialogues: list = []
     for cl in cac_lich:
         for cau_text, start, end, tu in _nhom_cau(cl):
             dialogues.extend(_dialogues_cau(cl.bat_dau, start, end, tu, cau_text, gioi_han=kieu["gioi_han"],
-                                            style=style_name, tach_menh_de=tach_menh_de, canh_bao=canh_bao,
-                                            so_canh=cl.so))
-    return _header(rong, cao, style_line) + "\n".join(dialogues) + ("\n" if dialogues else "")
+                                            style=style_name, khung=kieu["khung"], rong=rong, cao=cao,
+                                            tach_menh_de=tach_menh_de, canh_bao=canh_bao, so_canh=cl.so))
+    return _header(rong, cao, style_lines) + "\n".join(dialogues) + ("\n" if dialogues else "")

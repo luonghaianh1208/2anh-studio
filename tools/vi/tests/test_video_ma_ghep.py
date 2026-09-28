@@ -155,21 +155,36 @@ class CommandTest(unittest.TestCase):
 
 
 class ForceStyleTest(unittest.TestCase):
-    """`STYLE` cho `phu-de: hinh` nhận khung nền giống `.ass` karaoke khi `cat-dan` hoặc khổ `doc`."""
+    """`STYLE` cho `phu-de: hinh` nhận khung nền giống `.ass` karaoke khi `cat-dan` hoặc khổ `doc`. `.srt`
+    không chèn được lệnh vẽ riêng từng dòng như đường `.ass` karaoke, nên dùng `BorderStyle=4` (một hộp liền
+    cho cả khối, không vỡ theo từng từ như `BorderStyle=3`); cỡ chữ/đệm chỉnh theo `cao` (`kho.cao`) để khổ
+    dọc không bị to quá so với khổ ngang (carry-over Task 1 — xem `_force_style`)."""
 
     def test_viet_tay_ngang_keeps_the_old_style(self):
         self.assertEqual(ghep._force_style("viet-tay", "ngang"), ghep.STYLE)
 
     def test_cat_dan_gets_a_box_with_be_vietnam_pro(self):
-        style = ghep._force_style("cat-dan", "ngang")
-        self.assertIn("BorderStyle=3", style)
+        style = ghep._force_style("cat-dan", "ngang", cao=720)
+        self.assertIn("BorderStyle=4", style)
         self.assertIn("BackColour=&H66000000&", style)
         self.assertIn("FontName=Be Vietnam Pro", style)
 
     def test_viet_tay_doc_gets_a_box_but_keeps_itim(self):
-        style = ghep._force_style("viet-tay", "doc")
-        self.assertIn("BorderStyle=3", style)
+        style = ghep._force_style("viet-tay", "doc", cao=1280)
+        self.assertIn("BorderStyle=4", style)
         self.assertIn("FontName=Itim", style)
+
+    def test_doc_font_size_is_scaled_down_so_it_is_not_oversized(self):
+        """Khổ dọc (`cao=1280`) phải ra cỡ chữ nhỏ hơn khổ ngang (`cao=720`, mặc định) theo đúng tỉ lệ 720/cao,
+        không dùng nguyên cỡ đã hiệu chỉnh cho khổ ngang."""
+        ngang = ghep._force_style("cat-dan", "ngang", cao=720)
+        doc = ghep._force_style("cat-dan", "doc", cao=1280)
+
+        def _fontsize(style: str) -> float:
+            return float(next(p for p in style.split(",") if p.startswith("FontSize=")).split("=")[1])
+
+        self.assertAlmostEqual(_fontsize(ngang), 16.0)
+        self.assertAlmostEqual(_fontsize(doc), 16.0 * 720 / 1280)
 
 
 class AssembleTest(unittest.TestCase):
@@ -317,7 +332,7 @@ class AssembleTest(unittest.TestCase):
         for duong_dan in FONT_CAT_DAN.values():
             self.assertTrue((fonts_dir / duong_dan.name).is_file())
         joined = " ".join(calls[-1][0])
-        self.assertIn("BorderStyle=3", joined)
+        self.assertIn("BorderStyle=4", joined)
         self.assertIn("FontName=Be Vietnam Pro", joined)
 
     def test_karaoke_mode_with_doc_kho_bundles_be_vietnam_pro_when_cat_dan(self):
@@ -331,8 +346,7 @@ class AssembleTest(unittest.TestCase):
         for duong_dan in FONT_CAT_DAN.values():
             self.assertTrue((fonts_dir / duong_dan.name).is_file())
         ass_text = (thu_muc / ".khung" / "phu-de.ass").read_text(encoding="utf-8")
-        style_line = next(l for l in ass_text.splitlines() if l.startswith("Style:"))
-        self.assertEqual(style_line.split(",")[15], "3")  # BorderStyle
+        self.assertIn(r"\p1", ass_text)  # hộp nền vẽ riêng từng dòng, không dùng BorderStyle
         self.assertIn("Be Vietnam Pro", ass_text)
 
     def test_karaoke_mode_with_viet_tay_ngang_still_only_bundles_itim(self):
