@@ -127,6 +127,39 @@ class TachNenFfmpegTest(unittest.TestCase):
         self.assertIn("góc trái trên", caught.exception.message)
         self.assertFalse((self.d / "ra.png").exists())
 
+    def test_anh_da_trong_suot_giu_nguyen_alpha(self):
+        # GPT Image có thể trả PNG trong suốt sẵn: không tách xanh (sẽ xoá mất phần áo xanh lá), giữ alpha gốc.
+        tron = "lt(hypot(X-512\\,Y-760)\\,300)"
+        goc = ve(self.d / "trong-suot.png",
+                 "color=c=black@0.0:s=1024x1536,format=rgba,"
+                 f"geq=r='if({tron},30,0)':g='if({tron},200,0)':b='if({tron},60,0)':a='if({tron},255,0)'")
+        ra = self.d / "ra.png"
+        xu_ly.xu_ly_nhan_vat(goc, ra, "goc/trong-suot.png", subprocess.run)
+        raw, w, h = alpha_tho(ra)
+        self.assertLessEqual(abs(w - 600), 4, (w, h))
+        self.assertEqual(xu_ly.do_alpha(raw, w, h)["goc"], [0, 0, 0, 0])
+        self.assertEqual(raw[(h // 2) * w + w // 2], 255)  # hình xanh lá vẫn đục
+
+    def test_nen_xanh_khong_thuan_noi_ro_mau_do_duoc(self):
+        goc = nhan_vat(self.d / "tu-the-buon.png", (0x4C, 0xAF, 0x50))
+        with self.assertRaises(xu_ly.XuLyError) as caught:
+            xu_ly.xu_ly_nhan_vat(goc, self.d / "ra.png", "goc/tu-the-buon.png", subprocess.run)
+        self.assertEqual(caught.exception.step, "tach-nen")
+        self.assertIn("nền không phải xanh thuần #00FF00 (đo được #4CAF50)", caught.exception.message)
+        self.assertIn("#00FF00", caught.exception.fix)
+
+    def test_nhan_vat_lon_thu_ve_1536_duoi_8_mb(self):
+        tron = "lt(hypot(X-1024\\,Y-1536)\\,900)"
+        goc = ve(self.d / "lon.png", "color=c=0x00FF00:s=2048x3072,format=gbrp,"
+                                     f"geq=r='if({tron},230,0)':g='if({tron},20,255)':b='if({tron},30,0)',"
+                                     "noise=c0s=40:c2s=40:allf=u")
+        ra = self.d / "ra.png"
+        xu_ly.xu_ly_nhan_vat(goc, ra, "goc/lon.png", subprocess.run)
+        w, h = kich_thuoc(ra)
+        self.assertEqual(max(w, h), 1536)
+        self.assertLessEqual(ra.stat().st_size, xu_ly.TOI_DA)
+        self.assertTrue(anh.co_alpha(ra.read_bytes(), ".png"))
+
     def test_anh_hong_la_loi_ffmpeg(self):
         hong = self.d / "hong.png"
         hong.write_bytes(b"khong phai anh")

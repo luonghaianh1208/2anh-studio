@@ -18,6 +18,7 @@ GOC_ALPHA_TOI_DA = 10     # alpha trung bình mỗi góc phải dưới mức n�
 NGUONG_DUC = 128          # điểm "đục" khi đếm tỉ lệ
 NGUONG_CAT = 32           # điểm tính vào hộp cắt sát (bỏ nhiễu rất mờ)
 DUC_TOI_THIEU, DUC_TOI_DA = 0.05, 0.70
+CANH_NHAN_VAT_TOI_DA = 1536  # cạnh dài nhất của ảnh nhân vật sau khi cắt (chỉ thu nhỏ, không phóng to)
 _TEN_GOC = ("trái trên", "phải trên", "trái dưới", "phải dưới")
 
 FIX_FFMPEG = "Cài FFmpeg theo mục \"Công cụ tuỳ chọn\" của docs/vi/cai-dat-bang-ai.md rồi chạy lại."
@@ -111,12 +112,42 @@ def do_alpha(raw: bytes, w: int, h: int) -> dict:
     return {"goc": goc, "duc": ti_le, "hop": hop}
 
 
-def kiem_alpha(do: dict):
-    """Lý do tách nền không đạt, None khi đạt."""
-    con_duc = [f"góc {ten} còn đục (alpha trung bình {a:.0f})" for ten, a in zip(_TEN_GOC, do["goc"])
-               if a >= GOC_ALPHA_TOI_DA]
+def mau_goc(rgba: bytes, w: int, h: int) -> list:
+    """Màu trung bình (r, g, b) của bốn góc GOC_O×GOC_O trong ảnh RGBA thô, cùng thứ tự `_TEN_GOC`."""
+    o = min(GOC_O, w, h)
+    ra = []
+    for x0, y0 in ((0, 0), (w - o, 0), (0, h - o), (w - o, h - o)):
+        tong = [0, 0, 0]
+        for y in range(o):
+            hang = rgba[((y0 + y) * w + x0) * 4:((y0 + y) * w + x0 + o) * 4]
+            for k in range(3):
+                tong[k] += sum(hang[k::4])
+        ra.append(tuple(round(t / (o * o)) for t in tong))
+    return ra
+
+
+def _la_xanh_la(mau: tuple) -> bool:
+    r, g, b = mau
+    return g >= 100 and g > r + 30 and g > b + 30
+
+
+def kiem_alpha(do: dict, mau: list | None = None):
+    """Lý do tách nền không đạt, None khi đạt. `mau`: màu trung bình bốn góc của ảnh gốc (`mau_goc`) để nói rõ vì sao
+    góc còn đục: nền xanh lá nhưng không thuần #00FF00, hay bóng/viền/màu khác ở góc."""
+    con_duc = []
+    for k, (ten, a) in enumerate(zip(_TEN_GOC, do["goc"])):
+        if a < GOC_ALPHA_TOI_DA:
+            continue
+        if mau is None:
+            con_duc.append(f"góc {ten} còn đục (alpha trung bình {a:.0f})")
+            continue
+        ma = "#{:02X}{:02X}{:02X}".format(*mau[k])
+        if _la_xanh_la(mau[k]):
+            con_duc.append(f"góc {ten} còn đục: nền không phải xanh thuần #00FF00 (đo được {ma})")
+        else:
+            con_duc.append(f"góc {ten} còn đục: còn bóng hoặc viền ở góc (đo được {ma})")
     if con_duc:
-        return "; ".join(con_duc) + ": nền xanh chưa được tách hết"
+        return "; ".join(con_duc)
     if do["duc"] < DUC_TOI_THIEU:
         return f"phần đục quá ít ({do['duc']:.0%}, cần ít nhất {DUC_TOI_THIEU:.0%}): nhân vật bị tách mất hoặc quá nhỏ"
     if do["duc"] > DUC_TOI_DA:
@@ -156,19 +187,44 @@ def xu_ly_nen(goc: Path, dich: Path, kho: str, ten: str, run) -> tuple:
     return (w, h), ra, thieu
 
 
+def _doc_tho(goc: Path, loc: str, pix_fmt: str, byte_moi_diem: int, w: int, h: int, run, ten: str) -> bytes:
+    raw = _chay(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(goc), "-vf", loc, "-frames:v", "1",
+                 "-f", "rawvideo", "-pix_fmt", pix_fmt, "pipe:1"], run, ten, nhi_phan=True).stdout
+    if len(raw) != w * h * byte_moi_diem:
+        raise XuLyError("ffmpeg", f"Dữ liệu điểm ảnh của `{ten}` có {len(raw)} byte, cần {w * h * byte_moi_diem}.",
+                        FIX_ANH_HONG)
+    return bytes(raw)
+
+
+def co_nho(cw: int, ch: int, he_so: float = 1.0) -> tuple:
+    """Kích thước sau khi thu cạnh dài về tối đa CANH_NHAN_VAT_TOI_DA (nhân thêm `he_so` khi phải nén dưới 8 MB);
+    không bao giờ phóng to."""
+    ti_le = min(1.0, CANH_NHAN_VAT_TOI_DA / max(cw, ch)) * he_so
+    return max(1, round(cw * ti_le)), max(1, round(ch * ti_le))
+
+
 def xu_ly_nhan_vat(goc: Path, dich: Path, ten: str, run) -> None:
-    """Nhân vật -> `dich` (.png RGBA): tách nền xanh, kiểm alpha, cắt sát theo hộp alpha. Không đạt: XuLyError tach-nen."""
+    """Nhân vật -> `dich` (.png RGBA): tách nền xanh (bỏ qua khi ảnh gốc đã trong suốt ở bốn góc), kiểm alpha, cắt sát
+    theo hộp alpha, thu cạnh dài về tối đa 1536 px và dưới 8 MB. Không đạt: XuLyError tach-nen."""
     w, h = kich_thuoc(goc, run, ten)
-    raw = _chay(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(goc), "-vf", LOC_TACH + ",alphaextract",
-                 "-frames:v", "1", "-f", "rawvideo", "-pix_fmt", "gray", "pipe:1"], run, ten, nhi_phan=True).stdout
-    if len(raw) != w * h:
-        raise XuLyError("ffmpeg", f"Kênh alpha của `{ten}` có {len(raw)} byte, cần {w * h}.", FIX_ANH_HONG)
-    do = do_alpha(bytes(raw), w, h)
-    ly_do = kiem_alpha(do)
+    rgba = _doc_tho(goc, "format=rgba", "rgba", 4, w, h, run, ten)
+    alpha_goc = rgba[3::4]
+    if all(a < GOC_ALPHA_TOI_DA for a in do_alpha(alpha_goc, w, h)["goc"]):
+        loc, raw = "format=rgba", alpha_goc  # ảnh đã trong suốt sẵn (vd. GPT Image): giữ nguyên alpha
+    else:
+        loc = LOC_TACH
+        raw = _doc_tho(goc, LOC_TACH + ",alphaextract", "gray", 1, w, h, run, ten)
+    do = do_alpha(raw, w, h)
+    ly_do = kiem_alpha(do, mau_goc(rgba, w, h))
     if ly_do:
         raise XuLyError("tach-nen", f"`{ten}`: {ly_do}.", FIX_TACH_NEN)
     x, y, cw, ch = do["hop"]
     tam = dich.with_name(dich.stem + ".tam" + dich.suffix)
-    _ghi(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(goc),
-          "-vf", f"{LOC_TACH},crop={cw}:{ch}:{x}:{y}", "-frames:v", "1", "-pix_fmt", "rgba", str(tam)], run, ten, tam)
+    for he_so in (1.0, 0.8, 0.64, 0.5, 0.4, 0.3):
+        nw, nh = co_nho(cw, ch, he_so)
+        thu = f",scale={nw}:{nh}:flags=lanczos" if (nw, nh) != (cw, ch) else ""
+        _ghi(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(goc),
+              "-vf", f"{loc},crop={cw}:{ch}:{x}:{y}{thu}", "-frames:v", "1", "-pix_fmt", "rgba", str(tam)], run, ten, tam)
+        if tam.stat().st_size <= TOI_DA:
+            break
     _thay(tam, dich)

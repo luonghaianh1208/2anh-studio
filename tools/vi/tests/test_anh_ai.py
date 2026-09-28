@@ -186,6 +186,27 @@ class DoAlphaTest(unittest.TestCase):
         self.assertEqual(xu_ly.do_alpha(bytes(raw), 100, 200)["hop"], (20, 30, 50, 100))
 
 
+class LyDoTachNenTest(unittest.TestCase):
+    def test_mau_goc_va_ly_do_theo_mau(self):
+        w, h = 16, 16
+        rgba = bytearray(bytes([0x4C, 0xAF, 0x50, 255]) * (w * h))
+        for y in range(8):  # góc phải dưới tối
+            for x in range(8, 16):
+                rgba[((8 + y) * w + x) * 4:((8 + y) * w + x) * 4 + 3] = b"   "
+        mau = xu_ly.mau_goc(bytes(rgba), w, h)
+        self.assertEqual(mau, [(0x4C, 0xAF, 0x50)] * 3 + [(0x20, 0x20, 0x20)])
+        ly_do = xu_ly.kiem_alpha({"goc": [255, 0, 0, 255], "duc": 0.3, "hop": (0, 0, 1, 1)}, mau)
+        self.assertIn("góc trái trên còn đục: nền không phải xanh thuần #00FF00 (đo được #4CAF50)", ly_do)
+        self.assertIn("góc phải dưới còn đục: còn bóng hoặc viền ở góc (đo được #202020)", ly_do)
+        self.assertNotIn("phải trên", ly_do)
+
+    def test_co_nho_canh_dai_1536_khong_phong_to(self):
+        self.assertEqual(xu_ly.co_nho(2000, 3000), (1024, 1536))
+        self.assertEqual(xu_ly.co_nho(3000, 1000), (1536, 512))
+        self.assertEqual(xu_ly.co_nho(500, 600), (500, 600))
+        self.assertEqual(xu_ly.co_nho(500, 600, 0.5), (250, 300))
+
+
 class LenhNenTest(unittest.TestCase):
     def test_anh_lon_phu_va_cat_giua_dung_full_hd(self):
         loc, ra, thieu = xu_ly.loc_nen(2400, 1350, 1920, 1080)
@@ -210,6 +231,7 @@ class RunGia:
     def __init__(self, kich_thuoc: dict, alpha=None):
         self.kich_thuoc = kich_thuoc  # tên file gốc -> (rộng, cao)
         self.alpha = alpha or {}      # tên file gốc -> bytes alpha
+        self.hong: set = set()        # tên file gốc mà FFmpeg "không đọc được"
         self.lenh = []
 
     def __call__(self, cmd, **kw):
@@ -218,8 +240,15 @@ class RunGia:
         if cmd[0] == "ffprobe":
             w, h = self.kich_thuoc[vao.name]
             return subprocess.CompletedProcess(cmd, 0, f"{w}x{h}\n", "")
+        if "rawvideo" in cmd and "rgba" in cmd:  # ảnh gốc RGBA: nền xanh đục (chưa trong suốt)
+            if vao.name in self.hong:
+                return subprocess.CompletedProcess(cmd, 1, b"", b"Invalid data found")
+            w, h = self.kich_thuoc[vao.name]
+            return subprocess.CompletedProcess(cmd, 0, bytes([0, 255, 0, 255]) * (w * h), b"")
         if "rawvideo" in cmd:
             return subprocess.CompletedProcess(cmd, 0, self.alpha[vao.name], b"")
+        if vao.name in self.hong:
+            return subprocess.CompletedProcess(cmd, 1, "", "Invalid data found")
         ra = Path(cmd[-1])
         if ra.suffix == ".png":
             png(ra, 4, 4, kieu=6)
@@ -327,6 +356,66 @@ class NhanTest(unittest.TestCase):
         self.assertEqual(caught.exception.step, "tach-nen")
         self.assertIn("goc/tu-the-chao.png", caught.exception.message)
         self.assertIn("#00FF00", caught.exception.fix)
+
+    def test_loi_mot_muc_van_ghi_nguon_muc_xong_va_xoa_dau_ra_cu(self):
+        ai = self.thu_muc / "anh" / "ai"
+        anh_ai.chay_nhan(self.thu_muc, [], mo_hinh="Cũ", run=self.dat_du(), which=_co_ffmpeg)
+        self.assertTrue((ai / "tu-the-chao.png").is_file())
+        run = self.dat_du()
+        run.alpha["tu-the-chao.png"] = bytes(_alpha(100, 200, (0, 0, 100, 200)))
+        with self.assertRaises(xu_ly.XuLyError) as caught:
+            anh_ai.chay_nhan(self.thu_muc, [], mo_hinh="Mới", run=run, which=_co_ffmpeg)
+        self.assertEqual(caught.exception.step, "tach-nen")
+        self.assertFalse((ai / "tu-the-chao.png").exists())  # không dùng nhầm ảnh cũ
+        nguon = {m["file"]: m["mo_hinh"] for m in json.loads((ai / "nguon.json").read_text(encoding="utf-8"))}
+        self.assertNotIn("tu-the-chao.png", nguon)
+        self.assertEqual(nguon["nen-3.jpg"], "Mới")  # mục sau mục lỗi vẫn được nhận và ghi nguồn
+        self.assertEqual(nguon["tu-the-dung.png"], "Mới")
+
+    def test_loi_ffmpeg_dung_lai_nhung_ghi_nguon_da_xong(self):
+        ai = self.thu_muc / "anh" / "ai"
+        anh_ai.chay_nhan(self.thu_muc, [], mo_hinh="Cũ", run=self.dat_du(), which=_co_ffmpeg)
+        run = self.dat_du()
+        run.hong.add("nen-1.jpg")
+        with self.assertRaises(xu_ly.XuLyError) as caught:
+            anh_ai.chay_nhan(self.thu_muc, [], mo_hinh="Mới", run=run, which=_co_ffmpeg)
+        self.assertEqual(caught.exception.step, "ffmpeg")
+        self.assertFalse((ai / "nen-1.jpg").exists())
+        nguon = {m["file"]: m["mo_hinh"] for m in json.loads((ai / "nguon.json").read_text(encoding="utf-8"))}
+        self.assertNotIn("nen-1.jpg", nguon)
+        self.assertEqual(nguon["tu-the-giai-thich.png"], "Mới")  # xong trước mục lỗi
+        self.assertEqual(nguon["nen-3.jpg"], "Cũ")  # chưa tới lượt: giữ bản ghi và file cũ
+        self.assertTrue((ai / "nen-3.jpg").is_file())
+
+    def test_nguon_cu_hong_thi_cat_va_canh_bao(self):
+        ai = self.thu_muc / "anh" / "ai"
+        for cu in ("{hỏng", '{"items": []}'):
+            with self.subTest(cu=cu):
+                (ai / "nguon.json").write_text(cu, encoding="utf-8")
+                warnings: list = []
+                anh_ai.chay_nhan(self.thu_muc, warnings, run=self.dat_du(), which=_co_ffmpeg)
+                self.assertTrue(any("nguon.hong.json" in w for w in warnings), warnings)
+                self.assertEqual((ai / "nguon.hong.json").read_text(encoding="utf-8"), cu)
+                self.assertEqual(len(json.loads((ai / "nguon.json").read_text(encoding="utf-8"))), 6)
+
+    def test_ke_hoach_muc_sai_la_loi_input(self):
+        duong_dan = self.thu_muc / "anh" / "ai" / "ke-hoach.json"
+        for sua in ({"file": None}, {"loai": "khac"}, {"canh": []}, {"prompt": 3}, {"file": "../x.png"}):
+            with self.subTest(sua=sua):
+                ke = json.loads(json.dumps(self.ke_hoach))
+                nen = next(m for m in ke["muc"] if m["loai"] == "nen")
+                nen.update(sua)
+                duong_dan.write_text(json.dumps(ke), encoding="utf-8")
+                with self.assertRaises(xu_ly.XuLyError) as caught:
+                    anh_ai.chay_nhan(self.thu_muc, [], run=self.dat_du(), which=_co_ffmpeg)
+                self.assertEqual(caught.exception.step, "input")
+                self.assertIn("ke-hoach", caught.exception.fix)
+        ke = json.loads(json.dumps(self.ke_hoach))
+        del ke["muc"][0]["prompt"]
+        duong_dan.write_text(json.dumps(ke), encoding="utf-8")
+        with self.assertRaises(xu_ly.XuLyError) as caught:
+            anh_ai.chay_nhan(self.thu_muc, [], run=self.dat_du(), which=_co_ffmpeg)
+        self.assertIn("mục thứ 1", caught.exception.message)
 
     def test_chua_co_ke_hoach(self):
         (self.thu_muc / "anh" / "ai" / "ke-hoach.json").unlink()

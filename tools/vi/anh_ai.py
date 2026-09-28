@@ -28,6 +28,7 @@ FIX_INTERNAL = "Lỗi ngoài dự kiến; dán nguyên thông báo này cho ngư
 KE_HOACH_TEN = "ke-hoach.json"
 KHONG_AI = "Video không dùng ảnh AI."
 NGUON_TEN = "nguon.json"
+NGUON_HONG = "nguon.hong.json"
 CONG_CU_MAC_DINH = "công cụ vẽ của nền tảng"
 MO_HINH_MAC_DINH = "AI"
 FIX_KE_HOACH = "Chạy `python tools/vi/anh_ai.py <thư_mục> ke-hoach` trước, vẽ ảnh theo kế hoạch, rồi chạy lại `nhan`."
@@ -129,6 +130,17 @@ def chay_ke_hoach(thu_muc: Path, warnings: list) -> dict:
     return {"files": [file_tuong_doi], "so_anh": len(muc), "ke_hoach": file_tuong_doi}
 
 
+_LOAI_MUC = ("nen", "nhan-vat-mau", "tu-the")
+
+
+def _muc_hop_le(muc) -> bool:
+    return (isinstance(muc, dict) and isinstance(muc.get("file"), str) and muc["file"]
+            and "/" not in muc["file"] and "\\" not in muc["file"] and ".." not in muc["file"]
+            and muc.get("loai") in _LOAI_MUC and isinstance(muc.get("prompt"), str)
+            and isinstance(muc.get("canh"), list) and all(isinstance(c, int) for c in muc["canh"])
+            and (muc["loai"] != "nen" or bool(muc["canh"])))
+
+
 def _doc_ke_hoach(thu_muc: Path) -> dict:
     duong_dan = thu_muc / "anh" / "ai" / KE_HOACH_TEN
     if not thu_muc.is_dir() or not duong_dan.is_file():
@@ -139,6 +151,10 @@ def _doc_ke_hoach(thu_muc: Path) -> dict:
             raise ValueError("sai cấu trúc")
     except (ValueError, KeyError, TypeError) as exc:
         raise xu_ly.XuLyError("input", f"`anh/ai/{KE_HOACH_TEN}` hỏng ({exc}).", FIX_KE_HOACH) from exc
+    sai = [k + 1 for k, m in enumerate(ke_hoach["muc"]) if not _muc_hop_le(m)]
+    if sai:
+        raise xu_ly.XuLyError("input", f"`anh/ai/{KE_HOACH_TEN}` hỏng: mục thứ {', '.join(map(str, sai))} thiếu hoặc sai "
+                              "`file`, `loai`, `canh` hay `prompt`.", FIX_KE_HOACH)
     return ke_hoach
 
 
@@ -149,19 +165,24 @@ def ten_dau_ra(muc: dict) -> str:
     return Path(muc["file"]).stem + ".png"
 
 
-def _ghi_nguon(thu_muc_ai: Path, moi: list) -> None:
-    """Ghi nguyên tử anh/ai/nguon.json: giữ bản ghi cũ của file khác, thay bản ghi cùng tên file."""
+def _ghi_nguon(thu_muc_ai: Path, moi: list, bo: set, warnings: list) -> None:
+    """Ghi nguyên tử anh/ai/nguon.json: giữ bản ghi cũ của file khác, thay bản ghi cùng tên file, bỏ bản ghi của các
+    file trong `bo` (lượt này hỏng, đầu ra cũ đã xoá). File cũ hỏng hoặc sai cấu trúc: cất sang `nguon.hong.json` và
+    cảnh báo, không thay im lặng."""
     duong_dan = thu_muc_ai / NGUON_TEN
     cu: list = []
     if duong_dan.is_file():
         try:
             cu = json.loads(duong_dan.read_text(encoding="utf-8-sig"))
         except ValueError:
-            cu = []
+            cu = None
         if not isinstance(cu, list):
+            os.replace(duong_dan, thu_muc_ai / NGUON_HONG)
+            warnings.append(f"`anh/ai/{NGUON_TEN}` cũ hỏng hoặc sai cấu trúc (cần danh sách); đã cất sang "
+                            f"`anh/ai/{NGUON_HONG}` và ghi lại nguồn của các ảnh nhận ở lượt này.")
             cu = []
-    ten_moi = {m["file"] for m in moi}
-    giu = [m for m in cu if not (isinstance(m, dict) and m.get("file") in ten_moi)]
+    bo = bo | {m["file"] for m in moi}
+    giu = [m for m in cu if not (isinstance(m, dict) and m.get("file") in bo)]
     tam = duong_dan.with_name(NGUON_TEN + ".tam")
     tam.write_text(json.dumps(giu + moi, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     os.replace(tam, duong_dan)
@@ -170,7 +191,9 @@ def _ghi_nguon(thu_muc_ai: Path, moi: list) -> None:
 def chay_nhan(thu_muc: Path, warnings: list, cong_cu: str | None = None, mo_hinh: str | None = None,
               run=subprocess.run, which=shutil.which, hom_nay: str | None = None) -> dict:
     """Nhận mọi ảnh trong kế hoạch từ anh/ai/goc/: nền -> anh/ai/nen-<N>.jpg, nhân vật -> anh/ai/<tên>.png trong suốt;
-    ghi nguồn vào anh/ai/nguon.json. File thiếu gộp một lỗi `thieu`; ảnh tách nền hỏng gộp một lỗi `tach-nen`."""
+    ghi nguồn vào anh/ai/nguon.json. File thiếu gộp một lỗi `thieu`; ảnh tách nền hỏng gộp một lỗi `tach-nen`.
+    Khi một mục lỗi: vẫn ghi nguồn của các mục đã xong ở lượt này, và xoá đầu ra cũ của mục lỗi (để video_ma báo
+    thiếu thay vì dùng nhầm ảnh cũ)."""
     ke_hoach = _doc_ke_hoach(thu_muc)
     thu_muc_ai = thu_muc / "anh" / "ai"
     thu_muc_goc = thu_muc_ai / "goc"
@@ -182,34 +205,40 @@ def chay_nhan(thu_muc: Path, warnings: list, cong_cu: str | None = None, mo_hinh
                               + ", ".join(f"`goc/{f}`" for f in thieu) + ".", xu_ly.FIX_THIEU)
     if not cac_muc:
         warnings.append(KHONG_AI)
-    elif which("ffmpeg") is None or which("ffprobe") is None:
+        return {"files": [], "so_anh": 0, "ke_hoach": f"anh/ai/{KE_HOACH_TEN}"}
+    if which("ffmpeg") is None or which("ffprobe") is None:
         raise xu_ly.XuLyError("ffmpeg", "Máy chưa có FFmpeg (ffmpeg, ffprobe).", xu_ly.FIX_FFMPEG)
     ngay = hom_nay or datetime.date.today().isoformat()
-    files, nguon, hong = [], [], []
+    files, nguon, hong, loi_dung = [], [], [], None
+    bo: set = set()
     for muc in cac_muc:
         ra = ten_dau_ra(muc)
         ten = f"goc/{goc[muc['file']].name}"
-        if muc["loai"] == "nen":
-            (w, h), _, thieu_diem = xu_ly.xu_ly_nen(goc[muc["file"]], thu_muc_ai / ra, ke_hoach["kho"], ten, run)
-            if thieu_diem:
-                warnings.append(f"Ảnh nền cảnh {muc['canh'][0]} nhỏ hơn Full HD ({w}x{h}).")
-        else:
-            try:
+        try:
+            if muc["loai"] == "nen":
+                (w, h), _, thieu_diem = xu_ly.xu_ly_nen(goc[muc["file"]], thu_muc_ai / ra, ke_hoach["kho"], ten, run)
+                if thieu_diem:
+                    warnings.append(f"Ảnh nền cảnh {muc['canh'][0]} nhỏ hơn Full HD ({w}x{h}).")
+            else:
                 xu_ly.xu_ly_nhan_vat(goc[muc["file"]], thu_muc_ai / ra, ten, run)
-            except xu_ly.XuLyError as exc:
-                if exc.step != "tach-nen":
-                    raise
-                hong.append(exc.message)
-                continue
+        except xu_ly.XuLyError as exc:
+            (thu_muc_ai / ra).unlink(missing_ok=True)
+            bo.add(ra)
+            if exc.step != "tach-nen":
+                loi_dung = exc
+                break
+            hong.append(exc.message)
+            continue
         files.append(f"anh/ai/{ra}")
         nguon.append({"file": ra, "cong_cu": cong_cu or CONG_CU_MAC_DINH, "mo_hinh": mo_hinh or MO_HINH_MAC_DINH,
                       "prompt": muc["prompt"], "ngay": ngay})
+    _ghi_nguon(thu_muc_ai, nguon, bo, warnings)
+    if loi_dung is not None:
+        raise loi_dung
     if hong:
         raise xu_ly.XuLyError("tach-nen", f"Tách nền không sạch {len(hong)} ảnh nhân vật: " + " ".join(hong),
                               xu_ly.FIX_TACH_NEN)
-    if cac_muc:
-        _ghi_nguon(thu_muc_ai, nguon)
-        files.append(f"anh/ai/{NGUON_TEN}")
+    files.append(f"anh/ai/{NGUON_TEN}")
     return {"files": files, "so_anh": len(nguon), "ke_hoach": f"anh/ai/{KE_HOACH_TEN}"}
 
 
