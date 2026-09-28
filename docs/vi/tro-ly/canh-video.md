@@ -10,11 +10,15 @@ Quy ước chung:
 - Không chèn địa chỉ web vào bất kỳ trường nào.
 - Bốn loại `tieu-de`, `khai-niem`, `cong-thuc`, `y-tung-y` có thêm trường tuỳ chọn `hinh` (tên một biểu tượng `tabler-outline`, ví dụ `hinh: flask`) hoặc `anh` (tên file trong `anh/`, ví dụ `anh: con-lac.jpg`); một cảnh chỉ được có một trong hai, không cả hai (có cả hai là lỗi `parse`). Cảnh có `anh` ghi thêm được `nguon` (dòng nguồn của ảnh); `nguon` mà không có `anh` là lỗi `parse`.
 - Cảnh `tieu-de` có hình: hình 180×180 được vẽ dần ở giữa phía trên, rồi tiêu đề viết bên dưới. Ba loại còn lại: hình hoặc ảnh nằm ở cột phải, chữ thu hẹp về bên trái; giới hạn ký tự giữ nguyên, chữ dài thì cỡ chữ nhỏ lại một chút và công cụ vẫn bắt lỗi tràn khung.
-- Ba loại `tieu-de`, `khai-niem`, `y-tung-y` (và cảnh `ke-chuyen`, mục "Kể chuyện") có thêm trường tuỳ chọn `tu-the` (tư thế của nhân vật dẫn chuyện, cần khoá đầu `nhan-vat: nguoi-que` hoặc `nhan-vat: ve: <mô tả>`): một trong mười tên `dung`, `chao`, `chi-tay`, `giai-thich`, `suy-nghi`, `ngac-nhien`, `vo-dau`, `dung-lai`, `an-mung`, `buon`. Nhân vật đứng ở cột phải (khổ dọc: khối dưới nội dung), quay mặt về phía chữ, nên cảnh có `tu-the` không có `hinh` hay `anh`. `tu-the` khi `nhan-vat: khong`, cùng `hinh`/`anh`, hay tên sai (kể cả tên tiếng Anh, thiếu dấu gạch) là lỗi `parse`; lỗi gợi ý tối đa 3 tên đúng. Màu áo người que theo khoá đầu `mau-ao`.
+- Ba loại `tieu-de`, `khai-niem`, `y-tung-y` (và cảnh `ke-chuyen`, mục "Kể chuyện") có thêm trường tuỳ chọn `tu-the` (tư thế của nhân vật dẫn chuyện, cần khoá đầu `nhan-vat: nguoi-que` hoặc `nhan-vat: ve: <mô tả>`): một trong mười tên `dung`, `chao`, `chi-tay`, `giai-thich`, `suy-nghi`, `ngac-nhien`, `vo-dau`, `dung-lai`, `an-mung`, `buon`. Nhân vật đứng ở cột phải (khổ dọc: khối dưới nội dung), quay mặt về phía chữ, nên cảnh có `tu-the` không có `hinh` hay `anh`. `tu-the` khi `nhan-vat: khong`, cùng `hinh`/`anh`, hay tên sai (kể cả tên tiếng Anh, thiếu dấu gạch) là lỗi `parse` nêu đúng dòng; lỗi tên sai gợi ý 3 tên gần nhất rồi liệt kê đủ mười tên. Màu áo người que theo khoá đầu `mau-ao`. Bảng tư thế ở mục "Nhân vật dẫn chuyện".
+- Năm loại `tieu-de`, `khai-niem`, `cong-thuc`, `y-tung-y`, `ke-chuyen` có thêm hai trường tuỳ chọn: `the` (thẻ thông tin ba tầng `<nhãn> | <giá trị> | <chú thích>`: nhãn 24, giá trị 16, chú thích 60 ký tự, chú thích bỏ trống được; giá trị là một khối không ngắt dòng, nhận số chạy `{{…}}` nhưng không nhận dấu nhấn) và `tai-lieu` (dòng tài liệu tham khảo nhỏ ở góc phải dưới, 90 ký tự, chữ thường không định dạng; tự thêm "Nguồn: " nếu chưa ghi). `the` sai dạng (thiếu nhãn hay giá trị, hơn ba phần) là lỗi `parse`. `tai-lieu` khác `nguon`: `nguon` là nguồn của ảnh, `tai-lieu` là nguồn của nội dung. Thẻ hiện 0,3 giây sau khi mục chữ đầu tiên của cảnh viết xong; khổ ngang ở góc phải trên, khổ dọc ngay dưới tiêu đề.
 - Tên biểu tượng là tiếng Anh, không có tiền tố thư viện: tra ở mục "Bảng tra biểu tượng" cuối file. Viết `tabler-outline/flask`, `Flask` hay `flask.svg` vẫn được nhận; tên sai hay tên tiếng Việt là lỗi `canh`: lỗi nhắc tên phải là tiếng Anh, chỉ tới bảng tra, và gợi ý tối đa 5 tên (tên tiếng Việt được đối chiếu với cột khái niệm của bảng tra trước; không bao giờ gợi ý biểu tượng thương hiệu `brand-*`).
 - Ảnh thật do AI tải về `anh/` của thư mục video bằng `image_search.py` trước khi dựng: xem mục "Ảnh thật".
 - Mỗi hình được vẽ dần từng nét như bút vẽ trên bảng; bàn tay cầm bút đi theo nét và chữ đang viết, máy quay phóng vào phần đang nói rồi thu về toàn cảnh trước khi hết cảnh. Tắt được bằng khoá đầu `ban-tay`, `may-quay`, `chuyen-canh`; chữ nảy, tiếng hiệu ứng và phụ đề karaoke tắt bằng `chu-dong`, `am-thanh`, `phu-de` (xem `docs/vi/tro-ly/video-giai-thich.md`).
-- Khoá đầu mới của bản này: `chu-dong` và `am-thanh` (mặc định `co`), `phu-de` thêm giá trị `karaoke` (mặc định), `chuyen-canh` thêm bốn kiểu và `luan-phien` (mục "Chuyển cảnh"), `nhac-nen` và `nguon-nhac` cho nhạc nền. Nhạc nền đặt trong `nhac/` của video; AI tải bằng `tim_nhac.py` theo mục "Đầu ra" của `docs/vi/tro-ly/video-giai-thich.md`. Tiếng hiệu ứng gắn với cảnh tự động: tiếng bút khi viết và vẽ, "ting" khi một ý, bước, nhánh, mốc, cột hay lựa chọn hiện ra, tiếng chuyển cảnh, tích tắc và chuông ở cảnh `cau-hoi`, tiếng nhỏ khi nhấn ý; không cần ghi gì trong cảnh.
+- Khổ dọc (`kho: doc`): mọi loại cảnh có bố cục dọc; cột phải (hình, ảnh, nhân vật) thành khối dưới nội dung, hai cột của `so-sanh` xếp chồng. Vài trường có giới hạn thấp hơn khổ ngang (mục "Giới hạn theo khổ và phong cách"). Phụ đề khổ dọc luôn có khung nền.
+- Phong cách cắt dán (`phong-cach: cat-dan`): cùng các loại cảnh và trường, chỉ đổi "da": nền giấy, mảng giấy xé, chấm lưới; tiêu đề cảnh là nhãn chữ hoa trên băng dính màu; hình và ảnh dạng sticker viền trắng; chữ trượt vào và hiện dần thay cho bút viết; các lớp hiện theo thứ tự nền, hình chính, chữ và thẻ, dòng tài liệu. Font Be Vietnam Pro rộng hơn Itim nên vài trường có giới hạn thấp hơn một chút. Không ghi `ban-tay` thì không có bàn tay; không ghi `chuyen-canh` thì chuyển cảnh `xe-giay`. Phụ đề có khung nền.
+- Khoá đầu `loat: <tên loạt>` (tối đa 30 ký tự): mỗi cảnh hiện tên loạt ở góc trái trên và số cảnh "03/08" ở góc phải trên, đứng yên khi máy quay chạy và khi chuyển cảnh.
+- Khoá đầu thêm từ vi.11: `chu-dong` và `am-thanh` (mặc định `co`), `phu-de` thêm giá trị `karaoke` (mặc định), `chuyen-canh` thêm bốn kiểu và `luan-phien` (mục "Chuyển cảnh"), `nhac-nen` và `nguon-nhac` cho nhạc nền. Nhạc nền đặt trong `nhac/` của video; AI tải bằng `tim_nhac.py` theo mục "Đầu ra" của `docs/vi/tro-ly/video-giai-thich.md`. Tiếng hiệu ứng gắn với cảnh tự động: tiếng bút khi viết và vẽ, "ting" khi một ý, bước, nhánh, mốc, cột hay lựa chọn hiện ra, tiếng chuyển cảnh, tích tắc và chuông ở cảnh `cau-hoi`, tiếng nhỏ khi nhấn ý; không cần ghi gì trong cảnh.
 
 ## Nhấn ý chính và số chạy
 
@@ -65,6 +69,34 @@ Từ cảnh 2, nửa giây đầu mỗi cảnh chuyển từ khung cuối của 
 - Chỉ `lau-bang` có bàn tay trong lúc chuyển; năm kiểu kia ẩn bàn tay, bút vào sau khi chuyển xong.
 - Nên dùng `luan-phien` cho video nhiều cảnh, hoặc giữ một kiểu và dùng `chuyen:` để đánh dấu lúc sang phần mới (ví dụ `chuyen: lat-trang` trước cảnh câu hỏi).
 
+## Giới hạn theo khổ và phong cách
+
+Giới hạn ghi trong bảng của từng loại cảnh là của khổ ngang, phong cách viết tay. Khổ dọc (ô chữ hẹp 624 điểm) và phong cách cắt dán (font Be Vietnam Pro rộng hơn Itim) hạ các trường dưới đây; trường không có trong bảng giữ nguyên giới hạn ở mọi khổ và phong cách. Các số đo bằng Chromium với chữ nhiều dấu ở số dòng tối đa, nên ở đúng giới hạn chữ vẫn không tràn khung và không đè vùng phụ đề. Vượt giới hạn là lỗi `canh`; thông báo ghi rõ giới hạn nào đang áp dụng, ví dụ "(giới hạn khổ dọc, phong cách cắt dán)".
+
+| Trường | Ngang, viết tay | Ngang, cắt dán | Dọc, viết tay | Dọc, cắt dán |
+|---|---|---|---|---|
+| `tieu-de` `chu` | 90 | 88 | 90 | 90 |
+| `khai-niem` `dinh-nghia` | 220 | 220 | 132 | 127 |
+| `cong-thuc` `bieu-thuc` | 90 | 89 | 90 | 90 |
+| `cong-thuc` `giai-thich` | 60 | 59 | 51 | 45 |
+| `y-tung-y` `y` | 60 | 54 | 40 | 34 |
+| `do-thi` `truc-doc` | 40 | 40 | 40 | 38 |
+| `anh` `chu-thich` | 90 | 89 | 90 | 90 |
+| `bieu-do` `don-vi` | 12 | 12 | 12 | 10 |
+| `bieu-do` `truc-doc` | 40 | 40 | 40 | 36 |
+| `ke-chuyen` `tieu-de` | 36 | 36 | 28 | 28 |
+
+Trường hai phần:
+
+- `bieu-do` `du-lieu`: nhãn 16 ở mọi khổ; số sau `|` tối đa 10 ký tự ở khổ ngang, 8 ở khổ dọc viết tay, 7 ở khổ dọc cắt dán.
+- `dong-thoi-gian` `moc`: nhãn 12, mô tả 60; riêng khổ dọc cắt dán nhãn 10.
+
+Cảnh có thẻ hoặc dòng tài liệu (`the`, `tai-lieu`): thẻ và dòng tài liệu chiếm chỗ nên ở khổ dọc `cong-thuc` `bieu-thuc` còn 89 (viết tay) hoặc 85 (cắt dán); thông báo lỗi ghi thêm "cảnh có thẻ hoặc dòng tài liệu". Giới hạn của chính thẻ (nhãn 24, giá trị 16, chú thích 60) và dòng tài liệu (90) giống nhau ở mọi khổ và phong cách.
+
+Công thức: mỗi đoạn liền (không có khoảng trắng) trong `bieu-thuc` không bao giờ bị ngắt dòng, nên dài tối đa 66 ký tự ở khổ ngang viết tay, 55 ở khổ ngang cắt dán, 34 ở khổ dọc viết tay, 28 ở khổ dọc cắt dán. Dài hơn là lỗi `canh` "phần công thức … quá dài cho khổ này": thêm khoảng trắng quanh `=`, `+`… hoặc tách thành nhiều phần bằng ` | `.
+
+Phụ đề: tối đa 42 ký tự một dòng ở khổ ngang, 22 ký tự một dòng ở khổ dọc, hai dòng một lần hiện. Ở khổ dọc, câu dài hơn hai dòng được tách theo dấu phẩy rồi theo từ, kèm cảnh báo "câu phụ đề dài, đã tách thành … phần"; không phải lỗi, nhưng nên viết lời thành câu ngắn.
+
 ## Tiêu đề
 
 Mã loại: `tieu-de`.
@@ -78,6 +110,7 @@ Mã loại: `tieu-de`.
 | `nguon` | không | dòng nguồn của ảnh ở `anh`; chỉ ghi khi cảnh có `anh` |
 | `the` | không | thẻ thông tin `<nhãn> \| <giá trị> \| <chú thích>`: nhãn 24, giá trị 16 (nhận số chạy `{{…}}`), chú thích 60 ký tự (bỏ trống được) |
 | `tai-lieu` | không | dòng tài liệu tham khảo, 90 ký tự; tự thêm "Nguồn: " nếu chưa ghi |
+| `tu-the` | không | tư thế nhân vật dẫn chuyện (mục "Nhân vật dẫn chuyện"); không đi cùng `hinh`, `anh` |
 
 Cách hiện: chữ lớn hiện ra giữa khung, dòng phụ hiện bên dưới. Với `chu-dong: co` (mặc định) chữ lớn nảy vào từng chữ cái, không có bàn tay; với `chu-dong: khong` chữ lớn được bút viết ra như các chữ khác. Dùng cho cảnh mở đầu hoặc mở một phần mới.
 
@@ -102,6 +135,7 @@ Mã loại: `khai-niem`.
 | `nguon` | không | dòng nguồn của ảnh ở `anh`; chỉ ghi khi cảnh có `anh` |
 | `the` | không | thẻ thông tin `<nhãn> \| <giá trị> \| <chú thích>`: nhãn 24, giá trị 16 (nhận số chạy `{{…}}`), chú thích 60 ký tự (bỏ trống được) |
 | `tai-lieu` | không | dòng tài liệu tham khảo, 90 ký tự; tự thêm "Nguồn: " nếu chưa ghi |
+| `tu-the` | không | tư thế nhân vật dẫn chuyện (mục "Nhân vật dẫn chuyện"); không đi cùng `hinh`, `anh` |
 
 Cách hiện: khung được vẽ nét, thuật ngữ rồi định nghĩa được viết vào trong khung.
 
@@ -127,7 +161,7 @@ Mã loại: `cong-thuc`.
 | `the` | không | thẻ thông tin `<nhãn> \| <giá trị> \| <chú thích>`: nhãn 24, giá trị 16 (nhận số chạy `{{…}}`), chú thích 60 ký tự (bỏ trống được) |
 | `tai-lieu` | không | dòng tài liệu tham khảo, 90 ký tự; tự thêm "Nguồn: " nếu chưa ghi |
 
-Cách hiện: biểu thức được viết dần, các dòng giải thích hiện lần lượt theo từng câu của lời. Mỗi phần của biểu thức (cả biểu thức khi không tách) là một khối không bao giờ ngắt dòng giữa chừng; dòng chỉ xuống ở chỗ giữa hai phần. Phần rộng hơn khung thì chữ nhỏ dần tới 70 %; vẫn rộng thì công cụ báo lỗi `canh` "phần công thức … quá dài cho khổ này": tách thành nhiều phần bằng ` | ` hoặc rút gọn.
+Cách hiện: biểu thức được viết dần, các dòng giải thích hiện lần lượt theo từng câu của lời. Biểu thức được chia thành đoạn ở dấu ` | ` và ngay trước toán tử quan hệ (` = `, ` ≈ `…); mỗi đoạn là một khối không ngắt dòng, dòng chỉ xuống ở chỗ giữa hai đoạn. Đoạn rộng hơn khung thì chữ nhỏ dần tới 70 %; vẫn rộng thì đoạn đó xuống dòng ở khoảng trắng của nó, còn một cụm liền không có khoảng trắng thì không bao giờ bị ngắt: cụm liền dài quá giới hạn của khổ (mục "Giới hạn theo khổ và phong cách") là lỗi `canh` "phần công thức … quá dài cho khổ này": thêm khoảng trắng quanh `=`, `+`… hoặc tách thành nhiều phần bằng ` | `.
 
 Công thức hiện từng phần: tách `bieu-thuc` bằng ` | ` (gạch đứng có khoảng trắng hai bên), ví dụ `bieu-thuc: T = 2π√(l/g) | = 2π√(1/9,8) | ≈ {{2.01}} s`. Phần thứ k được viết nối tiếp trên cùng dòng khi câu thứ k của `loi` bắt đầu; dòng giải thích thứ k khi đó hiện ở câu (số phần + k). Không có ` | ` thì như cũ; `|x|` (không có khoảng trắng hai bên) vẫn là chữ thường. Phần trống, quá 4 phần, hoặc `**`, `~`, `^`, `{{…}}` mở ở phần này đóng ở phần khác là lỗi `parse`. Trong `bieu-thuc`, `==`, `((`, `__` là chữ của công thức, không phải dấu nhấn; dấu nhấn dùng được ở `giai-thich`.
 
@@ -163,6 +197,7 @@ Mã loại: `y-tung-y`.
 | `nguon` | không | dòng nguồn của ảnh ở `anh`; chỉ ghi khi cảnh có `anh` |
 | `the` | không | thẻ thông tin `<nhãn> \| <giá trị> \| <chú thích>`: nhãn 24, giá trị 16 (nhận số chạy `{{…}}`), chú thích 60 ký tự (bỏ trống được) |
 | `tai-lieu` | không | dòng tài liệu tham khảo, 90 ký tự; tự thêm "Nguồn: " nếu chưa ghi |
+| `tu-the` | không | tư thế nhân vật dẫn chuyện (mục "Nhân vật dẫn chuyện"); không đi cùng `hinh`, `anh` |
 
 Cách hiện: tiêu đề viết trước, mỗi ý được viết ra khi lời nói tới.
 
@@ -491,10 +526,23 @@ Mã loại: `ke-chuyen`.
 
 Cách hiện: nền phủ kín khung và phóng chậm suốt cảnh; nhân vật dẫn chuyện (khi có khoá đầu `nhan-vat`) bật vào ở 0,2 giây; tiêu đề lớn ở giữa phía trên vào ở 0,4 giây (`viet-tay`: chữ vàng viền đen; `cat-dan`: nhãn trên băng dính). `loi` chỉ đọc và hiện ở phụ đề, không viết lên hình. Máy quay không phóng trong cảnh này.
 
-- `nen: mau/<tên>`: một trong tám nền vẽ sẵn `giay`, `bau-troi`, `vu-tru`, `lop-hoc`, `phong-thi-nghiem`, `thanh-pho`, `dong-que`, `vong-tron`. Tên sai là lỗi `parse`, gợi ý tên gần nhất.
-- `nen: <file>`: ảnh thật trong `anh/`, cần nguồn như trường `anh` (bản ghi trong `anh/image_sources.json`); dòng nguồn hiện ở góc phải dưới.
-- `nen: ve: <mô tả>`: nền do AI vẽ, file `anh/ai/nen-<số cảnh>.jpg` (tạo bằng `tools/vi/anh_ai.py`). Video có ảnh AI hiện dòng "Hình minh hoạ tạo bằng AI (<mô hình>)" trong 4 giây cuối. Thiếu file AI thì lỗi `canh` liệt kê mọi file còn thiếu.
-- `nen: nhu-canh <số>`: dùng lại nền của một cảnh `ke-chuyen` đứng trước. Trỏ tới chính nó, cảnh sau hay cảnh không phải `ke-chuyen` là lỗi `parse`.
+Bốn dạng của `nen`:
+
+- `nen: mau/<tên>`: một trong tám nền mẫu ở bảng dưới, vẽ bằng mã nên không cần file, không cần mạng, không vướng giấy phép, dùng được trên mọi nền tảng. Vùng giữa khung luôn dịu màu để chữ và nhân vật nổi. Tên sai là lỗi `parse`, gợi ý tên gần nhất.
+- `nen: <file>`: ảnh thật trong `anh/` (`.jpg`, `.jpeg`, `.png`, `.webp`, tối đa 8 MB), cần nguồn trong `anh/image_sources.json` như ảnh thật; dòng nguồn hiện ở góc phải dưới.
+- `nen: ve: <mô tả>`: nền do AI của nền tảng vẽ theo mô tả (tối đa 200 ký tự), file `anh/ai/nen-<số cảnh>.jpg` do `tools/vi/anh_ai.py nhan` ghi (mục "Hình do AI vẽ" của `docs/vi/tro-ly/video-giai-thich.md`). Video có ảnh AI hiện dòng "Hình minh hoạ tạo bằng AI (<mô hình>)" trong 4 giây cuối. Thiếu file AI thì lỗi `canh` liệt kê mọi file còn thiếu.
+- `nen: nhu-canh <số>`: dùng lại nền của một cảnh `ke-chuyen` đứng trước (như video mẫu dùng lại một khung cảnh). Cảnh đó cũng là `nhu-canh` thì nền được lần về cảnh gốc. Trỏ tới chính nó, cảnh sau hay cảnh không phải `ke-chuyen` là lỗi `parse` nêu đúng dòng.
+
+| Nền mẫu | Hình |
+|---|---|
+| `mau/giay` | nền giấy kem có chấm lưới và mảng giấy xé, như trang cắt dán |
+| `mau/bau-troi` | trời xanh, mặt trời, mây trắng, đồi xanh và cây tròn |
+| `mau/vu-tru` | trời đêm xanh thẫm, sao sáng có quầng, chòm sao, hành tinh có vành và mặt trăng |
+| `mau/lop-hoc` | lớp học: bảng xanh trống, đồng hồ treo tường, cửa sổ, bàn có chồng sách, chậu cây |
+| `mau/phong-thi-nghiem` | phòng thí nghiệm: kệ bình, lọ dung dịch màu hai bên, bàn đá, giá ống nghiệm |
+| `mau/thanh-pho` | phố: dãy nhà cao ở hai mép, cửa sổ, vỉa hè, hàng cây, đường có vạch |
+| `mau/dong-que` | đồng quê: mặt trời, núi xa, đồng lúa, hàng tre hai bên |
+| `mau/vong-tron` | nền kem với chấm tròn và vòng tròn màu quanh mép, hợp cảnh tóm tắt hay chuyển ý |
 
 ```
 ## Cảnh 15
@@ -502,6 +550,56 @@ loai: ke-chuyen
 tieu-de: Galileo và chiếc đèn chùm
 nen: mau/lop-hoc
 loi: Năm 1583, trong nhà thờ Pisa, Galileo nhìn chiếc đèn chùm đung đưa và đếm nhịp bằng mạch đập của mình.
+```
+
+## Nhân vật dẫn chuyện
+
+Khoá đầu `nhan-vat` chọn nhân vật cho cả video:
+
+- `nhan-vat: khong` (mặc định): không có nhân vật; ghi `tu-the` hay `vi-tri` ở cảnh nào cũng là lỗi `parse`.
+- `nhan-vat: nguoi-que`: người que vẽ bằng mã (nét đen, đầu tròn trắng, áo màu theo khoá đầu `mau-ao`: `vang` mặc định, `do`, `xanh-duong`, `xanh-la`, `cam`, `tim`, `hong`, `xam`). Có sẵn trên mọi nền tảng, không cần file. Nhún thở, chớp mắt, bật vào cảnh và cử động tay theo tư thế trong 1,2 giây đầu.
+- `nhan-vat: ve: <mô tả>`: nhân vật do AI của nền tảng vẽ theo mô tả (tối đa 200 ký tự), mỗi tư thế đã dùng một ảnh `anh/ai/tu-the-<tên>.png` trong suốt (mục "Hình do AI vẽ" của `docs/vi/tro-ly/video-giai-thich.md`). Ảnh nhân vật bật vào cảnh, không lật, không xoay.
+
+Nhân vật xuất hiện ở mọi cảnh `ke-chuyen` (không ghi `tu-the` thì đứng `dung`) và ở cảnh `tieu-de`, `khai-niem`, `y-tung-y` có ghi `tu-the` (đứng ở cột phải, thay chỗ `hinh`/`anh`). Ở `ke-chuyen`, `vi-tri: trai|giua|phai` đặt chỗ đứng; không ghi thì cảnh lẻ đứng trái, cảnh chẵn đứng phải. Cùng một bộ mười tư thế cho người que và nhân vật AI, nên đổi từ người que sang nhân vật AI (hay ngược lại) chỉ là đổi khoá đầu. Chọn tư thế khớp lời của cảnh.
+
+| Tư thế | Dáng |
+|---|---|
+| `dung` | đứng thẳng, hai tay buông, mỉm cười; mặc định của cảnh kể chuyện |
+| `chao` | giơ một tay vẫy chào; hợp cảnh mở đầu |
+| `chi-tay` | duỗi một tay chỉ sang phía nội dung |
+| `giai-thich` | giơ một tay xoè lòng bàn tay như đang giảng |
+| `suy-nghi` | tay chống cằm, bóng nghĩ trên đầu; hợp khi đặt câu hỏi |
+| `ngac-nhien` | hai tay giơ gần mặt, mắt tròn, miệng há |
+| `vo-dau` | hai tay ôm đầu, giọt mồ hôi; hợp khi gặp rắc rối, nhầm lẫn |
+| `dung-lai` | một tay đưa ra trước, lòng bàn tay dựng lên ra hiệu dừng; hợp lời cảnh báo |
+| `an-mung` | hai tay giơ cao, bật nhảy mừng; hợp khi tìm ra đáp án |
+| `buon` | vai chùng, cúi đầu, giọt nước mắt |
+
+Tên tư thế viết đúng như bảng (chữ thường, không dấu, có gạch nối). Tên sai, kể cả tên tiếng Anh (`point`) hay thiếu gạch nối (`chitay`), là lỗi `parse` nêu đúng dòng: thông báo gợi ý 3 tên gần nhất rồi liệt kê đủ mười tên.
+
+```
+---
+tieu-de: Con lắc đơn
+mon: Vật lí
+lop: 11
+nhan-vat: nguoi-que
+mau-ao: cam
+---
+
+## Cảnh 1
+loai: ke-chuyen
+tieu-de: Galileo và chiếc đèn chùm
+nen: mau/lop-hoc
+tu-the: suy-nghi
+loi: Vì sao chiếc đèn chùm luôn đung đưa đều đặn như vậy?
+
+## Cảnh 2
+loai: khai-niem
+thuat-ngu: Chu kì T
+dinh-nghia: Khoảng thời gian ngắn nhất để con lắc thực hiện một dao động toàn phần.
+tu-the: giai-thich
+the: Con lắc dây 1 m | {{2.01}} s | chu kì trên Trái Đất
+loi: Chu kì là khoảng thời gian ngắn nhất để con lắc thực hiện một dao động toàn phần.
 ```
 
 ## Bảng tra biểu tượng

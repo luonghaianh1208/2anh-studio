@@ -55,6 +55,23 @@ Khi đổi phiên bản:
 3. Cập nhật `$PythonVersion`, `$PythonInstallers`, mã gói winget `Python.Python.3.12` và thư mục `Python312`/`Python312-arm64` trong `Get-UserPythonPath` nếu đổi nhánh phiên bản (ví dụ lên 3.13).
 4. Chạy lại test, rồi thử `-Action setup -Auto` trên một máy chưa có Python.
 
+## Font đóng gói của video giải thích
+
+`tools/vi/video_ma_parts/runtime/fonts/` chứa ba font, nhúng vào trang dựng dưới dạng `data:` (không tải gì từ mạng) và dùng cho phụ đề đốt bằng libass:
+
+- `Itim-Regular.ttf`: phong cách `viet-tay`, giấy phép SIL OFL 1.1 (`OFL.txt`).
+- `BeVietnamPro-Regular.ttf` (400) và `BeVietnamPro-ExtraBold.ttf` (800): phong cách `cat-dan` (từ vi.12), giấy phép SIL OFL 1.1 (`OFL-BeVietnamPro.txt`).
+
+`README.md` cùng thư mục ghi tác giả, giấy phép và nguồn tải của từng font; với Be Vietnam Pro còn ghi commit cố định của kho `google/fonts`, phiên bản font và mã SHA-256 của từng file.
+
+Khi đổi hoặc cập nhật một font:
+
+1. Tải đúng file từ kho `google/fonts` ở một commit cố định, kèm file OFL của thư mục đó; không lấy từ trang web font khác.
+2. Tính lại SHA-256 (`Get-FileHash -Algorithm SHA256`), cập nhật bảng trong `README.md` và dòng phiên bản (bảng `name`, mục 5).
+3. Chạy `python -m unittest discover -s tools/vi/tests -p "test_video_ma_phong.py"`: test đọc bảng `cmap` của font và báo lỗi nếu thiếu bất kỳ chữ tiếng Việt có dấu nào (bài học vi.10: Segoe Print thiếu 92 chữ nên Chromium trộn nét). Font thiếu chữ thì không dùng.
+4. Tên họ font trong bảng `name` phải khớp `karaoke.FONT_CAT_DAN` / `karaoke.FONT_VIET_TAY`, vì libass tìm font phụ đề theo tên họ đọc từ file; đổi font khác họ thì sửa hằng số đó và `phong.py`.
+5. Chạy lại bộ test Chromium của video (`test_video_ma_*.py`) vì độ rộng chữ đổi thì giới hạn ký tự trong `kiem.py` (đo bằng `tools/vi/tests/do_gioi_han.py`) có thể phải đo lại.
+
 ## Đánh số phiên bản
 
 Số phiên bản có dạng `<tag upstream>-vi.<n>`, ví dụ `6.3.2-vi.1`.

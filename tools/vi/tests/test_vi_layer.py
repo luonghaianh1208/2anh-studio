@@ -1574,6 +1574,7 @@ EXPLAINER_GUIDE_HEADINGS = (
     "## Câu hỏi tuỳ chọn",
     "## Tạo nhanh",
     "## Cấu trúc video.md",
+    "## Hình do AI vẽ",
     "## Đầu ra",
     "## Ghi vào brief",
 )
@@ -1909,6 +1910,130 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
         self.assertNotIn("không có nhạc nền", text)
+
+
+AI_GUIDE_HEADING = "## Hình do AI vẽ"
+SCENE_LIMITS_HEADING = "## Giới hạn theo khổ và phong cách"
+SCENE_CHARACTER_HEADING = "## Nhân vật dẫn chuyện"
+_BON_KHO = (("ngang", "viet-tay"), ("ngang", "cat-dan"), ("doc", "viet-tay"), ("doc", "cat-dan"))
+
+
+def _anh_ai_steps() -> set:
+    """Mọi `error.step` mà anh_ai.py có thể in, đọc thẳng từ mã (anh_ai.py và anh_ai_parts/)."""
+    sources = [(REPO_ROOT / "tools" / "vi" / "anh_ai.py").read_text(encoding="utf-8")]
+    sources += [p.read_text(encoding="utf-8") for p in sorted((REPO_ROOT / "tools" / "vi" / "anh_ai_parts").glob("*.py"))]
+    text = "\n".join(sources)
+    return set(re.findall(r'Error\("([a-z-]+)"', text)) | set(re.findall(r'"step": "([a-z-]+)"', text))
+
+
+class ExplainerVi12DocsTest(unittest.TestCase):
+    """Tài liệu vi.12: khổ dọc, cắt dán, nhân vật, cảnh kể chuyện, ảnh AI theo nền tảng (spec Q15)."""
+
+    def test_scene_guide_names_every_scene_type_in_code(self):
+        from video_ma_parts import parse
+
+        text = read(SCENE_GUIDE)
+        codes = re.findall(r"^Mã loại: `([a-z-]+)`\.$", text, re.M)
+        self.assertEqual(codes, list(parse.SCENE_TYPES))
+        self.assertEqual(len(parse.SCENE_TYPES), 15)
+        self.assertTrue(text.startswith("# Cảnh video giải thích: danh mục mười lăm loại cảnh\n"))
+
+    def test_scene_guide_tables_the_ten_poses_and_eight_backgrounds(self):
+        from video_ma_parts import parse
+
+        body = section(read(SCENE_GUIDE), SCENE_CHARACTER_HEADING)
+        poses = re.findall(r"^\| `([a-z-]+)` \| [^|`]*\S[^|`]* \|$", body, re.M)
+        self.assertEqual(poses, list(parse.TU_THE))
+        backgrounds = re.findall(r"^\| `mau/([a-z-]+)` \| [^|]*\S[^|]* \|$", read(SCENE_GUIDE), re.M)
+        self.assertEqual(backgrounds, list(parse.NEN_MAU))
+        for phrase in ("`nhan-vat: nguoi-que`", "`nhan-vat: ve:", "`mau-ao`", "`vi-tri`", "lỗi `parse`"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+        # Lỗi tư thế sai in 3 gợi ý rồi đủ mười tên: tài liệu nói đúng như vậy.
+        with self.assertRaises(parse.ParseError) as caught:
+            parse.parse("---\ntieu-de: T\nmon: M\nlop: 1\nnhan-vat: nguoi-que\n---\n## Cảnh 1\nloai: tieu-de\nchu: A\n"
+                        "tu-the: point\nloi: A.\n")
+        self.assertIn("Mười tư thế: " + ", ".join(parse.TU_THE), str(caught.exception))
+        self.assertIn("đủ mười tên", body)
+
+    def test_scene_guide_limit_table_matches_the_checker(self):
+        from video_ma_parts import kiem
+
+        body = section(read(SCENE_GUIDE), SCENE_LIMITS_HEADING)
+        rows = re.findall(r"^\| `([a-z-]+)` `([a-z-]+)` \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|$", body, re.M)
+        bang = [kiem.bang_gioi_han(kho, pc)[0] for kho, pc in _BON_KHO]
+        khac = {key for key in bang[0] if len({b[key] for b in bang}) > 1}
+        self.assertEqual({(loai, key) for loai, key, *_ in rows}, khac)
+        for loai, key, *so in rows:
+            with self.subTest(loai=loai, key=key):
+                self.assertEqual([int(s) for s in so], [b[(loai, key)] for b in bang])
+        for (kho, pc), toi_da in kiem.DOAN_LIEN.items():
+            with self.subTest(doan_lien=(kho, pc)):
+                self.assertIn(str(toi_da), body)
+        for phrase in ("22 ký tự", "42 ký tự", "cảnh có thẻ hoặc dòng tài liệu", "`the`", "`tai-lieu`"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_guide_asks_format_style_character_and_series_within_seven_questions(self):
+        items = numbered_items(section(read(EXPLAINER_GUIDE), "## Câu hỏi bắt buộc"))
+        self.assertTrue(1 <= len(items) <= 7, f"{len(items)} câu")
+        joined = "\n".join(items)
+        for phrase in ("ngang để chiếu lớp hay dọc để đăng TikTok/Reels", "viết tay hay cắt dán",
+                       "không, người que, hay nhân vật do AI vẽ theo mô tả", "tên loạt"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, joined)
+
+    def test_guide_example_has_a_story_scene(self):
+        from video_ma_parts import parse
+
+        body = section(read(EXPLAINER_GUIDE), "## Cấu trúc video.md")
+        videos = [parse.parse(block) for block in _KICH_BAN_RE.findall(body)]
+        self.assertTrue(any(s.loai == "ke-chuyen" for v in videos for s in v.canh))
+        self.assertTrue(any(v.meta["nhan-vat"] == "nguoi-que" for v in videos))
+
+    def test_guide_ai_section_covers_both_platform_paths(self):
+        body = section(read(EXPLAINER_GUIDE), AI_GUIDE_HEADING)
+        for phrase in ("anh_ai.py ke-hoach", "anh_ai.py nhan", "--xem-truoc", "Claude Code", "nguoi-que", "Antigravity",
+                       "Codex", "--cong-cu", "--mo-hinh", "anh/ai/goc/", "anh/ai/ke-hoach.json", "anh/ai/nguon.json",
+                       "nhan-vat-mau.png", "#00FF00", "nen: mau/", "không có chữ", "nguon.json", "3–4 ảnh"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_ai_error_steps_in_docs_match_the_tool(self):
+        steps = _anh_ai_steps()
+        self.assertEqual(steps, {"input", "parse", "thieu", "tach-nen", "ffmpeg", "write", "internal"})
+        guide = section(read(EXPLAINER_GUIDE), AI_GUIDE_HEADING)
+        agents = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
+        for name, body in ((EXPLAINER_GUIDE, guide), ("AGENTS.vi.md", agents)):
+            for step in steps:
+                with self.subTest(file=name, step=step):
+                    self.assertIn(f"| `{step}` |", body)
+
+    def test_agents_vi_allows_the_platform_image_tool_and_keeps_the_bans(self):
+        body = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
+        for phrase in ("dùng công cụ tạo ảnh của chính nền tảng để vẽ ảnh trong `anh/ai/goc/` theo `ke-hoach.json`",
+                       "Hình do AI vẽ", r"python tools\vi\anh_ai.py", "không chạm `skills/`", "Không viết HTML hay ảnh cảnh bằng tay",
+                       "nguon.json", "nguoi-que"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_rule_file_carries_the_ai_image_steps(self):
+        rule = read(".agents/rules/ppt-master-vi.md")
+        self.assertLess(len(rule), ANTIGRAVITY_RULE_LIMIT)
+        body = section(rule, "## Video giải thích")
+        for phrase in ("anh_ai.py ke-hoach", "anh_ai.py nhan", "--xem-truoc", "không bao giờ nằm trong ảnh"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_changelog_and_maintenance_cover_vi12(self):
+        unreleased = section(read("CHANGELOG-VI.md"), "## Chưa phát hành")
+        for phrase in ("khổ dọc", "cắt dán", "ke-chuyen", "người que", "anh_ai.py", "loat", "Be Vietnam Pro", "Full HD"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, unreleased)
+        bao_tri = read("docs/vi/phat-trien/bao-tri.md")
+        for phrase in ("Be Vietnam Pro", "Itim", "OFL", "cmap", "SHA-256"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, bao_tri)
 
 
 if __name__ == "__main__":

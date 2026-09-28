@@ -72,13 +72,16 @@ Bài mới thuộc Bài giảng, Báo cáo – tổng kết, Hoạt động Đo�
 
 ## Video giải thích
 
-Đầu ra là video MP4 kiểu viết tay dựng từ nội dung chữ, không phải PPTX.
+Đầu ra là video MP4 (viết tay hoặc cắt dán, khổ ngang hoặc dọc) dựng từ nội dung chữ, không phải PPTX.
 
 - Đọc `docs/vi/tro-ly/video-giai-thich.md` và `docs/vi/tro-ly/canh-video.md`, hỏi một lượt, viết `video.md` trong `projects/_video/<tên>/`.
 - Chạy `tools\vi\video_ma.py <thư_mục> --plan-only`, rồi `--xem-truoc` và xem ảnh từng cảnh, rồi mới dựng thật bằng `tools\vi\video_ma.py <thư_mục>`; báo trước thầy cô là dựng mất khoảng 1,5 lần thời lượng video.
 - Không viết HTML hay ảnh cảnh bằng tay, không tự chạy FFmpeg. `error.step` là `chromium` thì hỏi thầy cô trước khi tải Chromium (150–300 MB).
 - Ảnh thật (thầy cô đồng ý): tải bằng `skills/ppt-master/scripts/image_search.py "<từ khoá>" --filename <tên>.jpg -o projects\_video\<tên>\anh` trước `--plan-only`; có ảnh thật thì bắt buộc chạy `--xem-truoc` và cho thầy cô xem ảnh trước khi dựng thật.
 - Nhạc nền (thầy cô đồng ý): tải bằng `tools\vi\tim_nhac.py "<từ khoá>" -o projects\_video\<tên>\nhac` (CC0/CC BY, nguồn tự ghi vào `nhac/nguon.json`), ghi `nhac-nen: <file>`, gửi thầy cô nghe thử trước khi dựng. `error.step` là `mang` thì kiểm mạng, chạy lại tối đa một lần. Không dùng nhạc không rõ nguồn.
+- Nền `ve:` hoặc `nhan-vat: ve:` (ảnh AI): chạy bước anh_ai.py ke-hoach (`tools\vi\anh_ai.py <thư_mục> ke-hoach`), rồi dùng công cụ tạo ảnh của Antigravity vẽ từng mục trong `anh/ai/ke-hoach.json` (nhân vật mẫu trước, tư thế kèm ảnh mẫu, nền xanh lá thuần #00FF00 không bóng), lưu đúng tên vào `anh/ai/goc/`. Được phép dùng công cụ này cho việc đó; không có công cụ tạo ảnh thì dùng `nen: mau/<tên>` và `nhan-vat: nguoi-que`.
+- Có ảnh AI thì luôn chạy bước anh_ai.py nhan (`tools\vi\anh_ai.py <thư_mục> nhan --mo-hinh "<mô hình>"`), rồi `video_ma.py --xem-truoc` và chờ thầy cô duyệt trước khi dựng thật. Không tự viết `anh/ai/nguon.json`.
+- Chữ trên video không bao giờ nằm trong ảnh: ảnh AI có chữ thì vẽ lại; tiêu đề, thẻ, phụ đề do công cụ viết.
 - Câu hỏi và đáp án của cảnh `cau-hoi` phải được thầy cô duyệt. Sau khi dựng, nhắc thầy cô nghe thử tiếng hiệu ứng và nhạc; ồn thì ghi `am-thanh: khong` hoặc bỏ `nhac-nen`.
 
 ## Các việc khác

@@ -1,6 +1,6 @@
 # Loại việc: Video giải thích dựng bằng mã
 
-File dành cho AI. Luôn đọc `docs/vi/tro-ly/quy-trinh-hoi.md` trước file này, và đọc `docs/vi/tro-ly/canh-video.md` trước khi viết cảnh. Đầu ra của loại việc này là một video MP4 kiểu viết tay (chữ và hình được viết dần ra theo lời đọc), không phải PPTX.
+File dành cho AI. Luôn đọc `docs/vi/tro-ly/quy-trinh-hoi.md` trước file này, và đọc `docs/vi/tro-ly/canh-video.md` trước khi viết cảnh. Đầu ra của loại việc này là một video MP4 kiểu viết tay (chữ và hình được viết dần ra theo lời đọc) hoặc kiểu giấy cắt dán, khổ ngang hoặc dọc, không phải PPTX.
 
 ## Khi nào dùng
 
@@ -13,7 +13,7 @@ Ví dụ câu lệnh:
 
 Khác loại việc "Video bài giảng": loại đó dựng video từ một bài giảng slide đã có. Câu lệnh chỉ có "làm video" hoặc "xuất video" (không nói rõ từ slide hay video giải thích) thì hỏi đúng một câu trước khi làm gì khác: "Thầy cô muốn làm video từ bài giảng slide đã có, hay dựng video giải thích mới từ nội dung chữ?". Trả lời slide thì dùng video-bai-giang.md; trả lời video mới thì dùng file này.
 
-Không dùng loại việc này cho video do AI sinh hình (Veo, Flow) hay gói câu lệnh cho các công cụ đó. Bản này chỉ có một phong cách `viet-tay`, khổ ngang 16:9; chưa có kiểu Vox, chưa có khổ dọc, không chèn video tư liệu. Nhạc nền chỉ dùng file có giấy phép mở (AI tải bằng `tim_nhac.py`) hoặc file thầy cô đưa kèm nguồn. Ảnh thật thì chèn được (ảnh tĩnh có giấy phép mở hoặc ảnh thầy cô tự chụp). Chữ trong khung hình và phụ đề in dùng font Itim đóng gói sẵn, đủ mọi chữ có dấu; không cần cài font.
+Không dùng loại việc này cho video do AI sinh hình (Veo, Flow) hay gói câu lệnh cho các công cụ đó. Có hai phong cách: `viet-tay` (viết tay trên bảng) và `cat-dan` (giấy cắt dán kiểu Vox); hai khổ: ngang 16:9 và dọc 9:16 (Reels, TikTok). Cảnh `ke-chuyen` có nền tranh kín khung và một nhân vật dẫn chuyện (người que vẽ sẵn, hoặc nhân vật do công cụ vẽ ảnh của nền tảng vẽ theo mô tả, mục "Hình do AI vẽ"). Ảnh AI chỉ là ảnh tĩnh làm nền và nhân vật, không có chữ; mọi chữ trên video do công cụ viết. Không chèn video tư liệu. Nhạc nền chỉ dùng file có giấy phép mở (AI tải bằng `tim_nhac.py`) hoặc file thầy cô đưa kèm nguồn. Ảnh thật thì chèn được (ảnh tĩnh có giấy phép mở hoặc ảnh thầy cô tự chụp). Chữ trong khung hình và phụ đề in dùng font đóng gói sẵn, đủ mọi chữ có dấu: Itim ở `viet-tay`, Be Vietnam Pro ở `cat-dan`; không cần cài font.
 
 ## Câu hỏi bắt buộc
 
@@ -21,17 +21,17 @@ Không dùng loại việc này cho video do AI sinh hình (Veo, Flow) hay gói 
    Gợi ý: thầy cô dán nội dung hoặc dàn ý (vài gạch đầu dòng là đủ); em chia thành cảnh để thầy cô duyệt.
 2. Sau video, học sinh cần hiểu hoặc làm được gì? Có muốn một câu hỏi nhanh để học sinh tự nghĩ (hiện 2–4 lựa chọn, đếm ngược vài giây rồi đọc đáp án) không?
    Gợi ý: em đề xuất một câu theo yêu cầu cần đạt của bài để thầy cô sửa; có một câu hỏi nhanh ở gần cuối video, em soạn câu hỏi và đáp án để thầy cô duyệt.
-3. Video dài khoảng bao lâu?
-   Gợi ý: 2–4 phút, tức 6–10 cảnh.
+3. Video dài khoảng bao lâu, khổ ngang để chiếu lớp hay dọc để đăng TikTok/Reels? Video có thuộc một loạt bài không, tên loạt là gì?
+   Gợi ý: 2–4 phút, tức 6–10 cảnh; khổ ngang. Có tên loạt thì mỗi cảnh hiện tên loạt ở góc trái trên và số cảnh "03/08" ở góc phải trên; không thì bỏ qua.
 4. Giọng đọc nam hay nữ, tốc độ chậm, vừa hay nhanh? Thầy cô có file giọng thu sẵn cho từng cảnh không?
    Gợi ý: giọng nữ, tốc độ vừa, dùng giọng máy (cần mạng khi dựng).
-5. Có muốn chèn một cảnh thí nghiệm ảo không? Có sẵn 8 mẫu: con lắc đơn, ném xiên, mạch điện nối tiếp và song song (Vật lí); chuẩn độ acid – base, cân bằng N~2~O~4~ ⇌ 2NO~2~, tốc độ phản ứng (Hoá học); khảo sát hàm số, xác suất thực nghiệm (Toán).
+5. Phong cách viết tay hay cắt dán? Có nhân vật dẫn chuyện không: không, người que, hay nhân vật do AI vẽ theo mô tả?
+   Gợi ý: viết tay (chữ và hình được bút viết dần, hợp bài giảng trên lớp); cắt dán (giấy màu, băng dính, chữ trượt vào, kiểu Vox) hợp video ngắn đăng mạng. Nhân vật: không; muốn có thì người que (có sẵn, đổi được màu áo), đứng cạnh chữ và trong các cảnh kể chuyện có nền tranh. Nhân vật do AI vẽ chỉ làm được khi nền tảng có công cụ vẽ ảnh (Antigravity, Codex): thầy cô tả nhân vật trong một câu, em cho thầy cô xem từng cảnh trước khi dựng.
+6. Có muốn chèn một cảnh thí nghiệm ảo không? Có sẵn 8 mẫu: con lắc đơn, ném xiên, mạch điện nối tiếp và song song (Vật lí); chuẩn độ acid – base, cân bằng N~2~O~4~ ⇌ 2NO~2~, tốc độ phản ứng (Hoá học); khảo sát hàm số, xác suất thực nghiệm (Toán).
    Có muốn thêm ảnh chụp thật (sự vật, địa danh, nhân vật có thật) không?
    Gợi ý: thí nghiệm có, nếu bài trùng một mẫu; ảnh thật có, 1–2 ảnh khi bài nói về sự vật có thật (em tải ảnh có giấy phép mở và cho thầy cô xem trước khi dựng). Hình vẽ nét, biểu đồ, sơ đồ tư duy, dòng thời gian và chỗ nhấn ý chính em tự chọn theo bài, không cần hỏi.
-6. Phụ đề in lên hình (chữ tô vàng dần theo giọng đọc), để thành file riêng, hay không cần phụ đề?
-   Gợi ý: in lên hình, tô vàng theo giọng đọc.
-7. Có muốn tiếng hiệu ứng nhỏ (tiếng bút viết, tiếng "ting" khi ý hiện, tích tắc khi đếm ngược) và nhạc nền nhẹ không?
-   Gợi ý: tiếng hiệu ứng có (luôn nhỏ hơn giọng đọc, tắt được); nhạc nền không, trừ khi thầy cô muốn: khi đó em tìm một bản nhạc giấy phép mở (cần mạng), ghi tên tác giả ở cuối video và gửi thầy cô nghe thử trước khi dựng, hoặc dùng file nhạc thầy cô gửi kèm nguồn.
+7. Phụ đề in lên hình (chữ tô vàng dần theo giọng đọc), để thành file riêng, hay không cần phụ đề? Có muốn tiếng hiệu ứng nhỏ (tiếng bút viết, tiếng "ting" khi ý hiện, tích tắc khi đếm ngược) và nhạc nền nhẹ không?
+   Gợi ý: phụ đề in lên hình, tô vàng theo giọng đọc (cắt dán và khổ dọc có khung nền tối cho dễ đọc). Tiếng hiệu ứng có (luôn nhỏ hơn giọng đọc, tắt được); nhạc nền không, trừ khi thầy cô muốn: khi đó em tìm một bản nhạc giấy phép mở (cần mạng), ghi tên tác giả ở cuối video và gửi thầy cô nghe thử trước khi dựng, hoặc dùng file nhạc thầy cô gửi kèm nguồn.
 
 ## Câu hỏi tuỳ chọn
 
@@ -44,7 +44,7 @@ Không dùng loại việc này cho video do AI sinh hình (Veo, Flow) hay gói 
 1. Môn, lớp, tên bài và nội dung cần giải thích (câu hỏi bắt buộc 1).
 2. Video dài khoảng bao lâu (câu hỏi bắt buộc 3).
 
-Tạo nhanh vẫn ghi brief; các câu không hỏi thì dùng gợi ý và ghi kèm "(AI đề xuất, chưa duyệt)". Riêng ảnh thật và nhạc nền: tạo nhanh không tải ảnh hay nhạc trừ khi thầy cô tự yêu cầu trong câu lệnh, vì cả hai cần thầy cô xem hoặc nghe trước; hình vẽ nét, dấu nhấn, biểu đồ, câu hỏi nhanh và tiếng hiệu ứng vẫn dùng như thường.
+Tạo nhanh vẫn ghi brief; các câu không hỏi thì dùng gợi ý và ghi kèm "(AI đề xuất, chưa duyệt)". Riêng ảnh thật, ảnh AI và nhạc nền: tạo nhanh không tải ảnh, không vẽ ảnh AI và không tải nhạc trừ khi thầy cô tự yêu cầu trong câu lệnh, vì cả ba cần thầy cô xem hoặc nghe trước; cần nhân vật hay nền tranh mà thầy cô không yêu cầu ảnh AI thì dùng `nhan-vat: nguoi-que` và `nen: mau/<tên>`. Hình vẽ nét, dấu nhấn, biểu đồ, câu hỏi nhanh và tiếng hiệu ứng vẫn dùng như thường.
 
 ## Cấu trúc video.md
 
@@ -84,7 +84,7 @@ Mỗi cảnh:
 - Các trường của loại cảnh đó, mỗi dòng dạng `khoá: giá trị`. Trường lặp (ví dụ `y:`, `buoc:`) thì viết nhiều dòng cùng khoá.
 - Dòng `chuyen:` tuỳ chọn, từ cảnh 2: kiểu chuyển cảnh riêng của cảnh đó, ghi đè khoá đầu `chuyen-canh`.
 
-Giới hạn chữ (đếm ký tự hiện ra, không tính dấu quy ước và dấu nhấn): tiêu đề cảnh tối đa 90; `khai-niem` thuật ngữ 60, định nghĩa 220; `cong-thuc` biểu thức 90, mỗi giải thích 60; mỗi ý của `y-tung-y` và `so-sanh` 60; mỗi bước của `quy-trinh` 50; tên cột `trai`, `phai` 24; tên trục 40; `bieu-do` nhãn 16; `so-do` trung tâm 30, mỗi nhánh 40; `dong-thoi-gian` nhãn mốc 12, mô tả 60; `cau-hoi` câu hỏi 160, mỗi lựa chọn 60, giải thích 180. Vượt giới hạn là lỗi `canh`. Lời (hoặc lời giải) dài quá 700 ký tự chỉ bị cảnh báo, nhưng nên tách cảnh.
+Giới hạn chữ (đếm ký tự hiện ra, không tính dấu quy ước và dấu nhấn), ở khổ ngang viết tay: tiêu đề cảnh tối đa 90; `khai-niem` thuật ngữ 60, định nghĩa 220; `cong-thuc` biểu thức 90, mỗi giải thích 60; mỗi ý của `y-tung-y` và `so-sanh` 60; mỗi bước của `quy-trinh` 50; tên cột `trai`, `phai` 24; tên trục 40; `bieu-do` nhãn 16; `so-do` trung tâm 30, mỗi nhánh 40; `dong-thoi-gian` nhãn mốc 12, mô tả 60; `cau-hoi` câu hỏi 160, mỗi lựa chọn 60, giải thích 180; tiêu đề `ke-chuyen` 36. Khổ dọc và phong cách cắt dán hạ một số trường (khổ dọc: định nghĩa 132, mỗi ý của `y-tung-y` 40, tiêu đề `ke-chuyen` 28…); bảng đủ ở mục "Giới hạn theo khổ và phong cách" của `docs/vi/tro-ly/canh-video.md`. Thẻ `the`: nhãn 24, giá trị 16, chú thích 60; dòng `tai-lieu` 90. Vượt giới hạn là lỗi `canh`, thông báo nêu giới hạn đang áp dụng. Lời (hoặc lời giải) dài quá 700 ký tự chỉ bị cảnh báo, nhưng nên tách cảnh.
 
 Quy ước chữ: `H~2~SO~4~` cho chỉ số dưới, `m/s^2^` cho chỉ số trên, `**in đậm**`. Không chèn địa chỉ web vào file: công cụ báo lỗi `parse`.
 
@@ -99,12 +99,15 @@ Cách chia bài thành cảnh:
 - Chọn cảnh theo nội dung: số liệu so sánh dùng `bieu-do`; tóm tắt cuối bài dùng `so-do`; tiến trình lịch sử hay các giai đoạn dùng `dong-thoi-gian`; công thức cần thay số dùng `cong-thuc` hiện từng phần; một `cau-hoi` ở gần cuối video, sau phần tóm tắt.
 - Mỗi cảnh nhấn 1–2 ý chính bằng `==`, `((`, `__` và dùng `{{số}}` cho con số cần nhớ; nhấn quá nhiều thì học sinh không còn biết ý nào quan trọng.
 - Video từ 6 cảnh nên dùng `chuyen-canh: luan-phien` cho đỡ lặp; hoặc giữ một kiểu và đặt `chuyen:` riêng ở cảnh mở một phần mới.
+- Cảnh `ke-chuyen` "nói bằng hình": một tiêu đề ngắn là kết luận của cảnh, nền tranh kín khung và nhân vật dẫn chuyện; lời chỉ hiện ở phụ đề. Hợp với cảnh mở đầu, cảnh đặt vấn đề, cảnh kể một tình huống; xen kẽ với các cảnh có chữ và hình. Chọn tư thế khớp nội dung lời (`suy-nghi` khi đặt câu hỏi, `vo-dau` khi gặp rắc rối, `an-mung` khi tìm ra đáp án); bảng tư thế ở mục "Nhân vật dẫn chuyện" của `docs/vi/tro-ly/canh-video.md`.
+- Khổ dọc: phụ đề tối đa 22 ký tự một dòng, hai dòng một lần hiện (khổ ngang 42 ký tự); câu dài hơn bị tách theo dấu phẩy rồi theo từ, kèm cảnh báo. Viết lời thành câu ngắn, có dấu phẩy ở chỗ ngắt tự nhiên.
 
 Hình và ảnh:
 
 - Video nên có hình, không chỉ có chữ: khoảng một nửa số cảnh có `hinh:` hoặc `anh:`, và có ít nhất một cảnh `minh-hoa` khi bài có dụng cụ, sự vật hay các bước cụ thể. Tên biểu tượng tra ở mục "Bảng tra biểu tượng" của `docs/vi/tro-ly/canh-video.md`; chọn hình nói đúng sự vật trong lời, không chọn hình chỉ để trang trí.
 - Cảnh `minh-hoa`: hình thứ k hiện khi câu thứ k của lời bắt đầu, nên viết mỗi hình ứng với đúng một câu.
-- Ảnh thật (cảnh `anh` hoặc trường `anh:`) chỉ dùng khi thầy cô đồng ý ở câu hỏi 5. AI tải ảnh bằng `image_search.py` vào `anh/` của thư mục video (cách tải và cách ghi nguồn ở mục "Ảnh thật" của `docs/vi/tro-ly/canh-video.md`). Ảnh phải có nguồn; không có nguồn là lỗi `canh`.
+- Ảnh thật (cảnh `anh` hoặc trường `anh:`) chỉ dùng khi thầy cô đồng ý ở câu hỏi 6. AI tải ảnh bằng `image_search.py` vào `anh/` của thư mục video (cách tải và cách ghi nguồn ở mục "Ảnh thật" của `docs/vi/tro-ly/canh-video.md`). Ảnh phải có nguồn; không có nguồn là lỗi `canh`.
+- Nền của cảnh `ke-chuyen` (`nen:`): `mau/<tên>` là một trong tám nền vẽ sẵn bằng mã (không cần file, không cần mạng); tên file ảnh thật trong `anh/` (cần nguồn như ảnh thật); `ve: <mô tả>` là nền do AI vẽ (mục "Hình do AI vẽ"); `nhu-canh <số>` dùng lại nền của một cảnh `ke-chuyen` đứng trước. Nhân vật: `nhan-vat: nguoi-que` có sẵn ở mọi nền tảng; `nhan-vat: ve: <mô tả>` chỉ dùng khi nền tảng có công cụ vẽ ảnh và thầy cô đồng ý ở câu hỏi 5.
 
 Giọng thu sẵn: thầy cô đưa file MP3 thì đặt vào `giong/canh-1.mp3`, `giong/canh-2.mp3`… trong thư mục video, đúng số cảnh. Cảnh có file thì dùng file đó và không cần mạng; công cụ không bao giờ ghi đè file thầy cô đặt. File thầy cô chép đè lên giọng máy cũ vẫn được nhận là file thầy cô, kể cả khi `giong/canh-N.json` của lần trước còn đó; xoá file `.json` đó cũng không sao. Cảnh không có file thì tạo bằng giọng máy (cần mạng). File giọng thu sẵn không có mốc câu hay mốc từng từ nên các ý, dấu nhấn và phụ đề karaoke chạy theo ước lượng (có thể lệch tiếng vài trăm mili giây) và có một cảnh báo "ước lượng" cho cảnh đó. Giọng máy có mốc từng từ thật; khi không khớp được chữ với giọng, công cụ cũng chuyển sang ước lượng kèm cảnh báo. Cảnh `cau-hoi` có thêm giọng lời giải `giong/canh-N-giai.mp3`, theo cùng luật.
 
@@ -277,20 +280,103 @@ loi-giai: Đáp án B. Nitrogen chiếm khoảng bảy mươi tám phần trăm 
 loi: Khí nào chiếm tỉ lệ thể tích lớn nhất trong không khí? A, oxygen. B, nitrogen. C, carbon dioxide.
 ```
 
+Ví dụ (Giáo dục kinh tế và pháp luật, khổ dọc, cắt dán, một loạt bài, người que, hai cảnh kể chuyện dùng chung một nền mẫu, một thẻ thông tin). Không cần file ảnh nào nên dựng được trên mọi nền tảng.
+
+```
+---
+tieu-de: Vì sao in thêm tiền gây lạm phát
+mon: Giáo dục kinh tế và pháp luật
+lop: 10
+kho: doc
+phong-cach: cat-dan
+loat: Kinh tế trong 2 phút
+nhan-vat: nguoi-que
+mau-ao: xanh-duong
+---
+
+## Cảnh 1
+loai: ke-chuyen
+tieu-de: In thêm tiền có giàu hơn?
+nen: mau/thanh-pho
+tu-the: suy-nghi
+loi: Nếu in thật nhiều tiền, rồi chia cho mọi người, liệu ai cũng giàu hơn?
+
+## Cảnh 2
+loai: khai-niem
+thuat-ngu: Lạm phát
+dinh-nghia: Mức giá chung của hàng hoá tăng lên, nên cùng một số tiền mua được ít hàng hơn.
+tu-the: giai-thich
+the: Siêu lạm phát | {{1923}} | Cộng hoà Weimar (Đức)
+tai-lieu: Sách giáo khoa Giáo dục kinh tế và pháp luật 10
+loi: Lạm phát là khi mức giá chung tăng lên. Cùng một số tiền, ta mua được ít hàng hơn.
+
+## Cảnh 3
+loai: ke-chuyen
+tieu-de: Tiền nhiều, hàng không đổi
+nen: nhu-canh 1
+tu-the: vo-dau
+vi-tri: giua
+loi: Tiền trong túi nhiều lên, nhưng bánh mì vẫn vậy, nên giá bánh mì tăng.
+```
+
+## Hình do AI vẽ
+
+Chỉ làm mục này khi `video.md` có `nen: ve: <mô tả>` (nền cảnh `ke-chuyen`) hoặc `nhan-vat: ve: <mô tả>`. AI dùng công cụ vẽ ảnh có sẵn của nền tảng để vẽ ảnh tĩnh; `anh_ai.py` soạn câu lệnh thống nhất cho mọi ảnh và nhận ảnh về; `video_ma.py` chỉ đọc file, không bao giờ gọi AI hay lên mạng. Có `venv\Scripts\python.exe` ở thư mục gốc repo thì dùng nó thay cho `python`.
+
+Thứ tự: `anh_ai.py ke-hoach` → vẽ từng ảnh vào `anh/ai/goc/` → `anh_ai.py nhan` → `video_ma.py --plan-only` → `video_ma.py --xem-truoc` → thầy cô duyệt → dựng thật.
+
+| Nền tảng | Cách làm |
+|---|---|
+| Antigravity (Nano Banana Pro), ChatGPT Codex (GPT Image) và nền tảng khác có công cụ vẽ ảnh | 1. Chạy `python tools\vi\anh_ai.py projects\_video\<tên_video> ke-hoach`. 2. Đọc `anh/ai/ke-hoach.json`, dùng công cụ vẽ ảnh của mình cho từng mục, 3–4 ảnh một lượt: vẽ `nhan-vat-mau.png` trước, rồi mỗi `tu-the-<tên>.png` kèm ảnh mẫu đó làm ảnh tham chiếu, rồi các `nen-<N>.png`. 3. Lưu đúng tên `file` của mục vào `anh/ai/goc/`. 4. Chạy `python tools\vi\anh_ai.py projects\_video\<tên_video> nhan --cong-cu "<tên công cụ>" --mo-hinh "<tên mô hình>"`. 5. Chạy `--xem-truoc` (bắt buộc), mở xem từng cảnh, gửi thầy cô duyệt rồi mới dựng thật. |
+| Claude Code và nền tảng không có công cụ vẽ ảnh | Không có bước vẽ. Không viết `nen: ve:` hay `nhan-vat: ve:`: dùng `nen: mau/<tên>` (tám nền mẫu), ảnh thật trong `anh/`, và `nhan-vat: nguoi-que`. Thầy cô muốn nhân vật AI thì nói rõ cần mở bài trên Antigravity hoặc Codex. |
+
+`anh_ai.py <thư_mục> ke-hoach` đọc `video.md` và ghi `anh/ai/ke-hoach.json` gồm `phong_cach`, `kho` và danh sách `muc`; mỗi mục có `file` (tên file cần vẽ), `loai` (`nhan-vat-mau`, `tu-the` hoặc `nen`), `prompt` (câu lệnh tiếng Anh, dán nguyên văn), `kich_thuoc` (nhân vật `1024x1536`; nền `1920x1080`, khổ dọc `1080x1920`), `tham_chieu` (tư thế: `goc/nhan-vat-mau.png`; mục khác: `null`) và `canh` (các cảnh dùng ảnh đó). Thứ tự mục: nhân vật mẫu, các tư thế đã dùng, rồi các nền theo số cảnh; nền `nhu-canh` dùng lại ảnh của cảnh gốc, không có mục riêng. Chạy lại `ke-hoach` sau mỗi lần sửa `nen`, `nhan-vat`, `tu-the`, `phong-cach` hay `kho`. Video không có ảnh AI thì kế hoạch rỗng và có cảnh báo "Video không dùng ảnh AI.".
+
+Khi vẽ:
+
+- Dán nguyên văn `prompt`, không dịch, không bớt. Câu lệnh đã có câu phong cách cố định theo `phong-cach`, mô tả của thầy cô, và câu cấm chữ, số, logo, chữ ký. Ảnh có chữ thì vẽ lại: ảnh AI không có chữ; mọi chữ trên video (tiêu đề, thẻ, phụ đề) do công cụ viết nên luôn đúng dấu tiếng Việt.
+- Nhân vật mẫu và mọi tư thế vẽ toàn thân trên nền xanh lá thuần #00FF00 phủ kín ảnh, không bóng đổ, không viền, không dải tối; nhân vật không mặc hay cầm gì màu xanh lá và không chạm mép ảnh. Ảnh công cụ vẽ đã trong suốt sẵn (bốn góc trong suốt) cũng được nhận nguyên.
+- Không phóng to ảnh nhỏ để giả kích thước. Lưu ảnh gốc, không tự cắt hay sửa.
+- Đuôi `.png`, `.jpg`, `.jpeg` hay `.webp` đều được, miễn đúng tên trước dấu chấm.
+
+`anh_ai.py <thư_mục> nhan` kiểm đủ mọi file trong kế hoạch rồi xử lý bằng FFmpeg:
+
+- Nền: cắt phủ về đúng khổ xuất (1920×1080 hoặc 1080×1920), lưu `anh/ai/nen-<N>.jpg` (N là cảnh đầu tiên dùng nền đó), dưới 8 MB. Ảnh nhỏ hơn khổ xuất không bị phóng to, chỉ cắt đúng tỉ lệ, kèm cảnh báo "Ảnh nền cảnh N nhỏ hơn Full HD (<rộng>x<cao>)." nêu kích thước ảnh gốc; muốn nét hơn thì vẽ lại ở `kich_thuoc`.
+- Nhân vật: tách nền xanh, kiểm bốn góc phải trong suốt và phần nhân vật chiếm 5–70 % ảnh, cắt sát, lưu `anh/ai/nhan-vat-mau.png` và `anh/ai/tu-the-<tên>.png` (PNG trong suốt).
+- Ghi nguồn từng ảnh vào `anh/ai/nguon.json` (công cụ, mô hình, câu lệnh, ngày). Luôn ghi `--mo-hinh` (ví dụ `--mo-hinh "Nano Banana Pro"` hay `--mo-hinh "GPT Image"`) và `--cong-cu`: cuối video hiện dòng "Hình minh hoạ tạo bằng AI (<mô hình>)" trong 4 giây cuối; không ghi thì dòng đó chỉ là "(AI)".
+- Đọc dòng JSON: `ready`, `files`, `so_anh`, `ke_hoach`, `warnings`, `error`. Mục nào lỗi thì đầu ra cũ của mục đó bị xoá; các mục đã xong vẫn được ghi nguồn.
+
+| `error.step` | Xử lý |
+|---|---|
+| `input` | Chưa có thư mục hoặc `video.md` (`ke-hoach`), chưa có hoặc hỏng `anh/ai/ke-hoach.json` (`nhan`), hoặc sai tham số lệnh: chạy `ke-hoach` trước, rồi chạy lại. |
+| `parse` | Sửa đúng dòng `error.message` nêu trong `video.md` rồi chạy lại. |
+| `thieu` | `error.message` liệt kê mọi ảnh còn thiếu trong `anh/ai/goc/`: vẽ đủ theo `ke-hoach.json`, lưu đúng tên, rồi chạy lại. Nền tảng không vẽ được thì đổi sang `nen: mau/...` và `nhan-vat: nguoi-que`. |
+| `tach-nen` | Ảnh nhân vật tách nền không sạch; `error.message` nêu từng ảnh và lý do: góc còn đục vì nền không phải xanh thuần #00FF00 (kèm màu đo được), góc còn bóng hoặc viền, phần nhân vật quá ít hay quá nhiều. Vẽ lại đúng ảnh đó trên nền #00FF00 thuần, không bóng, rồi chạy lại `nhan`. |
+| `ffmpeg` | Máy chưa có FFmpeg: cài theo mục "Công cụ tuỳ chọn" của `docs/vi/cai-dat-bang-ai.md`. FFmpeg không đọc được một ảnh (file hỏng, không phải ảnh): lưu hoặc vẽ lại ảnh đó. |
+| `write` | Không ghi được file: đóng file đang mở, kiểm ổ đĩa rồi chạy lại. |
+| `internal` | Lỗi ngoài dự kiến: dán nguyên `error.message` để báo cho người bảo trì, không tự đoán cách sửa. |
+
+Sau `nhan`, `video_ma.py --plan-only` còn báo lỗi `canh` khi thiếu ảnh AI ("thiếu N ảnh AI: …" liệt kê mọi file, cách sửa là chạy `ke-hoach`, vẽ, rồi `nhan`), khi ảnh nhân vật chưa tách nền, hoặc khi ảnh chưa có nguồn trong `anh/ai/nguon.json` (chạy `nhan`). Công cụ không bao giờ tự thay ảnh AI thiếu bằng nền mẫu hay người que.
+
+Video có ảnh AI thì `--xem-truoc` là bắt buộc: mở xem ảnh từng cảnh (nhân vật có giống nhau giữa các tư thế, có viền xanh hay chữ lạ không), gửi thầy cô các cảnh có ảnh AI, chờ thầy cô đồng ý rồi mới dựng thật. Ảnh không ưng thì vẽ lại đúng file đó trong `anh/ai/goc/`, chạy lại `nhan`.
+
+Điều cấm: không để ảnh AI có chữ; không tự viết hay sửa `anh/ai/nguon.json` (chỉ `anh_ai.py nhan` ghi); không tự cắt, tách nền hay sửa ảnh bằng cách khác; không đặt ảnh vào `anh/ai/` bằng tay, chỉ vào `anh/ai/goc/`.
+
 ## Đầu ra
 
 Thư mục của mỗi video là `projects\_video\<tên_video>\`, chứa `video.md`. Có `venv\Scripts\python.exe` ở thư mục gốc repo thì dùng nó thay cho `python` trong các lệnh dưới.
 
 1. Có ảnh thật: tải từng ảnh trước khi kiểm, bằng `python skills\ppt-master\scripts\image_search.py "<từ khoá tiếng Anh>" --filename <tên>.jpg --orientation landscape -o projects\_video\<tên_video>\anh` (ảnh cột phải dùng `--orientation portrait` hoặc `square`). Mở bản thu nhỏ `anh\.review\<tên>.jpg` xem ảnh có đúng nội dung không; sai thì tải lại với từ khoá khác. Chỉ chạy lệnh này, không sửa gì trong `skills/`.
 2. Có nhạc nền (thầy cô đồng ý ở câu hỏi 7) mà thầy cô không gửi file: tìm và tải bằng `python tools\vi\tim_nhac.py "<từ khoá tiếng Anh>" -o projects\_video\<tên_video>\nhac`, ví dụ từ khoá "calm piano", "soft acoustic guitar". Lệnh chỉ lấy bản CC0 hoặc CC BY trên Openverse, dài từ 60 giây, tải qua https, không ghi đè file đã có, và ghi tên bài, tác giả, giấy phép vào `nhac/nguon.json`. Đọc dòng JSON: `ready` là `true` thì ghi `nhac-nen: <tên trong files>` vào khối thông tin, và gửi thầy cô tên bài, tác giả, giấy phép (trong `ban`) kèm đường dẫn file để thầy cô mở nghe thử; thầy cô không ưng thì tải bản khác bằng từ khoá khác. `error.step` là `mang` thì kiểm mạng rồi chạy lại, tối đa một lần; `input` là không tìm được bản phù hợp hoặc `nhac/nguon.json` sai cấu trúc, làm theo `error.fix`; `write` là không ghi được thư mục `nhac`. Không tự sửa hay tự viết bản ghi trong `nhac/nguon.json`.
-3. Kiểm cú pháp và giới hạn: `python tools\vi\video_ma.py projects\_video\<tên_video> --plan-only`. Ảnh quá 8 MB hay thiếu nguồn, nhạc thiếu nguồn, tên biểu tượng sai là lỗi `canh`; xử lý theo mục "Ảnh thật" của `docs/vi/tro-ly/canh-video.md` hoặc chọn tên trong các tên mà lỗi gợi ý (tên biểu tượng là tiếng Anh, tra "Bảng tra biểu tượng").
-4. Dựng thử: `python tools\vi\video_ma.py projects\_video\<tên_video> --xem-truoc`. Công cụ chụp mỗi cảnh một ảnh ở trạng thái cuối cảnh vào thư mục `xem-truoc`, không tạo giọng, không ghép. Nên chạy trước khi dựng thật và mở xem từng ảnh: chữ chồng lên nhau hay tràn khung thì rút gọn nội dung hoặc chia cảnh rồi chạy lại. Video có ảnh thật thì bước này bắt buộc: gửi thầy cô xem các ảnh cảnh có ảnh thật (và nguồn ảnh) trong khung chat, chờ thầy cô đồng ý rồi mới dựng thật. Cảnh `cau-hoi` trong ảnh xem trước đã hiện đáp án; gửi thầy cô duyệt câu hỏi và đáp án.
-5. Dựng thật: `python tools\vi\video_ma.py projects\_video\<tên_video>`. Công cụ chụp 30 khung/giây bằng nhiều tiến trình Chromium song song. Thời gian dựng khoảng 1,5 lần thời lượng video trên máy 6 lõi (video 5 phút mất khoảng 7–8 phút), khoảng 2 lần trên máy 2–3 lõi (khoảng 11 phút), chưa kể tạo giọng; báo trước thầy cô một dòng.
-6. Nhắc thầy cô nghe thử video: tiếng hiệu ứng và nhạc nền có vừa tai không. Thấy ồn thì ghi `am-thanh: khong` (tắt tiếng hiệu ứng) hoặc bỏ dòng `nhac-nen` (bỏ nhạc) rồi dựng lại; giọng đã có nên dựng lại nhanh hơn.
+3. Có ảnh AI (`nen: ve:` hoặc `nhan-vat: ve:`): làm đủ các bước của mục "Hình do AI vẽ" (`anh_ai.py ke-hoach`, vẽ vào `anh/ai/goc/`, `anh_ai.py nhan`) trước khi kiểm.
+4. Kiểm cú pháp và giới hạn: `python tools\vi\video_ma.py projects\_video\<tên_video> --plan-only`. Ảnh quá 8 MB hay thiếu nguồn, nhạc thiếu nguồn, tên biểu tượng sai là lỗi `canh`; xử lý theo mục "Ảnh thật" của `docs/vi/tro-ly/canh-video.md` hoặc chọn tên trong các tên mà lỗi gợi ý (tên biểu tượng là tiếng Anh, tra "Bảng tra biểu tượng").
+5. Dựng thử: `python tools\vi\video_ma.py projects\_video\<tên_video> --xem-truoc`. Công cụ chụp mỗi cảnh một ảnh ở trạng thái cuối cảnh vào thư mục `xem-truoc`, không tạo giọng, không ghép. Nên chạy trước khi dựng thật và mở xem từng ảnh: chữ chồng lên nhau hay tràn khung thì rút gọn nội dung hoặc chia cảnh rồi chạy lại. Video có ảnh thật hoặc ảnh AI thì bước này bắt buộc: gửi thầy cô xem các ảnh cảnh có ảnh thật (và nguồn ảnh) hoặc ảnh AI trong khung chat, chờ thầy cô đồng ý rồi mới dựng thật. Cảnh `cau-hoi` trong ảnh xem trước đã hiện đáp án; gửi thầy cô duyệt câu hỏi và đáp án.
+6. Dựng thật: `python tools\vi\video_ma.py projects\_video\<tên_video>`. Công cụ chụp 30 khung/giây bằng nhiều tiến trình Chromium song song. Thời gian dựng khoảng 1,5 lần thời lượng video trên máy 6 lõi (video 5 phút mất khoảng 7–8 phút), khoảng 2 lần trên máy 2–3 lõi (khoảng 11 phút), chưa kể tạo giọng; báo trước thầy cô một dòng.
+7. Nhắc thầy cô nghe thử video: tiếng hiệu ứng và nhạc nền có vừa tai không. Thấy ồn thì ghi `am-thanh: khong` (tắt tiếng hiệu ứng) hoặc bỏ dòng `nhac-nen` (bỏ nhạc) rồi dựng lại; giọng đã có nên dựng lại nhanh hơn.
 
 Công cụ ghi vào chính thư mục đó:
 
-- `video.mp4`: video 1280×720.
+- `video.mp4`: video 1920×1080 (khổ dọc 1080×1920); `do-phan-giai: 720` thì 1280×720 (khổ dọc 720×1280).
 - `phu-de.srt`: chỉ có khi `phu-de: file`. Với `karaoke` và `hinh`, phụ đề in lên hình.
 - `giong\canh-N.mp3`: giọng từng cảnh; cảnh `cau-hoi` có thêm `giong\canh-N-giai.mp3`. Lần dựng sau, cảnh có lời không đổi dùng lại giọng cũ; chỉ cảnh bị sửa lời mới tạo giọng lại.
 
@@ -300,7 +386,7 @@ Công cụ ghi vào chính thư mục đó:
 |---|---|
 | `input` | Chưa có thư mục hoặc `video.md`, hoặc sai tham số lệnh: viết file rồi chạy lại. |
 | `parse` | Sửa đúng dòng `error.message` nêu rồi chạy lại. |
-| `canh` | Nội dung cảnh sai (chữ quá dài, tràn khung, mã mẫu hay mã tham số lạ, mốc `tham-so` vượt thời lượng cảnh, tên biểu tượng sai, ảnh thiếu, sai định dạng, quá 8 MB hoặc chưa có nguồn): rút gọn hoặc sửa cảnh đó theo `error.message`. "Cảnh 0: nhạc nền: …" là lỗi file nhạc (thiếu file trong `nhac/`, sai định dạng, hỏng, hoặc chưa có nguồn): tải lại bằng `tim_nhac.py`, hoặc thêm `nguon-nhac:` cho nhạc thầy cô gửi. |
+| `canh` | Nội dung cảnh sai (chữ quá dài, tràn khung, mã mẫu hay mã tham số lạ, mốc `tham-so` vượt thời lượng cảnh, tên biểu tượng sai, ảnh thiếu, sai định dạng, quá 8 MB hoặc chưa có nguồn, phần công thức quá dài cho khổ): rút gọn hoặc sửa cảnh đó theo `error.message` và `error.fix`. Thiếu ảnh AI, ảnh nhân vật chưa tách nền hay ảnh AI chưa có nguồn: làm theo mục "Hình do AI vẽ". "Cảnh 0: nhạc nền: …" là lỗi file nhạc (thiếu file trong `nhac/`, sai định dạng, hỏng, hoặc chưa có nguồn): tải lại bằng `tim_nhac.py`, hoặc thêm `nguon-nhac:` cho nhạc thầy cô gửi. |
 | `giong` | Không tạo được giọng máy, thường do mất mạng: kiểm mạng rồi chạy lại, tối đa một lần; hoặc đặt file giọng thầy cô đưa vào đúng file mà `error.message` nêu (`giong/canh-N.mp3`, hoặc `giong/canh-N-giai.mp3` cho lời giải của cảnh câu hỏi). |
 | `chromium` | Chưa cài Chromium: hỏi thầy cô trước (tải 150–300 MB), rồi chạy `powershell -NoProfile -ExecutionPolicy Bypass -File tools\vi\pptmaster.ps1 -Action tool -Name chromium`. |
 | `ffmpeg` | Chưa có FFmpeg: cài theo mục "Công cụ tuỳ chọn" của `docs/vi/cai-dat-bang-ai.md`. |
@@ -313,8 +399,8 @@ Không tự chạy FFmpeg, không tự ghép hay cắt video theo cách riêng. 
 ## Ghi vào brief
 
 - Loại việc: Video giải thích dựng bằng mã.
-- Thầy cô yêu cầu: môn, lớp, bài, nội dung cần giải thích, điều học sinh cần đạt, câu hỏi nhanh, độ dài, giọng, tốc độ, cảnh thí nghiệm, phụ đề, giọng thu sẵn, tiếng hiệu ứng, nhạc nền — ghi đúng lời thầy cô.
-- AI đề xuất (thầy cô đã đồng ý): danh sách cảnh (loại cảnh và ý chính của từng cảnh), hình vẽ nét và ảnh thật của từng cảnh (từ khoá tải ảnh, tác giả, giấy phép), mẫu thí nghiệm nếu có, câu hỏi nhanh và đáp án, kiểu chuyển cảnh, nhạc nền (từ khoá, tên bài, tác giả, giấy phép), và các gợi ý thầy cô chấp nhận.
+- Thầy cô yêu cầu: môn, lớp, bài, nội dung cần giải thích, điều học sinh cần đạt, câu hỏi nhanh, độ dài, khổ, tên loạt, giọng, tốc độ, phong cách, nhân vật dẫn chuyện (mô tả nếu là nhân vật AI), cảnh thí nghiệm, phụ đề, giọng thu sẵn, tiếng hiệu ứng, nhạc nền — ghi đúng lời thầy cô.
+- AI đề xuất (thầy cô đã đồng ý): danh sách cảnh (loại cảnh và ý chính của từng cảnh, tư thế nhân vật, nền của cảnh kể chuyện), hình vẽ nét và ảnh thật của từng cảnh (từ khoá tải ảnh, tác giả, giấy phép), ảnh AI (công cụ và mô hình vẽ), mẫu thí nghiệm nếu có, câu hỏi nhanh và đáp án, kiểu chuyển cảnh, nhạc nền (từ khoá, tên bài, tác giả, giấy phép), và các gợi ý thầy cô chấp nhận.
 - Loại việc này không tạo PPTX: ghi brief vào `projects/_video/<tên_video>/brief.md`; không chạy `import-sources`, không có bước xác nhận của upstream.
 - Tin nhắn hỏi vẫn kết thúc bằng dòng chốt cách xác nhận như các loại việc khác, nhưng luôn ở dạng khung chat và không mở trang web xác nhận: "Trước khi dựng, em sẽ gửi danh sách cảnh trong khung chat để thầy cô duyệt. Thầy cô đồng ý nhé?". Tạo nhanh thì bỏ bước duyệt này.
 - Viết theo mẫu `docs/vi/tro-ly/mau-brief.md`.
