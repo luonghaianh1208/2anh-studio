@@ -82,6 +82,7 @@ def canh_toi_da(gioi_han: dict | None = None, hai_phan: dict | None = None, cot:
                     + f"dap-an: C\ngiai-thich: {t('cau-hoi', 'giai-thich')}\nloi-giai: Vì vậy.\n"),
         ("cau-hoi", f"cau-hoi: {t('cau-hoi', 'cau-hoi')}\n" + "".join(f"lua-chon: {t('cau-hoi', 'lua-chon')}\n" for _ in range(3))
                     + f"dap-an: C\ngiai-thich: {t('cau-hoi', 'giai-thich')}\nloi-giai: Vì vậy.\n"),
+        ("ke-chuyen", f"tieu-de: {t('ke-chuyen', 'tieu-de')}\nnen: mau/lop-hoc\n"),
     ]
     return ds
 

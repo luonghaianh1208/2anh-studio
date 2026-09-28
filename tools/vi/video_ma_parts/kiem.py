@@ -24,6 +24,8 @@ LIMITS = {
     ("so-do", "trung-tam"): 30, ("so-do", "nhanh"): 40,
     ("dong-thoi-gian", "tieu-de"): 90,
     ("cau-hoi", "cau-hoi"): 160, ("cau-hoi", "lua-chon"): 60, ("cau-hoi", "giai-thich"): 180,
+    # Tiêu đề lớn của cảnh kể chuyện (chữ hoa, spec Q6): 36 ở khổ ngang, 28 ở khổ dọc (LIMITS_DOC).
+    ("ke-chuyen", "tieu-de"): 36,
 }
 # Trường hai phần `<nhãn> | <…>`: giới hạn của nhãn và của mô tả (None: phần sau là số, parse đã kiểm).
 LIMITS_HAI_PHAN = {("bieu-do", "du-lieu"): (16, None), ("dong-thoi-gian", "moc"): (12, 60)}
@@ -31,7 +33,8 @@ LIMITS_HAI_PHAN = {("bieu-do", "du-lieu"): (16, None), ("dong-thoi-gian", "moc")
 # tối đa, có và không có hình ở cột phụ (bảng đo ở docs/vi/phat-trien/2026-09-27-video-ma-vi12-kiem-thu.md). Không
 # lớn hơn khổ ngang. Ba trường thấp hơn khổ ngang vì cột phụ khổ dọc là khối dưới nội dung (ô nội dung chỉ cao 300).
 # Số của `du-lieu` có giới hạn riêng ở khổ dọc vì cột hẹp (khổ ngang chỉ có parse.SO_DAI).
-LIMITS_DOC = {**LIMITS, ("khai-niem", "dinh-nghia"): 132, ("cong-thuc", "giai-thich"): 51, ("y-tung-y", "y"): 40}
+LIMITS_DOC = {**LIMITS, ("khai-niem", "dinh-nghia"): 132, ("cong-thuc", "giai-thich"): 51, ("y-tung-y", "y"): 40,
+              ("ke-chuyen", "tieu-de"): 28}
 LIMITS_HAI_PHAN_DOC = {("bieu-do", "du-lieu"): (16, 8), ("dong-thoi-gian", "moc"): (12, 60)}
 # Phong cách cắt dán (`phong-cach: cat-dan`, font Be Vietnam Pro rộng hơn Itim, nhãn tiêu đề chữ hoa ExtraBold): giới hạn
 # đo bằng tools/vi/tests/do_gioi_han.py, cùng chuỗi thử và cách đo như khổ dọc (bảng đo ở file kiểm thử vi.12). Không
@@ -277,6 +280,77 @@ def _kiem_doan_lien(so: int, value: str, no: int, ten_kho: str, phong_cach: str)
                                                "bằng ` | `, rồi chạy lại.")
 
 
+FIX_AI = ("Chạy `python tools/vi/anh_ai.py <thư_mục> ke-hoach`, vẽ từng ảnh theo kế hoạch, rồi chạy "
+          "`python tools/vi/anh_ai.py <thư_mục> nhan`. Nền tảng không có công cụ vẽ thì đổi sang `nen: mau/...` "
+          "và `nhan-vat: nguoi-que`.")
+FIX_TACH_NEN = ("Chạy `python tools/vi/anh_ai.py <thư_mục> nhan` để tách nền xanh của ảnh nhân vật; vẫn lỗi thì vẽ lại "
+                "tư thế đó trên nền xanh lá thuần #00FF00.")
+# Đuôi thay thế khi tìm file AI: nền cắt khổ là JPEG nhưng PNG vẫn nhận; nhân vật cần PNG trong suốt, JPEG thì vẫn tìm
+# thấy để báo "chưa tách nền" thay vì "thiếu".
+_DUOI_AI = {".jpg": (".jpg", ".png"), ".png": (".png", ".jpg")}
+
+
+def file_ai(thu_muc: Path, ten: str):
+    """File AI `ai/<tên>` có thật trong anh/ (thử đuôi thay thế); None khi không có."""
+    goc, duoi = ten.rsplit(".", 1)
+    for d in _DUOI_AI.get("." + duoi, ("." + duoi,)):
+        if (Path(thu_muc) / "anh" / f"{goc}{d}").is_file():
+            return f"{goc}{d}"
+    return None
+
+
+def can_ai(video: Video) -> list:
+    """Mọi ảnh AI video cần, theo thứ tự cảnh, không lặp: [(số cảnh đầu tiên cần, `ai/<file>`)]. Nền `ve:` của cảnh
+    ke-chuyen (`ai/nen-<số>.jpg`; `nhu-canh` dùng lại file của cảnh gốc) và, khi `nhan-vat: ve:`, mỗi tư thế nhân vật
+    xuất hiện (`ai/tu-the-<tên>.png`)."""
+    ds: list = []
+    ve_nhan_vat = video.meta.get("nhan-vat", "").startswith("ve:")
+    for scene in video.canh:
+        if scene.nen is not None and scene.nen["kieu"] == "ai":
+            ds.append((scene.so, scene.nen["file"]))
+        tu_the = parse.tu_the_cua(scene, video.meta)
+        if ve_nhan_vat and tu_the:
+            ds.append((scene.so, f"ai/tu-the-{tu_the}.png"))
+    da: set = set()
+    return [(so, f) for so, f in ds if not (f in da or da.add(f))]
+
+
+def _kiem_ai(video: Video, thu_muc: Path) -> None:
+    thieu = [(so, f) for so, f in can_ai(video) if file_ai(thu_muc, f) is None]
+    if thieu:
+        raise CanhError(thieu[0][0], f"thiếu {len(thieu)} ảnh AI: " + ", ".join(f"`anh/{f}`" for _, f in thieu) + ".", FIX_AI)
+
+
+def nen_goc(scene: Scene) -> dict:
+    """Nền thật của cảnh ke-chuyen: `nhu-canh` giải về nền của cảnh gốc."""
+    return scene.nen.get("goc", scene.nen) if scene.nen["kieu"] == "nhu" else scene.nen
+
+
+def _kiem_nen_nhan_vat(scene: Scene, video: Video, thu_muc: Path, da_doc: dict) -> None:
+    def doc(ten: str, nguon_tay=None):
+        if ten not in da_doc:
+            da_doc[ten] = anh.doc(thu_muc, ten, nguon_tay)
+        return da_doc[ten]
+
+    if scene.nen is not None:
+        nen, no = nen_goc(scene), scene.dong_truong["nen"][0]
+        ten = nen["file"] if nen["kieu"] == "file" else (file_ai(thu_muc, nen["file"]) if nen["kieu"] == "ai" else None)
+        if ten:
+            try:
+                doc(ten)
+            except anh.AnhError as exc:
+                raise CanhError(scene.so, f"nền: {exc} (dòng {no}).") from exc
+    tu_the = parse.tu_the_cua(scene, video.meta)
+    if tu_the and video.meta.get("nhan-vat", "").startswith("ve:"):
+        ten = file_ai(thu_muc, f"ai/tu-the-{tu_the}.png")
+        try:
+            info = doc(ten)
+        except anh.AnhError as exc:
+            raise CanhError(scene.so, f"nhân vật: {exc}.", FIX_TACH_NEN) from exc
+        if not info["alpha"]:
+            raise CanhError(scene.so, f"ảnh nhân vật `anh/{ten}` chưa tách nền (không có phần trong suốt).", FIX_TACH_NEN)
+
+
 def doc_nhac(video: Video, thu_muc: Path):
     """Nhạc nền của video (`nhac.doc`), None khi không có `nhac-nen`. Lỗi là CanhError số cảnh 0, nêu dòng khoá đầu."""
     ten = video.meta.get("nhac-nen")
@@ -293,6 +367,8 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
     warnings: list = []
     if doc_nhac_nen:
         doc_nhac(video, thu_muc)
+    _kiem_ai(video, thu_muc)
+    da_doc: dict = {}
     ten_kho, phong_cach = video.meta.get("kho", "ngang"), video.meta.get("phong-cach", "viet-tay")
     for scene in video.canh:
         bang, bang_hai_phan = bang_gioi_han(ten_kho, phong_cach, co_the(scene))
@@ -325,4 +401,5 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
         if scene.loai == "thi-nghiem":
             _kiem_thi_nghiem(scene, thu_muc)
         _kiem_hinh_anh(scene, thu_muc)
+        _kiem_nen_nhan_vat(scene, video, thu_muc, da_doc)
     return warnings

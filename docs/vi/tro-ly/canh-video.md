@@ -1,4 +1,4 @@
-# Cảnh video giải thích: danh mục mười bốn loại cảnh
+# Cảnh video giải thích: danh mục mười lăm loại cảnh
 
 File dành cho AI. Đọc cùng `docs/vi/tro-ly/video-giai-thich.md`. Mỗi cảnh trong `video.md` có `loai:`, `loi:` và các trường của loại cảnh dưới đây; trường không có trong danh sách của loại cảnh là lỗi `parse`. Mọi loại cảnh có thêm trường tuỳ chọn `chuyen:` (kiểu chuyển cảnh riêng của cảnh đó, xem mục "Chuyển cảnh").
 
@@ -10,7 +10,7 @@ Quy ước chung:
 - Không chèn địa chỉ web vào bất kỳ trường nào.
 - Bốn loại `tieu-de`, `khai-niem`, `cong-thuc`, `y-tung-y` có thêm trường tuỳ chọn `hinh` (tên một biểu tượng `tabler-outline`, ví dụ `hinh: flask`) hoặc `anh` (tên file trong `anh/`, ví dụ `anh: con-lac.jpg`); một cảnh chỉ được có một trong hai, không cả hai (có cả hai là lỗi `parse`). Cảnh có `anh` ghi thêm được `nguon` (dòng nguồn của ảnh); `nguon` mà không có `anh` là lỗi `parse`.
 - Cảnh `tieu-de` có hình: hình 180×180 được vẽ dần ở giữa phía trên, rồi tiêu đề viết bên dưới. Ba loại còn lại: hình hoặc ảnh nằm ở cột phải, chữ thu hẹp về bên trái; giới hạn ký tự giữ nguyên, chữ dài thì cỡ chữ nhỏ lại một chút và công cụ vẫn bắt lỗi tràn khung.
-- Ba loại `tieu-de`, `khai-niem`, `y-tung-y` có thêm trường tuỳ chọn `tu-the` (tư thế của nhân vật dẫn chuyện, cần khoá đầu `nhan-vat: nguoi-que` hoặc `nhan-vat: ve: <mô tả>`): một trong mười tên `dung`, `chao`, `chi-tay`, `giai-thich`, `suy-nghi`, `ngac-nhien`, `vo-dau`, `dung-lai`, `an-mung`, `buon`. Nhân vật đứng ở cột phải (khổ dọc: khối dưới nội dung), quay mặt về phía chữ, nên cảnh có `tu-the` không có `hinh` hay `anh`. `tu-the` khi `nhan-vat: khong`, cùng `hinh`/`anh`, hay tên sai (kể cả tên tiếng Anh, thiếu dấu gạch) là lỗi `parse`; lỗi gợi ý tối đa 3 tên đúng. Màu áo người que theo khoá đầu `mau-ao`.
+- Ba loại `tieu-de`, `khai-niem`, `y-tung-y` (và cảnh `ke-chuyen`, mục "Kể chuyện") có thêm trường tuỳ chọn `tu-the` (tư thế của nhân vật dẫn chuyện, cần khoá đầu `nhan-vat: nguoi-que` hoặc `nhan-vat: ve: <mô tả>`): một trong mười tên `dung`, `chao`, `chi-tay`, `giai-thich`, `suy-nghi`, `ngac-nhien`, `vo-dau`, `dung-lai`, `an-mung`, `buon`. Nhân vật đứng ở cột phải (khổ dọc: khối dưới nội dung), quay mặt về phía chữ, nên cảnh có `tu-the` không có `hinh` hay `anh`. `tu-the` khi `nhan-vat: khong`, cùng `hinh`/`anh`, hay tên sai (kể cả tên tiếng Anh, thiếu dấu gạch) là lỗi `parse`; lỗi gợi ý tối đa 3 tên đúng. Màu áo người que theo khoá đầu `mau-ao`.
 - Tên biểu tượng là tiếng Anh, không có tiền tố thư viện: tra ở mục "Bảng tra biểu tượng" cuối file. Viết `tabler-outline/flask`, `Flask` hay `flask.svg` vẫn được nhận; tên sai hay tên tiếng Việt là lỗi `canh`: lỗi nhắc tên phải là tiếng Anh, chỉ tới bảng tra, và gợi ý tối đa 5 tên (tên tiếng Việt được đối chiếu với cột khái niệm của bảng tra trước; không bao giờ gợi ý biểu tượng thương hiệu `brand-*`).
 - Ảnh thật do AI tải về `anh/` của thư mục video bằng `image_search.py` trước khi dựng: xem mục "Ảnh thật".
 - Mỗi hình được vẽ dần từng nét như bút vẽ trên bảng; bàn tay cầm bút đi theo nét và chữ đang viết, máy quay phóng vào phần đang nói rồi thu về toàn cảnh trước khi hết cảnh. Tắt được bằng khoá đầu `ban-tay`, `may-quay`, `chuyen-canh`; chữ nảy, tiếng hiệu ứng và phụ đề karaoke tắt bằng `chu-dong`, `am-thanh`, `phu-de` (xem `docs/vi/tro-ly/video-giai-thich.md`).
@@ -474,6 +474,34 @@ dap-an: B
 giai-thich: T tỉ lệ với ((căn bậc hai)) của l nên l gấp bốn thì T gấp hai.
 loi-giai: Đáp án B. Chu kì tỉ lệ với căn bậc hai của chiều dài, nên chu kì tăng gấp hai.
 loi: Dây treo dài gấp bốn thì chu kì thay đổi thế nào? A, tăng gấp bốn. B, tăng gấp hai. C, không đổi.
+```
+
+## Kể chuyện
+
+Mã loại: `ke-chuyen`.
+
+| Trường | Bắt buộc | Giới hạn |
+|---|---|---|
+| `tieu-de` | có | 36 ký tự (khổ dọc 28); hiện chữ hoa |
+| `nen` | có | `mau/<tên>`, tên file ảnh trong `anh/`, `ve: <mô tả>` (tối đa 200 ký tự) hoặc `nhu-canh <số>` |
+| `tu-the` | không | tư thế nhân vật; không ghi thì nhân vật đứng (`dung`) |
+| `vi-tri` | không | `trai`, `giua` hoặc `phai`; mặc định cảnh lẻ `trai`, cảnh chẵn `phai` |
+| `the` | không | thẻ thông tin như cảnh `tieu-de` |
+| `tai-lieu` | không | dòng tài liệu như cảnh `tieu-de` |
+
+Cách hiện: nền phủ kín khung và phóng chậm suốt cảnh; nhân vật dẫn chuyện (khi có khoá đầu `nhan-vat`) bật vào ở 0,2 giây; tiêu đề lớn ở giữa phía trên vào ở 0,4 giây (`viet-tay`: chữ vàng viền đen; `cat-dan`: nhãn trên băng dính). `loi` chỉ đọc và hiện ở phụ đề, không viết lên hình. Máy quay không phóng trong cảnh này.
+
+- `nen: mau/<tên>`: một trong tám nền vẽ sẵn `giay`, `bau-troi`, `vu-tru`, `lop-hoc`, `phong-thi-nghiem`, `thanh-pho`, `dong-que`, `vong-tron`. Tên sai là lỗi `parse`, gợi ý tên gần nhất.
+- `nen: <file>`: ảnh thật trong `anh/`, cần nguồn như trường `anh` (bản ghi trong `anh/image_sources.json`); dòng nguồn hiện ở góc phải dưới.
+- `nen: ve: <mô tả>`: nền do AI vẽ, file `anh/ai/nen-<số cảnh>.jpg` (tạo bằng `tools/vi/anh_ai.py`). Video có ảnh AI hiện dòng "Hình minh hoạ tạo bằng AI (<mô hình>)" trong 4 giây cuối. Thiếu file AI thì lỗi `canh` liệt kê mọi file còn thiếu.
+- `nen: nhu-canh <số>`: dùng lại nền của một cảnh `ke-chuyen` đứng trước. Trỏ tới chính nó, cảnh sau hay cảnh không phải `ke-chuyen` là lỗi `parse`.
+
+```
+## Cảnh 15
+loai: ke-chuyen
+tieu-de: Galileo và chiếc đèn chùm
+nen: mau/lop-hoc
+loi: Năm 1583, trong nhà thờ Pisa, Galileo nhìn chiếc đèn chùm đung đưa và đếm nhịp bằng mạch đập của mình.
 ```
 
 ## Bảng tra biểu tượng

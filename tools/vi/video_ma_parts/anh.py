@@ -21,12 +21,65 @@ class AnhError(Exception):
     """Ảnh trong anh/ không đọc được, sai định dạng, quá lớn, hoặc chưa có nguồn."""
 
 
+AI = "ai/"
+DONG_AI = "Hình minh hoạ tạo bằng AI ({})"
+FIX_NGUON_AI = "chạy `python tools/vi/anh_ai.py <thư_mục> nhan`"
+
+
 def _hop_le(ten_file: str) -> bool:
+    """Tên file trần trong anh/, hoặc đúng một tiền tố `ai/` (ảnh AI vẽ, anh/ai/) trước tên file trần."""
+    if ten_file.startswith(AI):
+        ten_file = ten_file[len(AI):]
     if not ten_file or ".." in ten_file or "/" in ten_file or "\\" in ten_file:
         return False
     if re.match(r"^[a-zA-Z]:", ten_file):
         return False
     return True
+
+
+def co_alpha(du_lieu: bytes, duoi: str) -> bool:
+    """Ảnh có kênh trong suốt: PNG kiểu màu 4/6 (xám/RGB + alpha) hoặc có khối tRNS; WEBP VP8X cờ alpha hoặc VP8L.
+    JPEG không bao giờ có."""
+    if duoi == ".png":
+        if len(du_lieu) < 26:
+            return False
+        if du_lieu[25] in (4, 6):
+            return True
+        i = 8
+        while i + 8 <= len(du_lieu):
+            dai, tag = struct.unpack(">I4s", du_lieu[i:i + 8])
+            if tag == b"tRNS":
+                return True
+            if tag in (b"IDAT", b"IEND"):
+                return False
+            i += 12 + dai
+        return False
+    if duoi == ".webp":
+        fourcc = du_lieu[12:16]
+        return fourcc == b"VP8L" or (fourcc == b"VP8X" and len(du_lieu) > 20 and bool(du_lieu[20] & 0x10))
+    return False
+
+
+def _nguon_ai(thu_muc_du_an: Path, ten: str) -> dict:
+    """Bản ghi của `ten` (tên trần trong anh/ai/) trong anh/ai/nguon.json (anh_ai.py ghi:
+    [{file, cong_cu, mo_hinh, prompt, ngay}]); thiếu file, thiếu bản ghi hay thiếu mô hình là AnhError."""
+    manifest = Path(thu_muc_du_an) / "anh" / "ai" / "nguon.json"
+    thieu = f"`anh/ai/{ten}` chưa có nguồn trong `anh/ai/nguon.json`: {FIX_NGUON_AI}"
+    if not manifest.is_file():
+        raise AnhError(thieu)
+    try:
+        du_lieu = json.loads(manifest.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError) as exc:
+        raise AnhError(f"không đọc được `anh/ai/nguon.json` ({exc}): {FIX_NGUON_AI}") from exc
+    if not isinstance(du_lieu, list) or not all(isinstance(m, dict) for m in du_lieu):
+        raise AnhError(f"`anh/ai/nguon.json` sai cấu trúc: cần danh sách [{{\"file\": ..., \"mo_hinh\": ...}}]; {FIX_NGUON_AI}")
+    for muc in du_lieu:
+        if unicodedata.normalize("NFC", str(muc.get("file", ""))) == unicodedata.normalize("NFC", ten):
+            mo_hinh = _bo_dia_chi_web(muc.get("mo_hinh"))
+            if not mo_hinh:
+                raise AnhError(f"`anh/ai/nguon.json` thiếu `mo_hinh` của `{ten}`: {FIX_NGUON_AI}")
+            return {"moHinh": mo_hinh, "congCu": _bo_dia_chi_web(muc.get("cong_cu"))}
+    raise AnhError(thieu)
 
 
 def _kich_thuoc_png(du_lieu: bytes) -> tuple:
@@ -152,17 +205,21 @@ def _tim_theo_nfc(thu_muc_anh: Path, ten_file: str):
 
 
 def doc(thu_muc_du_an: Path, ten_file: str, nguon_tay: str | None) -> dict:
+    """Ảnh `anh/<ten_file>` nhúng data:. `ai/<file>`: ảnh AI vẽ trong anh/ai/, nguồn luôn lấy từ anh/ai/nguon.json
+    (bỏ qua `nguon_tay`); kết quả có thêm `ai`, `moHinh` và `alpha` (có kênh trong suốt)."""
     if not _hop_le(ten_file):
         raise AnhError(f"`{ten_file}` không hợp lệ: `anh` chỉ được là tên file nằm trong `anh/`, không phải đường dẫn.")
+    la_ai = ten_file.startswith(AI)
     duoi = Path(ten_file).suffix.lower()
     if duoi not in DINH_DANG:
         raise AnhError(f"`{ten_file}` không phải định dạng ảnh cho phép ({', '.join(DINH_DANG)})")
-    thu_muc_anh = (Path(thu_muc_du_an) / "anh").resolve()
-    duong_dan = (thu_muc_anh / ten_file).resolve()
+    thu_muc_anh = (Path(thu_muc_du_an) / "anh" / ("ai" if la_ai else "")).resolve()
+    ten = ten_file[len(AI):] if la_ai else ten_file
+    duong_dan = (thu_muc_anh / ten).resolve()
     if not duong_dan.is_relative_to(thu_muc_anh):
         raise AnhError(f"`{ten_file}` không hợp lệ: `anh` chỉ được là tên file nằm trong `anh/`, không phải đường dẫn.")
     if not duong_dan.is_file():
-        duong_dan = _tim_theo_nfc(thu_muc_anh, ten_file) or duong_dan
+        duong_dan = _tim_theo_nfc(thu_muc_anh, ten) or duong_dan
     if not duong_dan.is_file():
         raise AnhError(f"không có file `anh/{ten_file}`")
     kich_thuoc_byte = duong_dan.stat().st_size
@@ -170,9 +227,13 @@ def doc(thu_muc_du_an: Path, ten_file: str, nguon_tay: str | None) -> dict:
         raise AnhError(f"`anh/{ten_file}` nặng {kich_thuoc_byte} byte, tối đa {TOI_DA}")
     du_lieu = duong_dan.read_bytes()
     rong, cao = _kich_thuoc(duoi, du_lieu, ten_file)
+    data_url = f"data:image/{_MIME[duoi]};base64," + base64.b64encode(du_lieu).decode("ascii")
+    if la_ai:
+        ai = _nguon_ai(thu_muc_du_an, ten)
+        return {"dataUrl": data_url, "nguon": DONG_AI.format(ai["moHinh"]), "rong": rong, "cao": cao, "ai": True,
+                "moHinh": ai["moHinh"], "alpha": co_alpha(du_lieu, duoi)}
     nguon = nguon_tay.strip() if nguon_tay else _nguon_tu_manifest(thu_muc_du_an, ten_file)
     if not nguon:
         raise AnhError(f"`anh/{ten_file}` chưa có nguồn: ghi `nguon:` trong cảnh, hoặc thêm bản ghi cho "
                         f"`{ten_file}` vào `anh/image_sources.json`")
-    data_url = f"data:image/{_MIME[duoi]};base64," + base64.b64encode(du_lieu).decode("ascii")
     return {"dataUrl": data_url, "nguon": nguon, "rong": rong, "cao": cao}

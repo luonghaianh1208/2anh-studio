@@ -79,7 +79,7 @@ Hiệu ứng âm thanh do công cụ tự tạo bằng FFmpeg (không dùng file
 
 Mỗi cảnh:
 
-- Dòng `loai:` là một trong mười bốn loại cảnh ở `docs/vi/tro-ly/canh-video.md`.
+- Dòng `loai:` là một trong mười lăm loại cảnh ở `docs/vi/tro-ly/canh-video.md`.
 - Dòng `loi:` là lời đọc của cảnh, viết trên một dòng, ít nhất một câu.
 - Các trường của loại cảnh đó, mỗi dòng dạng `khoá: giá trị`. Trường lặp (ví dụ `y:`, `buoc:`) thì viết nhiều dòng cùng khoá.
 - Dòng `chuyen:` tuỳ chọn, từ cảnh 2: kiểu chuyển cảnh riêng của cảnh đó, ghi đè khoá đầu `chuyen-canh`.

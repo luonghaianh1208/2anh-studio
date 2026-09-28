@@ -8,9 +8,9 @@ import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import kho, phong
+from . import anh, kho, phong
 from .kiem import CanhError, ma_do, tham_so_theo_thoi_gian
-from .parse import Scene, phan_cong_thuc, tach_du_lieu, tach_the
+from .parse import Scene, phan_cong_thuc, tach_du_lieu, tach_the, tu_the_cua
 
 FPS = 30
 DAN_DAU = 1.0
@@ -232,9 +232,17 @@ def kieu_chuyen(scene: Scene, meta: dict):
     return None if kieu == "khong" else kieu
 
 
-def gan_nguon_nhac(du: dict, nguon: str) -> dict:
-    """Gắn dòng nguồn nhạc vào dữ liệu cảnh cuối: hiện từ `tu` (giây trong cảnh) tới hết cảnh."""
-    du["nhacNguon"] = {"chu": nguon, "tu": round(max(0.0, du["thoiLuong"] - NGUON_NHAC_GIAY), 3)}
+def dong_ai(cac_mo_hinh: list) -> str:
+    """Dòng ghi công ảnh AI (spec Q11): các mô hình theo thứ tự dùng, không lặp, cách nhau bởi dấu phẩy."""
+    return anh.DONG_AI.format(", ".join(dict.fromkeys(cac_mo_hinh)))
+
+
+def gan_dong_nguon(du: dict, cac_dong: list) -> dict:
+    """Gắn các dòng nguồn cuối video (dòng AI trước, nguồn nhạc sau; trên xuống dưới) vào dữ liệu cảnh cuối: mỗi dòng
+    hiện từ `tu` (giây trong cảnh, 4 s cuối) tới hết cảnh. Không có dòng nào thì không gắn."""
+    tu = round(max(0.0, du["thoiLuong"] - NGUON_NHAC_GIAY), 3)
+    if cac_dong:
+        du["dongNguon"] = [{"chu": chu, "tu": tu} for chu in cac_dong]
     return du
 
 
@@ -283,10 +291,20 @@ def du_lieu_canh(scene: Scene, cl: CanhLich, model=None, tai_nguyen: dict | None
         du["the"] = {"nhan": nhan, "giaTri": gia_tri, "chuThich": chu_thich}
     if "tai-lieu" in scene.truong:
         du["taiLieu"] = tai_lieu_hien(scene.truong["tai-lieu"][0])
-    # Nhân vật dẫn chuyện: chỉ cảnh có `tu-the` (parse bảo đảm `nhan-vat` khác `khong`). `anh`: nhân vật AI vẽ.
-    if "tu-the" in scene.truong:
+    # Nhân vật dẫn chuyện: cảnh có `tu-the`, và mọi cảnh ke-chuyen khi video có nhân vật (parse.tu_the_cua). `anh`:
+    # nhân vật AI vẽ, ảnh trong suốt `anh/ai/tu-the-<tên>.png` (tai_nguyen["nhanVatAnh"]).
+    tu_the = tu_the_cua(scene, meta)
+    if tu_the:
         du["nhanVat"] = {"kieu": "nguoi-que" if meta.get("nhan-vat") == "nguoi-que" else "anh",
-                         "mauAo": meta.get("mau-ao", "vang"), "tuThe": scene.truong["tu-the"][0]}
+                         "mauAo": meta.get("mau-ao", "vang"), "tuThe": tu_the}
+        if tai_nguyen.get("nhanVatAnh"):
+            du["nhanVat"]["anh"] = tai_nguyen["nhanVatAnh"]
+    # Cảnh kể chuyện: nền phủ kín khung (du.nen, tai_nguyen), nhân vật ở `vi-tri` (mặc định cảnh lẻ trái, chẵn phải),
+    # máy quay tắt (nền tự phóng chậm; tránh phóng hai lần).
+    if scene.loai == "ke-chuyen":
+        du["nen"] = tai_nguyen.get("nen")
+        du["viTri"] = scene.truong.get("vi-tri", ["phai" if scene.so % 2 == 0 else "trai"])[0]
+        du["co"]["mayQuay"] = False
     if scene.loai == "do-thi":
         du["diem"] = [[float(p) for p in v.split(",")] for v in scene.truong["diem"]]
     if scene.loai == "bieu-do":

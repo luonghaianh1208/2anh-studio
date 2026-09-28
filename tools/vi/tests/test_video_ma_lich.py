@@ -515,5 +515,53 @@ class TheTaiLieuLoatDataTest(unittest.TestCase):
         self.assertEqual([d["loat"] for d in cac], [{"ten": "Kinh tế học", "so": k, "tong": 3} for k in (1, 2, 3)])
 
 
+class KeChuyenDataTest(unittest.TestCase):
+    """Dữ liệu cảnh ke-chuyen: nền, vị trí nhân vật (mặc định lẻ trái, chẵn phải), tư thế mặc định, máy quay tắt."""
+
+    def video(self, meta_them: str = "nhan-vat: nguoi-que\n"):
+        text = (f"---\n{META}{meta_them}---\n\n"
+                "## Cảnh 1\nloai: ke-chuyen\ntieu-de: A\nnen: mau/lop-hoc\nloi: Một.\n\n"
+                "## Cảnh 2\nloai: ke-chuyen\ntieu-de: B\nnen: nhu-canh 1\ntu-the: chi-tay\nloi: Hai.\n\n"
+                "## Cảnh 3\nloai: ke-chuyen\ntieu-de: C\nnen: mau/giay\nvi-tri: giua\nloi: Ba.\n")
+        return parse.parse(text)
+
+    def cac_du(self, video):
+        plan, _ = lich.dung_lich(video.canh, [giong(2.0, [0.0]) for _ in video.canh])
+        return [lich.du_lieu_canh(c, cl, tai_nguyen={"meta": video.meta, "nen": {"kieu": "mau", "ten": "x"}})
+                for c, cl in zip(video.canh, plan)]
+
+    def test_vi_tri_tu_the_may_quay(self):
+        cac = self.cac_du(self.video())
+        self.assertEqual([d["viTri"] for d in cac], ["trai", "phai", "giua"])
+        self.assertEqual([d["nhanVat"]["tuThe"] for d in cac], ["dung", "chi-tay", "dung"])
+        self.assertEqual({d["nhanVat"]["kieu"] for d in cac}, {"nguoi-que"})
+        self.assertEqual({d["co"]["mayQuay"] for d in cac}, {False})
+        self.assertEqual(cac[0]["nen"], {"kieu": "mau", "ten": "x"})
+        self.assertEqual([d["moc"] for d in cac], [[], [], []])
+
+    def test_khong_nhan_vat(self):
+        video = parse.parse("---\n" + META + "---\n\n## Cảnh 1\nloai: ke-chuyen\ntieu-de: A\nnen: mau/giay\nloi: Một.\n")
+        du = self.cac_du(video)[0]
+        self.assertNotIn("nhanVat", du)
+        self.assertEqual(du["viTri"], "trai")
+
+    def test_canh_khac_giu_may_quay(self):
+        scene = canh_dau("loai: tieu-de\nchu: A\n", "Xin chào.")
+        plan, _ = lich.dung_lich([scene], [giong(2.0, [0.0])])
+        du = lich.du_lieu_canh(scene, plan[0], tai_nguyen={"meta": {"may-quay": "co"}})
+        self.assertTrue(du["co"]["mayQuay"])
+        self.assertNotIn("nen", du)
+        self.assertNotIn("viTri", du)
+
+    def test_gan_dong_nguon_hai_dong_cung_luc(self):
+        du = {"so": 3, "thoiLuong": 9.0}
+        lich.gan_dong_nguon(du, ["Hình minh hoạ tạo bằng AI (Imagen 4)", "Nhạc: A"])
+        self.assertEqual(du["dongNguon"], [{"chu": "Hình minh hoạ tạo bằng AI (Imagen 4)", "tu": 5.0},
+                                           {"chu": "Nhạc: A", "tu": 5.0}])
+        du = {"so": 3, "thoiLuong": 9.0}
+        lich.gan_dong_nguon(du, [])
+        self.assertNotIn("dongNguon", du)
+
+
 if __name__ == "__main__":
     unittest.main()

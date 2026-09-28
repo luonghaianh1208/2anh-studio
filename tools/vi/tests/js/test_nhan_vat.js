@@ -90,9 +90,9 @@ test('chop mat dung moc 1,3 + 3,1k + 0,4((7k) mod 3), dai 0,12 s', function () {
   assert.deepStrictEqual(NV.mocChop(10).map(function (x) { return Math.round(x * 100) / 100; }), [1.3, 4.8, 8.3]);
 });
 
-test('nhun tho: khop tren hong dich 3 sin(2 pi t / 2,4), chan dung yen', function () {
+test('nhun tho: khop tren hong dich 4,5 sin(2 pi t / 2,4) (1,5 % chieu cao 300), chan dung yen', function () {
   var a = NV.dang('dung', 5).khop, b = NV.dang('dung', 5.6).khop; // 5,6 − 5 = 0,6 = một phần tư chu kì
-  var mong = 3 * Math.sin(2 * Math.PI * 5.6 / 2.4) - 3 * Math.sin(2 * Math.PI * 5 / 2.4);
+  var mong = 4.5 * Math.sin(2 * Math.PI * 5.6 / 2.4) - 4.5 * Math.sin(2 * Math.PI * 5 / 2.4);
   ['co', 'vaiT', 'dau'].forEach(function (ma) { assert.ok(Math.abs((b[ma].y - a[ma].y) - mong) < 2e-3, ma); }); // khớp làm tròn 3 chữ số
   assert.deepStrictEqual([a.chanT, a.goiP, a.hong], [b.chanT, b.goiP, b.hong]);
 });

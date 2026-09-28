@@ -53,6 +53,9 @@ SCENE_SPEC = {
     "so-do": (("trung-tam",), ("hinh",), {"nhanh": (2, 6)}),
     "dong-thoi-gian": (("tieu-de",), (), {"moc": (2, 6)}),
     "cau-hoi": (("cau-hoi", "dap-an", "giai-thich", "loi-giai"), ("cho",), {"lua-chon": (2, 4)}),
+    # Cảnh kể chuyện (spec Q6): nền phủ kín khung (`nen`, giải bằng giai_nen), nhân vật, tiêu đề lớn; lời chỉ ở phụ đề.
+    # Luôn ở cuối: thứ tự 8 loại đầu được test giữ.
+    "ke-chuyen": (("tieu-de", "nen"), ("tu-the", "vi-tri", "the", "tai-lieu"), {}),
 }
 BIEU_DO_KIEU = ("cot", "duong", "tron")
 # Cảnh câu hỏi: lựa chọn tự đánh A–D; `cho` là số giây đếm ngược (số nguyên).
@@ -81,6 +84,17 @@ _TU_THE_ANH = {
 }
 NHAN_VAT_MO_TA = 200
 _NHAN_VAT_VE_RE = re.compile(r"^ve:\s*(.*)$")
+# Cảnh ke-chuyen: vị trí nhân vật (mặc định cảnh lẻ `trai`, cảnh chẵn `phai`, lich.py); tư thế khi không ghi `tu-the`.
+VI_TRI = ("trai", "giua", "phai")
+TU_THE_KE_CHUYEN = "dung"
+# Tám nền mẫu (`nen: mau/<tên>`), cùng thứ tự với TEN của runtime/nen-mau.js. Nền AI vẽ (`nen: ve: <mô tả>`) nằm ở
+# `anh/ai/nen-<số cảnh>.jpg` (anh_ai.py ghi); mô tả tối đa 200 ký tự như nhân vật.
+NEN_MAU = ("giay", "bau-troi", "vu-tru", "lop-hoc", "phong-thi-nghiem", "thanh-pho", "dong-que", "vong-tron")
+NEN_MO_TA = 200
+_NHU_CANH_RE = re.compile(r"^nhu-canh\b\s*(.*)$")
+_DUOI_ANH = (".jpg", ".jpeg", ".png", ".webp")
+_SAI_NEN = ("`nen` phải là `mau/<tên nền mẫu>`, tên file ảnh trong `anh/` (ví dụ `ruong.jpg`), `ve: <mô tả nền>` "
+            "hoặc `nhu-canh <số cảnh>`.")
 
 _KEY_RE = re.compile(r"^([a-z][a-z0-9-]*):\s*(.*)$")
 _SCENE_RE = re.compile(r"^##\s+Cảnh\s+(\d+)\s*$")
@@ -146,6 +160,65 @@ def _kiem_nhan_vat(value: str, no: int) -> None:
         raise ParseError(no, "`nhan-vat` phải là `khong`, `nguoi-que` hoặc `ve: <mô tả nhân vật>`.")
     if len(match.group(1).strip()) > NHAN_VAT_MO_TA:
         raise ParseError(no, f"`nhan-vat`: mô tả dài {len(match.group(1).strip())} ký tự, tối đa {NHAN_VAT_MO_TA}. Rút gọn mô tả.")
+
+
+def _gan_nhat(sai: str, cac_ten: tuple, so: int = 3) -> list:
+    goc = _bo_dau(sai)
+    return sorted(cac_ten, key=lambda ten: (_khoang_cach(goc, _bo_dau(ten)), cac_ten.index(ten)))[:so]
+
+
+def giai_nen(value: str, so_canh: int, cac_canh: list, dong: int = 0) -> dict:
+    """Giá trị `nen` của cảnh `so_canh` -> một trong:
+    {"kieu": "mau", "ten"} · {"kieu": "file", "file"} (tên file trần trong anh/) ·
+    {"kieu": "ai", "mo_ta", "file": "ai/nen-<số cảnh>.jpg"} · {"kieu": "nhu", "canh": k, "goc": <nền gốc>}.
+    `nhu-canh k` chỉ trỏ về cảnh `ke-chuyen` đứng trước; chuỗi `nhu-canh` giải về cảnh gốc (k là số cảnh gốc).
+    `cac_canh`: các cảnh của video (ít nhất tới cảnh k). Lỗi là ParseError ở dòng `dong`."""
+    if value.startswith("mau/"):
+        ten = value[len("mau/"):].strip()
+        if ten not in NEN_MAU:
+            goi_y = _gan_nhat(ten, NEN_MAU, 1)[0]
+            raise ParseError(dong, f"`nen`: không có nền mẫu `{ten}`. Có phải `{goi_y}`? Tám nền mẫu: {', '.join(NEN_MAU)}.")
+        return {"kieu": "mau", "ten": ten}
+    ve = _NHAN_VAT_VE_RE.match(value)
+    if ve:
+        mo_ta = ve.group(1).strip()
+        if not mo_ta:
+            raise ParseError(dong, "`nen` dạng `ve:` cần mô tả nền, ví dụ `nen: ve: ruộng bậc thang buổi sáng`.")
+        if len(mo_ta) > NEN_MO_TA:
+            raise ParseError(dong, f"`nen`: mô tả dài {len(mo_ta)} ký tự, tối đa {NEN_MO_TA}. Rút gọn mô tả.")
+        return {"kieu": "ai", "mo_ta": mo_ta, "file": f"ai/nen-{so_canh}.jpg"}
+    nhu = _NHU_CANH_RE.match(value)
+    if nhu:
+        so = nhu.group(1).strip()
+        if not so.isascii() or not so.isdigit() or int(so) < 1:
+            raise ParseError(dong, "`nen` dùng lại nền cảnh trước phải có dạng `nhu-canh <số>`, ví dụ `nhu-canh 2`.")
+        k = int(so)
+        if k == so_canh:
+            raise ParseError(dong, f"`nen: nhu-canh {k}` trỏ tới chính nó (Cảnh {so_canh}); `nhu-canh` dùng lại nền của một "
+                                   "cảnh `ke-chuyen` đứng trước.")
+        if k > so_canh:
+            raise ParseError(dong, f"`nen: nhu-canh {k}` trỏ tới cảnh sau (Cảnh {k}); `nhu-canh` chỉ dùng lại nền của một "
+                                   "cảnh `ke-chuyen` đứng trước.")
+        dich = cac_canh[k - 1]
+        if dich.loai != "ke-chuyen":
+            raise ParseError(dong, f"`nen: nhu-canh {k}`: Cảnh {k} là loại `{dich.loai}`, không có nền; `nhu-canh` chỉ dùng "
+                                   "lại nền của cảnh `ke-chuyen`.")
+        goc = dich.nen if dich.nen is not None else giai_nen(dich.truong["nen"][0], k, cac_canh, dich.dong_truong["nen"][0])
+        return goc if goc["kieu"] == "nhu" else {"kieu": "nhu", "canh": k, "goc": goc}
+    if ("/" in value or "\\" in value or ".." in value or re.match(r"^[a-zA-Z]:", value)
+            or not value.lower().endswith(_DUOI_ANH)):
+        raise ParseError(dong, _SAI_NEN)
+    return {"kieu": "file", "file": value}
+
+
+def tu_the_cua(scene, meta: dict):
+    """Tư thế nhân vật của cảnh, None khi cảnh không có nhân vật: `tu-the` của cảnh; cảnh `ke-chuyen` không ghi thì
+    `dung` (khi video có nhân vật). Dùng chung cho lich.py và việc liệt kê ảnh AI cần vẽ."""
+    if meta.get("nhan-vat", "khong") == "khong":
+        return None
+    if "tu-the" in scene.truong:
+        return scene.truong["tu-the"][0]
+    return TU_THE_KE_CHUYEN if scene.loai == "ke-chuyen" else None
 
 
 def phan_cong_thuc(value: str) -> list:
@@ -217,6 +290,8 @@ class Scene:
     loi: str
     truong: dict
     dong_truong: dict
+    # Cảnh ke-chuyen: nền đã giải (giai_nen); cảnh khác là None.
+    nen: dict | None = None
 
 
 @dataclass
@@ -326,6 +401,8 @@ def _finish(so: int, dong0: int, fields: list) -> Scene:
                 dong_sau = max(no, dong_truong[khac][0])
                 raise ParseError(dong_sau, f"Cảnh {so} có nhân vật (`tu-the`) đứng ở cột phụ nên không có `{khac}`; "
                                            f"bỏ dòng `{khac}` hoặc dòng `tu-the`.")
+    if "vi-tri" in truong and truong["vi-tri"][0] not in VI_TRI:
+        raise ParseError(dong_truong["vi-tri"][0], f"`vi-tri` phải là một trong: {', '.join(VI_TRI)}.")
     if "nguon" in truong and "anh" not in truong:
         raise ParseError(dong_truong["nguon"][0],
                          f"`nguon` chỉ dùng kèm `anh` (dòng nguồn của ảnh thật); Cảnh {so} chưa có `anh`.")
@@ -394,7 +471,11 @@ def parse(text: str) -> Video:
         raise ParseError(i + 1, "video.md chưa có cảnh nào; bắt đầu bằng `## Cảnh 1`.")
     if meta["nhan-vat"] == "khong":
         for scene in scenes:
-            if "tu-the" in scene.truong:
-                raise ParseError(scene.dong_truong["tu-the"][0], "`tu-the` cần nhân vật dẫn chuyện; thêm "
-                                 "`nhan-vat: nguoi-que` (hoặc `nhan-vat: ve: <mô tả>`) vào khối thông tin, hoặc bỏ dòng này.")
+            for key in ("tu-the", "vi-tri"):
+                if key in scene.truong:
+                    raise ParseError(scene.dong_truong[key][0], f"`{key}` cần nhân vật dẫn chuyện; thêm "
+                                     "`nhan-vat: nguoi-que` (hoặc `nhan-vat: ve: <mô tả>`) vào khối thông tin, hoặc bỏ dòng này.")
+    for scene in scenes:
+        if scene.loai == "ke-chuyen":
+            scene.nen = giai_nen(scene.truong["nen"][0], scene.so, scenes, scene.dong_truong["nen"][0])
     return Video(meta=meta, canh=scenes, dong_meta=dong_meta)

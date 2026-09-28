@@ -68,7 +68,41 @@ def _mo_hinh(video: parse.Video, thu_muc: Path) -> dict:
     return {c.so: thu_vien.load(c.truong["mau"][0], thu_muc) for c in video.canh if c.loai == "thi-nghiem"}
 
 
-def _tai_nguyen(scene: parse.Scene, thu_muc: Path) -> dict:
+def _nen(scene: parse.Scene, thu_muc: Path):
+    """Nền của cảnh ke-chuyen cho trang: {kieu: 'mau', ten, hat} hoặc {kieu: 'anh', dataUrl, rong, cao, nguon, moHinh?}.
+    Nền AI không có dòng nguồn trong cảnh (`nguon` None): dòng "tạo bằng AI" hiện cuối video."""
+    nen = kiem.nen_goc(scene)
+    if nen["kieu"] == "mau":
+        # Hạt giống của nền mẫu là số cảnh gốc: `nhu-canh` dùng lại đúng hình của cảnh đó.
+        return {"kieu": "mau", "ten": nen["ten"], "hat": scene.nen["canh"] if scene.nen["kieu"] == "nhu" else scene.so}
+    ten = nen["file"] if nen["kieu"] == "file" else kiem.file_ai(thu_muc, nen["file"])
+    a = anh.doc(thu_muc, ten, None)
+    ra = {"kieu": "anh", "dataUrl": a["dataUrl"], "rong": a["rong"], "cao": a["cao"], "nguon": None if a.get("ai") else a["nguon"]}
+    if a.get("ai"):
+        ra["moHinh"] = a["moHinh"]
+    return ra
+
+
+def _nhan_vat_anh(scene: parse.Scene, thu_muc: Path, meta: dict):
+    """Ảnh nhân vật AI của cảnh ({dataUrl, rong, cao, moHinh}), None khi không có nhân vật AI."""
+    tu_the = parse.tu_the_cua(scene, meta)
+    if not tu_the or not meta.get("nhan-vat", "").startswith("ve:"):
+        return None
+    a = anh.doc(thu_muc, kiem.file_ai(thu_muc, f"ai/tu-the-{tu_the}.png"), None)
+    return {"dataUrl": a["dataUrl"], "rong": a["rong"], "cao": a["cao"], "moHinh": a["moHinh"]}
+
+
+def _tai_nguyen(scene: parse.Scene, thu_muc: Path, meta: dict | None = None) -> dict:
+    them = {}
+    if scene.nen is not None:
+        them["nen"] = _nen(scene, thu_muc)
+    nv = _nhan_vat_anh(scene, thu_muc, meta or {})
+    if nv:
+        them["nhanVatAnh"] = nv
+    return {**_tai_nguyen_cot(scene, thu_muc), **them}
+
+
+def _tai_nguyen_cot(scene: parse.Scene, thu_muc: Path) -> dict:
     if scene.loai == "minh-hoa":
         hinhs = []
         for value in scene.truong["hinh"]:
@@ -84,11 +118,15 @@ def _tai_nguyen(scene: parse.Scene, thu_muc: Path) -> dict:
 
 
 def _cac_du(video, cac_lich, models, thu_muc: Path, nhac=None) -> list:
-    """`nhac`: nhạc nền (`kiem.doc_nhac`); dòng nguồn nhạc gắn vào cảnh cuối."""
-    cac_du = [lich.du_lieu_canh(c, cl, models.get(c.so), {**_tai_nguyen(c, thu_muc), "meta": video.meta})
-              for c, cl in zip(video.canh, cac_lich)]
-    if nhac is not None and cac_du:
-        lich.gan_nguon_nhac(cac_du[-1], nhac["nguon"])
+    """`nhac`: nhạc nền (`kiem.doc_nhac`). Cảnh cuối mang các dòng nguồn cuối video: "Hình minh hoạ tạo bằng AI (…)"
+    khi video có ảnh AI (nền hay nhân vật), rồi nguồn nhạc."""
+    cac_tn = [_tai_nguyen(c, thu_muc, video.meta) for c in video.canh]
+    cac_du = [lich.du_lieu_canh(c, cl, models.get(c.so), {**tn, "meta": video.meta})
+              for c, cl, tn in zip(video.canh, cac_lich, cac_tn)]
+    mo_hinh = [a["moHinh"] for tn in cac_tn for a in (tn.get("nen"), tn.get("nhanVatAnh")) if a and a.get("moHinh")]
+    dongs = ([lich.dong_ai(mo_hinh)] if mo_hinh else []) + ([nhac["nguon"]] if nhac is not None else [])
+    if cac_du:
+        lich.gan_dong_nguon(cac_du[-1], dongs)
     if video.meta.get("loat"):
         lich.gan_loat(cac_du, video.meta["loat"])
     return cac_du
@@ -110,7 +148,8 @@ def _kiem_tran_tat_ca(page, video, trang_html) -> None:
         if noi_dung:
             raise kiem.CanhError(canh.so, f"chữ ở mục `{', '.join(noi_dung)}` tràn khung. Rút ngắn nội dung hoặc chia thành hai cảnh.")
         if tran:
-            raise kiem.CanhError(canh.so, "dòng nguồn nhạc nền (hiện cuối video) dài quá, tràn khung.", FIX_NGUON_NHAC)
+            raise kiem.CanhError(canh.so, "dòng nguồn nhạc nền (hiện cuối video, cùng dòng hình AI nếu có) dài quá, tràn khung.",
+                                 FIX_NGUON_NHAC)
 
 
 @contextlib.contextmanager

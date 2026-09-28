@@ -19,7 +19,7 @@
   var CANH_DUOI = 44;  // cẳng tay
   var CU_CHI = 1.2;    // cử chỉ trong 1,2 s đầu cảnh
   var CHU_KY_THO = 2.4;
-  var BIEN_THO = 3;
+  var BIEN_THO = 4.5;  // 1,5 % chiều cao 300 (spec Q9)
   var CHOP = 0.12;
   var HIEN_TU = 0.2, HIEN_DAI = 0.4;
 
@@ -137,7 +137,7 @@
       T = { khuyu: xoay(T.khuyu, khung.vaiT, g), tay: xoay(T.tay, khung.vaiT, g) };
       P = { khuyu: xoay(P.khuyu, khung.vaiP, -g), tay: xoay(P.tay, khung.vaiP, -g) };
     }
-    // Nhún thở: mọi khớp trên hông dịch 3·sin(2πt/2,4); ăn mừng bật nhảy 12 hai lần trong 1,2 s đầu.
+    // Nhún thở: mọi khớp trên hông dịch 4,5·sin(2πt/2,4); ăn mừng bật nhảy 12 hai lần trong 1,2 s đầu.
     var tho = BIEN_THO * Math.sin(2 * Math.PI * t / CHU_KY_THO);
     var nhay = ten === 'an-mung' && trong ? -12 * Math.abs(Math.sin(2 * Math.PI * t / CU_CHI)) : 0;
     function tren(q) { var r = p(q.x, q.y + tho + nhay); if (q.r !== undefined) { r.r = q.r; } return tron(r); }
@@ -314,7 +314,24 @@
 
   // ---- Trang: một nhóm trong lớp vẽ, vẽ lại mỗi khung. m = {x, y (gốc ở khung), ti (tỉ lệ), lat, goc, sticker,
   // tuThe, mauAo}. Nhóm ngoài mang biến đổi bật vào (xoay/phóng quanh giữa thân), nhóm trong là hệ toạ độ nhân vật.
-  function tao(svg, m) {
+  // Nhân vật AI (m.anh = {dataUrl, rong, cao}, cỡ vẽ; hộp m.hop): khối HTML chứa <img> trong lớp bảng `goc` (trang
+  // giải mã <img> trước khung đầu, chup.mo_trang), bật vào như người que quanh giữa ảnh; không vẽ lại mỗi khung.
+  function tao(svg, m, goc) {
+    if (m.anh) {
+      var khoi = document.createElement('div');
+      khoi.className = 'nhan-vat nhan-vat-anh' + (m.sticker ? ' nhan-vat-dan' : '');
+      khoi.setAttribute('data-id', m.id);
+      khoi.style.left = so(m.hop.x) + 'px';
+      khoi.style.top = so(m.hop.y) + 'px';
+      khoi.style.width = so(m.hop.w) + 'px';
+      khoi.style.height = so(m.hop.h) + 'px';
+      var img = document.createElement('img');
+      img.src = m.anh.dataUrl;
+      img.alt = '';
+      khoi.appendChild(img);
+      goc.appendChild(khoi);
+      return { khoi: khoi };
+    }
     var ngoai = document.createElementNS(NS, 'g');
     ngoai.setAttribute('class', 'nhan-vat' + (m.sticker ? ' nhan-vat-dan' : ''));
     ngoai.setAttribute('data-id', m.id);
@@ -327,6 +344,11 @@
   }
   function dat(o, m, t) {
     var h = hien(t);
+    if (o.khoi) {
+      o.khoi.style.opacity = String(h.a);
+      o.khoi.style.transform = 'rotate(' + so(m.goc || 0) + 'deg) scale(' + h.k + ')';
+      return;
+    }
     o.ngoai.style.opacity = String(h.a);
     o.ngoai.setAttribute('transform', 'translate(' + so(m.x) + ' ' + so(m.y - 150 * m.ti) + ') rotate(' + so(m.goc || 0) + ') scale(' + h.k + ')');
     var d = dang(m.tuThe, t);

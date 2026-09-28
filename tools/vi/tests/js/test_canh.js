@@ -422,3 +422,126 @@ test('y-tung-y cot hinh: cum khoanh o gioi han 60 ky tu thi chu nho hon de dem k
   y.truong.y = ['((' + 'x'.repeat(50) + '))', 'ngắn'];
   assert.strictEqual(co(), 26);
 });
+
+// ---------- ke-chuyen: nền phủ kín, nhân vật, tiêu đề lớn ----------
+
+require(path.join(RT, 'cat-dan.js'));
+require(path.join(RT, 'canh', 'ke-chuyen.js'));
+var K = globalThis.THI_KHO;
+var NGANG_K = { ten: 'ngang', rong: 1280, cao: 720, day: 620, tamX: 640, tamY: 310 };
+var DOC_K = { ten: 'doc', rong: 720, cao: 1280, day: 1080, tamX: 360, tamY: 540 };
+var CAT_DAN = { ten: 'cat-dan', hienChu: 'truot', net: 'nhanh', mauNhan: ['#e8a33d', '#1f6f78'] };
+
+function keChuyen(so, gh, them) {
+  var d = du('ke-chuyen', gh, [], { 'tieu-de': ['Ba động lực cốt lõi'], nen: ['mau/lop-hoc'] },
+    { so: so, co: { banTay: true, mayQuay: false, chuDong: true }, nen: { kieu: 'mau', ten: 'lop-hoc' },
+      viTri: so % 2 ? 'trai' : 'phai', nhanVat: { kieu: 'nguoi-que', mauAo: 'vang', tuThe: 'chi-tay' } });
+  Object.keys(them || {}).forEach(function (k) { d[k] = them[k]; });
+  return d;
+}
+function trong(h, o) { return h.x >= o.x - 1e-9 && h.y >= o.y - 1e-9 && h.x + h.w <= o.x + o.w + 1e-9 && h.y + h.h <= o.y + o.h + 1e-9; }
+
+test('ke-chuyen: nhan vat vao 0,2, tieu de 0,4, the va tai lieu sau; khong muc nao qua gh - 0,2 (gh 2,5 va 12)', function () {
+  [NGANG_K, DOC_K].forEach(function (kho) {
+    K.dat(kho);
+    [undefined, CAT_DAN].forEach(function (cd) {
+      [2.5, 12].forEach(function (gh) {
+        var d = keChuyen(3, gh, { chuDe: cd, the: { nhan: 'GDP', giaTri: '100', chuThich: 'nghìn tỷ' }, taiLieu: 'Nguồn: SGK' });
+        var ds = C['ke-chuyen'].muc(d);
+        var ten = kho.ten + ' ' + (cd ? cd.ten : 'viet-tay') + ' ' + gh;
+        assert.deepStrictEqual(ds, C['ke-chuyen'].muc(d), ten + ' xac dinh');
+        assert.deepStrictEqual(ds.slice(0, 2).map(function (m) { return [m.id, m.batDau]; }), [['nhan-vat', 0.2], ['tieu-de', 0.4]], ten);
+        ds.forEach(function (m, k) {
+          if (k > 1) { assert.ok(m.batDau >= 0.4, ten + ':' + m.id + ' ' + m.batDau); }
+          assert.ok(m.batDau + m.thoiLuong <= gh - 0.2 + 1e-9, ten + ':' + m.id + ' xong ' + (m.batDau + m.thoiLuong));
+        });
+        var ids = ds.map(function (m) { return m.id; });
+        ['the-nhan', 'the-gia-tri', 'the-chu-thich', 'tai-lieu'].forEach(function (id) { assert.ok(ids.indexOf(id) >= 0, ten + ' thieu ' + id); });
+        assert.strictEqual(new Set(ids).size, ids.length, ten + ' id trung');
+      });
+    });
+  });
+  K.dat(NGANG_K);
+});
+
+test('ke-chuyen: tieu de viet-tay vang vien den o giua tren; cat-dan la nhan bang dinh', function () {
+  [NGANG_K, DOC_K].forEach(function (kho) {
+    K.dat(kho);
+    var o = K.o('tieu-de');
+    var td = tim(C['ke-chuyen'].muc(keChuyen(1, 12)), 'tieu-de');
+    assert.strictEqual(td.mau, 'ke-tieu-de');
+    assert.strictEqual(td.can, 'giua');
+    assert.deepStrictEqual([td.x, td.y, td.rong], [o.x, o.y, o.w], kho.ten);
+    var nhan = tim(C['ke-chuyen'].muc(keChuyen(1, 12, { chuDe: CAT_DAN })), 'tieu-de');
+    assert.strictEqual(nhan.bang, true);
+    assert.strictEqual(nhan.mau, 'bang');
+    // Có thẻ ở khổ ngang: tiêu đề dừng trước ô thẻ (góc phải trên).
+    var co = tim(C['ke-chuyen'].muc(keChuyen(1, 12, { the: { nhan: 'A', giaTri: '1', chuThich: '' } })), 'tieu-de');
+    if (kho.ten === 'ngang') { assert.ok(co.x + co.rong <= K.o('the').x - 20, JSON.stringify(co)); }
+  });
+  K.dat(NGANG_K);
+});
+
+test('ke-chuyen: nhan vat trong o nhan-vat-<vi-tri>; mac dinh canh le trai, canh chan phai; quay mat vao giua', function () {
+  [NGANG_K, DOC_K].forEach(function (kho) {
+    K.dat(kho);
+    [[1, 'trai', undefined], [2, 'phai', undefined], [5, 'giua', 'giua'], [4, 'trai', 'trai']].forEach(function (c) {
+      var d = keChuyen(c[0], 12);
+      if (c[2]) { d.viTri = c[2]; }
+      var nv = tim(C['ke-chuyen'].muc(d), 'nhan-vat');
+      var o = K.o('nhan-vat-' + c[1]);
+      assert.ok(trong(nv.hop, o), kho.ten + ' ' + c[1] + ' ' + JSON.stringify([nv.hop, o]));
+      assert.strictEqual(nv.lat, c[1] === 'phai', kho.ten + ' ' + c[1]);
+    });
+    // Có dòng tài liệu (góc phải dưới hay đáy khổ dọc): nhân vật dừng trên ô tài liệu.
+    var tl = tim(C['ke-chuyen'].muc(keChuyen(2, 12, { taiLieu: 'Nguồn: SGK' })), 'nhan-vat');
+    assert.ok(tl.hop.y + tl.hop.h <= K.o('tai-lieu').y, kho.ten + ' ' + JSON.stringify(tl.hop));
+    // Không có nhân vật: chỉ tiêu đề.
+    var khong = keChuyen(1, 12);
+    delete khong.nhanVat;
+    assert.deepStrictEqual(C['ke-chuyen'].muc(khong).map(function (m) { return m.id; }), ['tieu-de']);
+  });
+  K.dat(NGANG_K);
+});
+
+test('ke-chuyen: nhan vat anh (AI) vua o, chan cham day o, khong lat', function () {
+  K.dat(NGANG_K);
+  var d = keChuyen(2, 12);
+  d.nhanVat = { kieu: 'anh', mauAo: 'vang', tuThe: 'chao', anh: { dataUrl: 'data:image/png;base64,AAAA', rong: 500, cao: 1000 } };
+  var nv = tim(C['ke-chuyen'].muc(d), 'nhan-vat');
+  var o = K.o('nhan-vat-phai');
+  assert.strictEqual(nv.anh.dataUrl, 'data:image/png;base64,AAAA');
+  assert.strictEqual(nv.lat, false);
+  assert.ok(trong(nv.hop, o), JSON.stringify(nv.hop));
+  assert.ok(Math.abs(nv.hop.w / nv.hop.h - 0.5) < 1e-9);
+  assert.ok(Math.abs(nv.hop.y + nv.hop.h - (o.y + o.h - 10)) < 1e-9);
+  assert.ok(Math.abs(nv.hop.x + nv.hop.w / 2 - (o.x + o.w / 2)) < 1e-9);
+});
+
+test('nen phu kin: anh vuong phu khung ngang va doc, giua khung; phong 1,00 -> 1,06 tuyen tinh', function () {
+  [[1024, 1024, 1280, 720], [1024, 1024, 720, 1280], [1920, 1080, 1280, 720], [1080, 1920, 1280, 720]].forEach(function (c) {
+    var p = V.phuKin(c[0], c[1], c[2], c[3]);
+    assert.ok(p.rong >= c[2] - 1e-9 && p.cao >= c[3] - 1e-9, JSON.stringify(p));
+    assert.ok(Math.abs(p.x + p.rong / 2 - c[2] / 2) < 1e-9 && Math.abs(p.y + p.cao / 2 - c[3] / 2) < 1e-9);
+    assert.ok(Math.abs(p.rong / p.cao - c[0] / c[1]) < 1e-9);
+    assert.ok(Math.abs(p.rong - c[2]) < 1e-9 || Math.abs(p.cao - c[3]) < 1e-9, 'vua dung mot chieu');
+  });
+  assert.strictEqual(V.phongNen(0, 8), 1);
+  assert.strictEqual(V.phongNen(4, 8), 1.03);
+  assert.strictEqual(V.phongNen(8, 8), 1.06);
+  assert.strictEqual(V.phongNen(99, 8), 1.06);
+});
+
+test('ke-chuyen viet-tay: the co giay lot duoi khung ve tay (nen phu kin); canh khac khong co', function () {
+  K.dat(NGANG_K);
+  var the = { nhan: 'GDP', giaTri: '100', chuThich: '' };
+  var ds = C['ke-chuyen'].muc(keChuyen(1, 12, { the: the }));
+  var giay = tim(ds, 'the-giay'), khung = tim(ds, 'the-khung');
+  assert.ok(giay && khung && ds.indexOf(giay) < ds.indexOf(khung));
+  assert.strictEqual(giay.d, khung.d);
+  assert.strictEqual(giay.mau, 'the-giay');
+  var cu = JSON.parse(JSON.stringify(tatCa(12)['khai-niem']));
+  cu.the = the;
+  assert.strictEqual(tim(C['khai-niem'].muc(cu), 'the-giay'), undefined);
+  assert.strictEqual(tim(C['ke-chuyen'].muc(keChuyen(1, 12, { the: the, chuDe: CAT_DAN })), 'the-giay'), undefined);
+});

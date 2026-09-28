@@ -887,7 +887,7 @@ class NhanVatTuTheTest(unittest.TestCase):
                     self.assertEqual(video.canh[0].truong["tu-the"], [ten])
         for loai in parse.SCENE_TYPES:
             _, optional, _ = parse.SCENE_SPEC[loai]
-            self.assertEqual("tu-the" in optional, loai in ("tieu-de", "khai-niem", "y-tung-y"), loai)
+            self.assertEqual("tu-the" in optional, loai in ("tieu-de", "khai-niem", "y-tung-y", "ke-chuyen"), loai)
 
     def test_tu_the_o_loai_canh_khac_la_loi(self):
         text = doc("## Cảnh 1\nloai: cong-thuc\nbieu-thuc: a = b\ntu-the: chao\nloi: Xin chào.\n", self.NV)
@@ -933,6 +933,116 @@ class NhanVatTuTheTest(unittest.TestCase):
         self.assertNotIn("nhanVat", lich.du_lieu_canh(video.canh[1], cl, tai_nguyen={"meta": video.meta}))
         video = parse.parse(text.replace("nhan-vat: nguoi-que", "nhan-vat: ve: cô giáo"))
         self.assertEqual(lich.du_lieu_canh(video.canh[0], cl, tai_nguyen={"meta": video.meta})["nhanVat"]["kieu"], "anh")
+
+
+def ke(so: int, nen: str, them: str = "") -> str:
+    return f"## Cảnh {so}\nloai: ke-chuyen\ntieu-de: Cảnh {so}\nnen: {nen}\n{them}loi: Xin chào.\n\n"
+
+
+class KeChuyenParseTest(unittest.TestCase):
+    """Loại cảnh `ke-chuyen` và giá trị `nen` (spec Q6, Q7, Review Focus 3)."""
+
+    def loi(self, text: str, needle: str, *fragments: str, so_dong: int | None = None):
+        with self.assertRaises(parse.ParseError) as caught:
+            parse.parse(text)
+        self.assertEqual(caught.exception.line_no, so_dong or line_of(text, needle), str(caught.exception))
+        for fragment in fragments:
+            self.assertIn(fragment, str(caught.exception))
+        return str(caught.exception)
+
+    def test_scene_spec_ke_chuyen_o_cuoi(self):
+        self.assertEqual(parse.SCENE_SPEC["ke-chuyen"], (("tieu-de", "nen"), ("tu-the", "vi-tri", "the", "tai-lieu"), {}))
+        self.assertEqual(parse.SCENE_TYPES[-1], "ke-chuyen")
+        self.assertEqual(parse.SCENE_TYPES[:8], ("tieu-de", "khai-niem", "cong-thuc", "y-tung-y", "quy-trinh", "so-sanh",
+                                                 "do-thi", "thi-nghiem"))
+        self.assertEqual(parse.NEN_MAU, ("giay", "bau-troi", "vu-tru", "lop-hoc", "phong-thi-nghiem", "thanh-pho",
+                                         "dong-que", "vong-tron"))
+
+    def test_nen_mau_trung_kho_trong_nen_mau_js(self):
+        js = (TOOLS_VI / "video_ma_parts" / "runtime" / "nen-mau.js").read_text(encoding="utf-8")
+        import re
+        ten = re.search(r"var TEN = \[(.*?)\];", js).group(1)
+        self.assertEqual(tuple(re.findall(r"'([a-z-]+)'", ten)), parse.NEN_MAU)
+
+    def test_giai_nen_bon_dang(self):
+        text = doc(ke(1, "mau/lop-hoc") + ke(2, "ruong-bac-thang.jpg") + ke(3, "ve: bầu trời đêm đầy sao, phong cách tranh")
+                   + ke(4, "nhu-canh 1") + ke(5, "nhu-canh 3"))
+        video = parse.parse(text)
+        self.assertEqual([c.loai for c in video.canh], ["ke-chuyen"] * 5)
+        self.assertEqual(video.canh[0].nen, {"kieu": "mau", "ten": "lop-hoc"})
+        self.assertEqual(video.canh[1].nen, {"kieu": "file", "file": "ruong-bac-thang.jpg"})
+        self.assertEqual(video.canh[2].nen, {"kieu": "ai", "mo_ta": "bầu trời đêm đầy sao, phong cách tranh",
+                                             "file": "ai/nen-3.jpg"})
+        self.assertEqual(video.canh[3].nen["kieu"], "nhu")
+        self.assertEqual(video.canh[3].nen["canh"], 1)
+        self.assertEqual(video.canh[3].nen["goc"], {"kieu": "mau", "ten": "lop-hoc"})
+        self.assertEqual(video.canh[4].nen["canh"], 3)
+        self.assertEqual(parse.giai_nen("mau/vu-tru", 1, []), {"kieu": "mau", "ten": "vu-tru"})
+
+    def test_chuoi_nhu_canh_giai_ve_nen_goc(self):
+        video = parse.parse(doc(ke(1, "mau/dong-que") + ke(2, "nhu-canh 1") + ke(3, "nhu-canh 2") + ke(4, "nhu-canh 3")))
+        for canh in video.canh[1:]:
+            self.assertEqual(canh.nen["canh"], 1, canh.so)
+            self.assertEqual(canh.nen["goc"], {"kieu": "mau", "ten": "dong-que"})
+
+    def test_nhu_canh_tro_toi_chinh_no_hoac_canh_sau(self):
+        for nen, fragment in (("nhu-canh 2", "chính nó"), ("nhu-canh 3", "cảnh sau"), ("nhu-canh 0", "nhu-canh"),
+                              ("nhu-canh ba", "nhu-canh <số>")):
+            with self.subTest(nen=nen):
+                text = doc(ke(1, "mau/giay") + ke(2, nen) + ke(3, "mau/giay"))
+                self.loi(text, f"nen: {nen}", fragment)
+
+    def test_nhu_canh_tro_toi_canh_khong_phai_ke_chuyen(self):
+        text = doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n\n" + ke(2, "nhu-canh 1"))
+        self.loi(text, "nen: nhu-canh 1", "Cảnh 1", "`ke-chuyen`")
+
+    def test_mau_sai_ten_goi_y_ten_gan_nhat(self):
+        for sai, dung in (("mau/lop-hocc", "lop-hoc"), ("mau/bautroi", "bau-troi"), ("mau/lớp học", "lop-hoc"),
+                          ("mau/vu tru", "vu-tru")):
+            with self.subTest(sai=sai):
+                msg = self.loi(doc(ke(1, sai)), "nen:", f"`{dung}`")
+                self.assertIn("giay", msg)
+
+    def test_nen_sai_dang(self):
+        for nen in ("ve:", "ve: " + "a" * 201, "anh/x.jpg", "C:\\x.jpg", "../x.jpg", "mau/"):
+            with self.subTest(nen=nen):
+                self.loi(doc(ke(1, nen)), "nen:", "`nen`")
+        parse.parse(doc(ke(1, "ve: " + "a" * 200)))
+
+    def test_thieu_nen_hoac_tieu_de(self):
+        text = doc("## Cảnh 1\nloai: ke-chuyen\ntieu-de: A\nloi: Xin chào.\n")
+        self.loi(text, "## Cảnh 1", "thiếu `nen`")
+
+    def test_vi_tri(self):
+        nv = META + "nhan-vat: nguoi-que\n"
+        for vt in ("trai", "giua", "phai"):
+            self.assertEqual(parse.parse(doc(ke(1, "mau/giay", f"vi-tri: {vt}\n"), nv)).canh[0].truong["vi-tri"], [vt])
+        self.loi(doc(ke(1, "mau/giay", "vi-tri: tren\n"), nv), "vi-tri:", "trai, giua, phai")
+        self.loi(doc(ke(1, "mau/giay", "vi-tri: trai\n")), "vi-tri:", "nhan-vat")
+
+    def test_tu_the_the_tai_lieu(self):
+        nv = META + "nhan-vat: nguoi-que\n"
+        video = parse.parse(doc(ke(1, "mau/giay", "tu-the: chi-tay\nthe: GDP | 100 | tỷ USD\ntai-lieu: SGK\n"), nv))
+        self.assertEqual(video.canh[0].truong["tu-the"], ["chi-tay"])
+        self.assertEqual(parse.tu_the_cua(video.canh[0], video.meta), "chi-tay")
+        video = parse.parse(doc(ke(1, "mau/giay") + CANH_1.replace("Cảnh 1", "Cảnh 2"), nv))
+        # Cảnh kể chuyện không ghi `tu-the` vẫn có nhân vật (đứng); cảnh khác không ghi thì không có.
+        self.assertEqual(parse.tu_the_cua(video.canh[0], video.meta), "dung")
+        self.assertIsNone(parse.tu_the_cua(video.canh[1], video.meta))
+        video = parse.parse(doc(ke(1, "mau/giay")))
+        self.assertIsNone(parse.tu_the_cua(video.canh[0], video.meta))
+
+    def test_gioi_han_tieu_de_36_ngang_28_doc(self):
+        for kho, n in (("ngang", 36), ("doc", 28)):
+            for pc in ("viet-tay", "cat-dan"):
+                with self.subTest(kho=kho, pc=pc):
+                    meta = META + f"kho: {kho}\nphong-cach: {pc}\n"
+                    ok = doc(ke(1, "mau/giay").replace("tieu-de: Cảnh 1", "tieu-de: " + "t" * n), meta)
+                    self.assertEqual(kiem.kiem(parse.parse(ok), Path(".")), [])
+                    text = doc(ke(1, "mau/giay").replace("tieu-de: Cảnh 1", "tieu-de: " + "t" * (n + 1)), meta)
+                    with self.assertRaises(kiem.CanhError) as caught:
+                        kiem.kiem(parse.parse(text), Path("."))
+                    self.assertIn(f"tối đa {n}", str(caught.exception))
 
 
 if __name__ == "__main__":

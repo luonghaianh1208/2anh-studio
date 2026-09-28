@@ -473,5 +473,34 @@ CAU_HOI = ("---\ntieu-de: T\nmon: Vật lí\nlop: 10\n---\n\n## Cảnh 1\nloai: 
            "loi-giai: Đáp án B.\nloi: Câu hỏi đây.\n")
 
 
+class KeChuyenCliTest(unittest.TestCase):
+    """Loại cảnh `ke-chuyen` thêm ở cuối: 8 loại đầu giữ thứ tự; thiếu ảnh AI là lỗi `canh` có cách sửa riêng."""
+
+    def test_tam_loai_dau_khong_doi_thu_tu_ke_chuyen_o_cuoi(self):
+        from video_ma_parts import parse
+        self.assertEqual(parse.SCENE_TYPES[:8], ("tieu-de", "khai-niem", "cong-thuc", "y-tung-y", "quy-trinh", "so-sanh",
+                                                 "do-thi", "thi-nghiem"))
+        self.assertEqual(parse.SCENE_TYPES[-1], "ke-chuyen")
+
+    def test_thieu_anh_ai_la_loi_canh_liet_ke_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            thu_muc = Path(tmp)
+            (thu_muc / "video.md").write_text(
+                "---\ntieu-de: T\nmon: Toán\nlop: 8\nnhan-vat: ve: cô giáo\n---\n\n## Cảnh 1\nloai: ke-chuyen\n"
+                "tieu-de: A\nnen: ve: ruộng bậc thang\nloi: Xin chào.\n", encoding="utf-8")
+            code, lines, _ = chay([str(thu_muc), "--plan-only"])
+            data = json.loads(lines[0])
+            self.assertEqual((code, data["error"]["step"]), (1, "canh"))
+            self.assertIn("anh/ai/nen-1.jpg", data["error"]["message"])
+            self.assertIn("anh/ai/tu-the-dung.png", data["error"]["message"])
+            self.assertIn("anh_ai.py", data["error"]["fix"])
+            self.assertIn("nhan-vat: nguoi-que", data["error"]["fix"])
+            (thu_muc / "video.md").write_text(
+                "---\ntieu-de: T\nmon: Toán\nlop: 8\nnhan-vat: nguoi-que\n---\n\n## Cảnh 1\nloai: ke-chuyen\n"
+                "tieu-de: A\nnen: mau/lop-hoc\nloi: Xin chào.\n", encoding="utf-8")
+            code, lines, _ = chay([str(thu_muc), "--plan-only"])
+            self.assertEqual(code, 0, lines)
+
+
 if __name__ == "__main__":
     unittest.main()

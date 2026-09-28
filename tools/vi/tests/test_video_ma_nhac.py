@@ -312,9 +312,9 @@ class DungTest(unittest.TestCase):
         data = json.loads(out.getvalue().strip())
         self.assertEqual(code, 0, data)
         self.assertEqual(seen["ghep_kw"]["nhac"]["duong_dan"], (thu_muc / "nhac" / "em.mp3").resolve())
-        self.assertNotIn("nhacNguon", seen["du"][0])
+        self.assertNotIn("dongNguon", seen["du"][0])
         gh = seen["lich"][-1].thoi_luong
-        self.assertEqual(seen["du"][-1]["nhacNguon"], {"chu": "Nhạc: Êm · An · CC0", "tu": round(gh - 4.0, 3)})
+        self.assertEqual(seen["du"][-1]["dongNguon"], [{"chu": "Nhạc: Êm · An · CC0", "tu": round(gh - 4.0, 3)}])
 
     def dung(self, dong_meta, kiem_tran=()):
         """Chạy video_ma.main (dựng) với FFmpeg/Chromium/giọng giả; trả (mã, JSON, số lần đo nhạc bằng ffprobe)."""
@@ -370,8 +370,8 @@ class DungTest(unittest.TestCase):
 
     def test_canh_cuoi_ngan_hon_4_giay_thi_hien_ca_canh(self):
         du = {"so": 1, "thoiLuong": 2.5}
-        lich.gan_nguon_nhac(du, "Nhạc: A")
-        self.assertEqual(du["nhacNguon"], {"chu": "Nhạc: A", "tu": 0.0})
+        lich.gan_dong_nguon(du, ["Nhạc: A"])
+        self.assertEqual(du["dongNguon"], [{"chu": "Nhạc: A", "tu": 0.0}])
 
 
 def doc_wav(path: Path) -> tuple:
@@ -473,7 +473,7 @@ class TrangChromiumTest(unittest.TestCase):
         v = parse.parse(video_md(canh2=False))
         cl = canh_lich(1, 0.0, 8.0, 5.0)
         du = lich.du_lieu_canh(v.canh[0], cl, None, {"meta": v.meta})
-        lich.gan_nguon_nhac(du, nguon)
+        lich.gan_dong_nguon(du, [nguon])
         return du
 
     def the(self, t):

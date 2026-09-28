@@ -51,7 +51,9 @@
     var kq = { nen: lopNen(xong ? 0 : 1, 'none'), nen2: null, moi: { transform: 'none', opacity: 1, clipPath: 'none' }, loe: 0 };
     if (kieu === 'lau-bang') {
       // Như vi.10: mép lau đi từ −120 px tới mép phải khổ, hệ số rộng + 120 (khổ ngang 1400, tuyến tính), phần bên trái mép đã sạch.
-      kq.nen.clipPath = 'inset(0 0 0 ' + kep(-120 + (RONG + 120) * t / dai, 0, RONG) + 'px)';
+      // `mep`: toạ độ mép lau (cảnh có nền phủ kín chỉ hiện nền bên trái mép).
+      kq.mep = kep(-120 + (RONG + 120) * t / dai, 0, RONG);
+      kq.nen.clipPath = 'inset(0 0 0 ' + kq.mep + 'px)';
     } else if (kieu === 'lat-trang') {
       // Trang cũ lật lên phía người xem quanh mép trái (điểm nhìn ở giữa khung): mép phải quét sang trái, trang
       // tối dần về mép tự do, bóng đổ lên trang mới. Qua 90° thì thấy mặt sau, ẩn (backface-visibility).
