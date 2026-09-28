@@ -14,5 +14,6 @@ Style: Itim,Itim,40,&H0000D7FF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 Dialogue: 0,0:00:01.00,0:00:05.00,Itim,,0,0,0,,{\kf40}Xin {\kf50}chao {\kf40}cac {\kf270}em.
 Dialogue: 0,0:00:11.00,0:00:14.00,Itim,,0,0,0,,{\kf30}Thứ {\kf30}nhất, {\kf30}dây {\kf30}dài {\kf30}hơn {\kf30}thì {\kf30}chu {\kf30}kì {\kf30}lớn {\kf30}hơn.
-Dialogue: 0,0:00:21.00,0:00:24.60,Itim,,0,0,0,,{\kf30}Chu {\kf30}kì {\kf30}tỉ {\kf30}lệ {\kf30}với {\kf30}căn {\kf30}bậc\N{\kf30}hai {\kf30}của {\kf30}chiều {\kf30}dài {\kf30}dây.
+Dialogue: 0,0:00:21.00,0:00:23.10,Itim,,0,0,0,,{\kf30}Chu {\kf30}kì {\kf30}tỉ {\kf30}lệ {\kf30}với {\kf30}căn {\kf30}bậc
+Dialogue: 0,0:00:23.10,0:00:24.60,Itim,,0,0,0,,{\kf30}hai {\kf30}của {\kf30}chiều {\kf30}dài {\kf30}dây.
 Dialogue: 0,0:00:31.00,0:00:32.00,Itim,,0,0,0,,{\kf30}Tap {\kf30}hop {\kf20}A {\kf0}= {\kf20}\{1\}.

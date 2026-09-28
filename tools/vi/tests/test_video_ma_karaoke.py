@@ -72,33 +72,37 @@ def _dialogues_chu(text: str) -> list:
 DATA = Path(__file__).resolve().parent / "data"
 
 
-class TuongThichVi11Test(unittest.TestCase):
-    """`viet-tay` khổ ngang phải ra `.ass` giống hệt vi.11 (chụp từ `tao_ass` trước khi thêm khung/khổ dọc ở Task 7)."""
+def _ass_viet_tay_ngang_mau() -> str:
+    cl1 = canh(1, 0.0, 4.0, ["Xin chao cac em."], [lich.DAN_DAU], [
+        {"t": lich.DAN_DAU + 0.0, "d": 0.3, "chu": "Xin", "khoa": "xin"},
+        {"t": lich.DAN_DAU + 0.4, "d": 0.3, "chu": "chao", "khoa": "chao"},
+        {"t": lich.DAN_DAU + 0.9, "d": 0.3, "chu": "cac", "khoa": "cac"},
+        {"t": lich.DAN_DAU + 1.3, "d": 0.3, "chu": "em.", "khoa": "em"},
+    ])
+    cau_text = "Thứ nhất, dây dài hơn thì chu kì lớn hơn."
+    loi_may = ["Thứ", "nhất", "dây", "dài", "hơn", "thì", "chu", "kì", "lớn", "hơn"]
+    tu2 = [{"t": lich.DAN_DAU + i * 0.3, "d": 0.25, "chu": w, "khoa": w.lower()} for i, w in enumerate(loi_may)]
+    cl2 = canh(2, 10.0, len(loi_may) * 0.3, [cau_text], [lich.DAN_DAU], tu2)
+    cau_long = "Chu kì tỉ lệ với căn bậc hai của chiều dài dây."
+    tu_van = cau_long.rstrip(".").split()
+    tu3 = [{"t": lich.DAN_DAU + i * 0.3, "d": 0.25, "chu": w, "khoa": w.lower()} for i, w in enumerate(tu_van)]
+    cl3 = canh(3, 20.0, len(tu_van) * 0.3, [cau_long], [lich.DAN_DAU], tu3)
+    cl4 = canh(4, 30.0, 1.0, ["Tap hop A = {1}."], [lich.DAN_DAU], [
+        {"t": lich.DAN_DAU + 0.0, "d": 0.2, "chu": "Tap", "khoa": "tap"},
+        {"t": lich.DAN_DAU + 0.3, "d": 0.2, "chu": "hop", "khoa": "hop"},
+        {"t": lich.DAN_DAU + 0.6, "d": 0.2, "chu": "A", "khoa": "a"},
+        {"t": lich.DAN_DAU + 0.8, "d": 0.2, "chu": "={1}.", "khoa": "1"},
+    ])
+    return karaoke.tao_ass([cl1, cl2, cl3, cl4])
 
-    def test_viet_tay_ngang_ass_is_byte_identical_to_the_vi11_capture(self):
-        cl1 = canh(1, 0.0, 4.0, ["Xin chao cac em."], [lich.DAN_DAU], [
-            {"t": lich.DAN_DAU + 0.0, "d": 0.3, "chu": "Xin", "khoa": "xin"},
-            {"t": lich.DAN_DAU + 0.4, "d": 0.3, "chu": "chao", "khoa": "chao"},
-            {"t": lich.DAN_DAU + 0.9, "d": 0.3, "chu": "cac", "khoa": "cac"},
-            {"t": lich.DAN_DAU + 1.3, "d": 0.3, "chu": "em.", "khoa": "em"},
-        ])
-        cau_text = "Thứ nhất, dây dài hơn thì chu kì lớn hơn."
-        loi_may = ["Thứ", "nhất", "dây", "dài", "hơn", "thì", "chu", "kì", "lớn", "hơn"]
-        tu2 = [{"t": lich.DAN_DAU + i * 0.3, "d": 0.25, "chu": w, "khoa": w.lower()} for i, w in enumerate(loi_may)]
-        cl2 = canh(2, 10.0, len(loi_may) * 0.3, [cau_text], [lich.DAN_DAU], tu2)
-        cau_long = "Chu kì tỉ lệ với căn bậc hai của chiều dài dây."
-        tu_van = cau_long.rstrip(".").split()
-        tu3 = [{"t": lich.DAN_DAU + i * 0.3, "d": 0.25, "chu": w, "khoa": w.lower()} for i, w in enumerate(tu_van)]
-        cl3 = canh(3, 20.0, len(tu_van) * 0.3, [cau_long], [lich.DAN_DAU], tu3)
-        cl4 = canh(4, 30.0, 1.0, ["Tap hop A = {1}."], [lich.DAN_DAU], [
-            {"t": lich.DAN_DAU + 0.0, "d": 0.2, "chu": "Tap", "khoa": "tap"},
-            {"t": lich.DAN_DAU + 0.3, "d": 0.2, "chu": "hop", "khoa": "hop"},
-            {"t": lich.DAN_DAU + 0.6, "d": 0.2, "chu": "A", "khoa": "a"},
-            {"t": lich.DAN_DAU + 0.8, "d": 0.2, "chu": "={1}.", "khoa": "1"},
-        ])
-        text = karaoke.tao_ass([cl1, cl2, cl3, cl4])
+
+class TuongThichVi11Test(unittest.TestCase):
+    """`viet-tay` khổ ngang giữ kiểu chữ vi.11 (Itim, không khung). Từ vi.12 mỗi dòng phụ đề là một sự kiện
+    riêng (chủ repo yêu cầu: không hiện hai dòng cùng lúc); file chụp được tạo lại theo cách hiện một dòng."""
+
+    def test_viet_tay_ngang_ass_matches_the_pinned_capture(self):
         mong_doi = (DATA / "karaoke_viet_tay_ngang.ass").read_text(encoding="utf-8")
-        self.assertEqual(text, mong_doi)
+        self.assertEqual(_ass_viet_tay_ngang_mau(), mong_doi)
 
 
 class CauTrucTest(unittest.TestCase):
@@ -264,16 +268,19 @@ class ChuKichBanTest(unittest.TestCase):
 
 
 class BocDongTest(unittest.TestCase):
-    def test_a_long_sentence_balances_its_two_lines_instead_of_orphaning_one_word(self):
+    def test_a_long_sentence_shows_one_balanced_line_at_a_time_without_an_orphan_word(self):
         cau_text = "Chu kì tỉ lệ với căn bậc hai của chiều dài dây."
         tu_van = cau_text.rstrip(".").split()
         tu = [{"t": lich.DAN_DAU + i * 0.3, "d": 0.25, "chu": w, "khoa": w.lower()} for i, w in enumerate(tu_van)]
         cl = canh(1, 0.0, len(tu_van) * 0.3, [cau_text], [lich.DAN_DAU], tu)
         text = karaoke.tao_ass([cl])
         dialogues = _dialogues(text)
-        self.assertEqual(len(dialogues), 1, dialogues)
-        dong = _DIALOGUE_RE.match(dialogues[0]).group(3).split("\\N")
-        self.assertEqual(len(dong), 2, dong)
+        self.assertEqual(len(dialogues), 2, dialogues)  # mỗi dòng là một sự kiện riêng
+        self.assertTrue(all("\\N" not in d for d in dialogues), dialogues)  # không bao giờ hai dòng cùng lúc
+        ket_thuc_1 = _thoi_gian_giay(_DIALOGUE_RE.match(dialogues[0]).group(2))
+        bat_dau_2 = _thoi_gian_giay(_DIALOGUE_RE.match(dialogues[1]).group(1))
+        self.assertAlmostEqual(ket_thuc_1, bat_dau_2, delta=0.011)  # dòng sau thay dòng trước, không chồng
+        dong = [_DIALOGUE_RE.match(d).group(3) for d in dialogues]
         so_tu = [len(_KF_TAG_RE.sub("", d).strip().split()) for d in dong]
         self.assertGreaterEqual(min(so_tu), 2, so_tu)  # không dòng nào mồ côi 1 từ
         do_dai = [len(_KF_TAG_RE.sub("", d)) for d in dong]

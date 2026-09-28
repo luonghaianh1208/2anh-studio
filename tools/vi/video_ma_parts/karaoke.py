@@ -140,24 +140,38 @@ def _do_dai_dong(chi_so: list, tokens: list) -> int:
     return sum(len(tokens[i]) for i in chi_so) + len(chi_so) - 1
 
 
-def _can_bang_hai_dong(nhom_dong: list, tokens: list, gioi_han: int = GIOI_HAN_KY_TU) -> list:
-    """Cân bằng lại ranh giới giữa 2 dòng của cùng một Dialogue (độ dài ~ số ký tự) để dòng 2 không mồ côi:
-    khi gộp lại có ít nhất 4 từ, dòng 2 phải có ít nhất 2 từ. Không đổi tập token, chỉ đổi điểm cắt."""
-    if len(nhom_dong) != 2:
-        return nhom_dong
-    chi_so = nhom_dong[0] + nhom_dong[1]
-    if len(chi_so) < 4:
-        return nhom_dong
-    tot_nhat = None
-    for k in range(2, len(chi_so) - 1):
-        d1, d2 = chi_so[:k], chi_so[k:]
-        l1, l2 = _do_dai_dong(d1, tokens), _do_dai_dong(d2, tokens)
-        if l1 > gioi_han or l2 > gioi_han:
-            continue
-        lech = abs(l1 - l2)
-        if tot_nhat is None or lech < tot_nhat[0]:
-            tot_nhat = (lech, d1, d2)
-    return nhom_dong if tot_nhat is None else [tot_nhat[1], tot_nhat[2]]
+def _can_bang_cac_dong(dong: list, tokens: list, gioi_han: int = GIOI_HAN_KY_TU) -> list:
+    """Giữ nguyên số dòng mà `_boc_dong` cần, nhưng chia lại điểm cắt cho các dòng dài gần bằng nhau (cực tiểu
+    tổng bình phương độ dài, mỗi dòng ≤ `gioi_han`), để không còn dòng mồ côi một từ hiện riêng trong chốc lát."""
+    n = len(dong)
+    chi_so = [i for d in dong for i in d]
+    if n < 2 or len(chi_so) < 2:
+        return dong
+    m = len(chi_so)
+    vo_cuc = float("inf")
+    # tot[k][j]: chi phí nhỏ nhất xếp j token đầu vào k dòng; cat[k][j]: điểm bắt đầu dòng thứ k
+    tot = [[vo_cuc] * (m + 1) for _ in range(n + 1)]
+    cat = [[0] * (m + 1) for _ in range(n + 1)]
+    tot[0][0] = 0
+    for k in range(1, n + 1):
+        for j in range(k, m + 1):
+            for i in range(k - 1, j):
+                if tot[k - 1][i] == vo_cuc:
+                    continue
+                dai = _do_dai_dong(chi_so[i:j], tokens)
+                if dai > gioi_han:
+                    continue
+                gia = tot[k - 1][i] + dai * dai
+                if gia < tot[k][j]:
+                    tot[k][j], cat[k][j] = gia, i
+    if tot[n][m] == vo_cuc:
+        return dong
+    ket, j = [], m
+    for k in range(n, 0, -1):
+        i = cat[k][j]
+        ket.append(chi_so[i:j])
+        j = i
+    return ket[::-1]
 
 
 def _chia_ti_le(tokens: list, start: float, end: float) -> list:
@@ -245,9 +259,9 @@ def _dialogue(bat_dau_canh: float, start: float, end: float, style: str, layer: 
 
 
 def _nhom_theo_dong_doi(dong: list, tokens: list, gioi_han: int) -> list:
-    """Gộp các dòng (chỉ số toàn cục) thành từng nhóm tối đa 2 dòng = 1 Dialogue, cân bằng lại ranh giới
-    ở nhóm có đúng 2 dòng."""
-    return [_can_bang_hai_dong(dong[i:i + 2], tokens, gioi_han) for i in range(0, len(dong), 2)]
+    """Mỗi dòng (chỉ số toàn cục) là một Dialogue riêng: phụ đề chỉ hiện một dòng một lúc, dòng sau hiện khi
+    giọng đọc tới từ đầu của nó (hai dòng cùng lúc làm học sinh không biết đang đọc tới đâu)."""
+    return [[d] for d in _can_bang_cac_dong(dong, tokens, gioi_han)]
 
 
 def _tach_theo_dau_phay(tokens: list) -> list:
