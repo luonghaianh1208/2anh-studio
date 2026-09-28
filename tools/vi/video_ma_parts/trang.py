@@ -28,8 +28,9 @@ def dung_trang(du: dict, model=None) -> str:
     if du["loai"] == "thi-nghiem":
         scripts.append(_doc(NGHIEM / "khung.js"))
         scripts.append(model.js)
-    # cat-dan.js (hàm thuần; chỉ chạm trang khi khung-video.js gọi ở cảnh cat-dan) nạp trước chuyen-canh.js.
-    for ten in ("dong.js", "cat-dan.js", "nhan-vat.js", "chuyen-canh.js", "khung-loat.js", "khung-video.js", "nhan.js", "hinh.js", "ban-tay.js", "may-quay.js"):
+    # cat-dan.js (hàm thuần; chỉ chạm trang khi khung-video.js gọi ở cảnh cat-dan) nạp trước chuyen-canh.js;
+    # nen-mau.js (kho nền mẫu, hàm thuần) nạp ngay sau vì nền `giay` dùng lại nenGiay.
+    for ten in ("dong.js", "cat-dan.js", "nen-mau.js", "nhan-vat.js", "chuyen-canh.js", "khung-loat.js", "khung-video.js", "nhan.js", "hinh.js", "ban-tay.js", "may-quay.js"):
         scripts.append(_doc(RUNTIME / ten))
     scripts.append(_doc(RUNTIME / "canh" / f"{du['loai']}.js"))
     scripts.append(f"window.DU_CANH = {json_nhung(du)};\nTHI_KHO.dat(window.DU_CANH.kho);\nTHI_VIDEO.khoiDong(window.DU_CANH);")
