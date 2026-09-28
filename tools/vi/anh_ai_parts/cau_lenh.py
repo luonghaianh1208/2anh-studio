@@ -47,8 +47,9 @@ def nhan_vat_mau(mo_ta: str, phong_cach: str) -> str:
 
 def tu_the(ten: str, mo_ta: str, phong_cach: str) -> str:
     """Câu lệnh vẽ một tư thế của nhân vật, dựa trên ảnh mẫu tham chiếu (cùng khuôn mặt/tóc/trang phục/màu sắc).
-    `mo_ta`, `phong_cach` giữ để đồng bộ chữ ký với `nen`/`nhan_vat_mau`; tư thế đã cố định theo `ten` qua `TU_THE_EN`
-    vì mọi đặc điểm khác đã do ảnh tham chiếu quyết định."""
+    Giữ cùng khuôn với `nen`/`nhan_vat_mau` (câu phong cách + mô tả của thầy cô + câu cấm chữ) vì đây là chỗ nhất
+    quán hình ảnh giữa các tư thế quan trọng nhất (spec Q10)."""
     dau = ("The same character as the reference image, same face, hair, clothes and colors; full body, "
-           f"{TU_THE_EN[ten]}, on a solid pure green (#00FF00) background, no shadow.")
-    return f"{dau} {CAM}"
+           f"{TU_THE_EN[ten]}, on a solid pure green (#00FF00) background, no shadow; the character must not "
+           "wear or hold anything green.")
+    return f"{dau} {PHONG_CACH_ANH[phong_cach]}. {mo_ta.strip()}. {CAM}"

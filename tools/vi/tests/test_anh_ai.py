@@ -96,6 +96,20 @@ class LapKeHoachTest(unittest.TestCase):
             else:
                 self.assertIsNone(muc["tham_chieu"])
 
+    def test_muc_tu_the_co_cau_phong_cach_va_mo_ta(self):
+        # R9: câu lệnh tư thế cũng phải có câu phong cách và mô tả nhân vật (nguyên văn), không chỉ tư thế + câu cấm.
+        warnings: list = []
+        anh_ai.chay_ke_hoach(self.thu_muc, warnings)
+        ke_hoach = json.loads((self.thu_muc / "anh" / "ai" / "ke-hoach.json").read_text(encoding="utf-8"))
+        mo_ta = "cô giáo trẻ, áo dài xanh"
+        for muc in ke_hoach["muc"]:
+            if muc["loai"] != "tu-the":
+                continue
+            self.assertIn(cau_lenh.PHONG_CACH_ANH[ke_hoach["phong_cach"]], muc["prompt"], muc)
+            self.assertIn(mo_ta, muc["prompt"], muc)
+            self.assertIn("pure green (#00FF00) background", muc["prompt"], muc)
+            self.assertIn(cau_lenh.CAM, muc["prompt"], muc)
+
     def test_chay_hai_lan_ra_cung_byte(self):
         warnings: list = []
         anh_ai.chay_ke_hoach(self.thu_muc, warnings)
