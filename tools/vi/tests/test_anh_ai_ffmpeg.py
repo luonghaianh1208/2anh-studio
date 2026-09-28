@@ -78,7 +78,7 @@ class NhanFfmpegTest(unittest.TestCase):
     def test_nen_vuong_nho_phu_16_9_co_canh_bao(self):
         w, h = kich_thuoc(self.ai / "nen-1.jpg")
         self.assertEqual((w, h), (1024, 576))
-        self.assertIn("Ảnh nền cảnh 1 nhỏ hơn Full HD (1024x1024).", self.warnings)
+        self.assertIn("Ảnh nền cảnh 1 nhỏ hơn Full HD: ra 1024×576 (ảnh gốc 1024×1024).", self.warnings)
         self.assertFalse(any("cảnh 3" in w for w in self.warnings))
 
     def test_nhan_jpg_khi_ke_hoach_ghi_png(self):
