@@ -67,7 +67,8 @@ test('the: moi loai canh x 2 kho x 2 phong cach co du muc the, nam trong o the v
           assert.ok(m.y + m.cao <= kho.day, ten + ' ' + m.id);
           assert.ok(m.x >= 0 && m.x + m.rong <= kho.rong, ten + ' ' + m.id);
           assert.ok(m.y >= o.y - 10 - 1e-9, ten + ' ' + m.id);
-          assert.ok(m.quay !== false || m.id === 'the-nen', ten + ' ' + m.id);
+          // Thẻ không bao giờ là mục tiêu máy quay (máy quay giữ cả thẻ trong khung).
+          assert.strictEqual(m.quay, false, ten + ' ' + m.id);
         });
       });
     });

@@ -69,18 +69,42 @@ test('kho doc bo tri lai (vi tri tuong doi khac), khong co gian ban kho ngang', 
   });
 });
 
-// Mây của bau-troi khổ dọc nằm hẳn trên ô thẻ (y 320): mây dưới mép thẻ lòi ra như một mấu.
-test('bau-troi kho doc: moi dam may nam tren o the', function () {
-  var the = require(path.join(RT, 'o-bo-cuc.json')).doc.the;
-  for (var hat = 1; hat <= 60; hat++) {
-    var s = N.ve('bau-troi', DOC, hat);
-    var may = s.match(/<g fill="#fff" opacity="[0-9.]+"><rect [^>]*>/g) || [];
-    assert.strictEqual(may.length, 4, 'hat ' + hat);
-    may.forEach(function (g) {
-      var y = +g.match(/ y="([-0-9.]+)"/)[1], h = +g.match(/ height="([-0-9.]+)"/)[1];
-      assert.ok(y + h <= the.y, 'hat ' + hat + ': may day ' + (y + h));
+// Vật trang trí nổi (mây, mặt trời và quầng, đồng hồ) không nằm sau ô tiêu đề và ô thẻ ở cả hai khổ, mọi hạt giống.
+var BANG = require(path.join(RT, 'o-bo-cuc.json'));
+function soThuoc(tag, ten) { var m = tag.match(new RegExp(' ' + ten + '="([-0-9.]+)"')); return m ? +m[1] : null; }
+function vatTrangTri(ten, s) {
+  var kq = [];
+  // Mây: <g fill="#fff" opacity=…><rect …> thân rộng 150 s, cao 36 s; bướu cao nhất lên tới 48 s trên đỉnh thân.
+  (s.match(/<g fill="#fff" opacity="[0-9.]+"><rect [^>]*>/g) || []).forEach(function (g) {
+    var x = soThuoc(g, 'x'), y = soThuoc(g, 'y'), w = soThuoc(g, 'width'), h = soThuoc(g, 'height');
+    kq.push({ ten: 'may', x: x, y: y - h / 36 * 48, w: w, h: h + h / 36 * 48 });
+  });
+  var MAU = { 'bau-troi': ['#fffbe6', '#fff3c4'], 'dong-que': ['#fff2b8', '#ffe59a', '#ffd166'], 'lop-hoc': ['#a9723f'] }[ten] || [];
+  (s.match(/<circle [^>]*>/g) || []).forEach(function (c) {
+    var f = c.match(/fill="([^"]+)"/)[1];
+    if (MAU.indexOf(f) < 0) { return; }
+    var cx = soThuoc(c, 'cx'), cy = soThuoc(c, 'cy'), rr = soThuoc(c, 'r');
+    kq.push({ ten: f, x: cx - rr, y: cy - rr, w: 2 * rr, h: 2 * rr });
+  });
+  return kq;
+}
+function giao(a, b) { return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h; }
+
+test('may, mat troi, dong ho khong nam sau o tieu-de va o the (2 kho, 40 hat)', function () {
+  [NGANG, DOC].forEach(function (kho) {
+    var o = [BANG[kho.ten]['tieu-de'], BANG[kho.ten].the];
+    ['bau-troi', 'thanh-pho', 'dong-que', 'lop-hoc'].forEach(function (ten) {
+      for (var hat = 1; hat <= 40; hat++) {
+        var ds = vatTrangTri(ten, N.ve(ten, kho, hat));
+        assert.ok(ds.length >= 1, ten + ' ' + kho.ten + ' khong thay vat trang tri');
+        ds.forEach(function (v) {
+          o.forEach(function (b) {
+            assert.ok(!giao(v, b), ten + ' ' + kho.ten + ' hat ' + hat + ': ' + v.ten + ' ' + JSON.stringify([v, b]));
+          });
+        });
+      }
     });
-  }
+  });
 });
 
 test('giay dung lai THI_CAT_DAN.nenGiay', function () {

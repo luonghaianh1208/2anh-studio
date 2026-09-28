@@ -33,8 +33,8 @@ NOI_DUNG = {
     "y-tung-y": "tieu-de: Ba nguyên nhân lạm phát\ny: Cầu kéo\ny: Chi phí đẩy\ny: In thêm tiền\n",
 }
 
-# Hộp (toạ độ khung, Z = 1) của các phần tử sau kiemTran(): chữ theo từng dòng (Range), hình SVG, ảnh, giấy thẻ và
-# các dòng của khối tài liệu. [nhãn, trái, trên, phải, dưới].
+# Hộp (toạ độ khung, Z = 1) của các phần tử sau kiemTran(): chữ theo từng dòng (Range của từng nút chữ, không tính hộp
+# của phần tử bọc như `.trong`), hình SVG, ảnh, giấy thẻ và các dòng của khối tài liệu. [nhãn, trái, trên, phải, dưới].
 HOP = """() => {
   const k = document.getElementById('khung').getBoundingClientRect();
   const kq = [];
@@ -42,8 +42,12 @@ HOP = """() => {
   document.querySelectorAll('#bang .chu').forEach((el) => {
     const id = el.dataset.id;
     if (id === 'the-nen') { them(id, el.getBoundingClientRect()); return; }
-    const r = document.createRange(); r.selectNodeContents(el);
-    [...r.getClientRects()].forEach((c) => them(id, c));
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      if (!n.textContent.trim()) { continue; }
+      const r = document.createRange(); r.selectNodeContents(n);
+      [...r.getClientRects()].forEach((c) => them(id, c));
+    }
   });
   document.querySelectorAll('#bang svg.ve g.hinh, #bang svg.ve g.hinh-dan').forEach((el) => them('hinh', el.getBoundingClientRect()));
   document.querySelectorAll('#bang .anh .cua-anh').forEach((el) => them('anh', el.getBoundingClientRect()));
@@ -119,6 +123,62 @@ class TheChromiumTest(unittest.TestCase):
                 finally:
                     page.close()
 
+    def test_may_quay_giu_tieu_de_the_tai_lieu_trong_khung_va_duoi_khung_loat(self):
+        # Máy quay bật (mặc định), có khung loạt: ở mọi t của cảnh, tiêu đề (cả dải băng dính cat-dan), thẻ và dòng
+        # tài liệu nằm trọn trong khung và không đè khung loạt, sau khi mục đó đã trượt/hiện xong (cat-dan trượt vào từ
+        # mép trái là hiệu ứng vào cảnh, không phải máy quay).
+        do = """(t) => {
+          const xong = {};
+          window.THI_CANH[window.DU_CANH.loai].muc(window.DU_CANH).forEach((m) => { xong[m.id] = m.batDau + m.thoiLuong; });
+          const da = (id) => t >= (xong[id] === undefined ? 0 : xong[id]) + 0.05;
+          const k = document.getElementById('khung').getBoundingClientRect();
+          const hop = (r) => [r.left - k.left, r.top - k.top, r.right - k.left, r.bottom - k.top];
+          const kq = [];
+          document.querySelectorAll('#bang .chu').forEach((el) => {
+            const id = el.dataset.id;
+            if ((id !== 'tieu-de' && !id.startsWith('the-')) || !da(id)) { return; }
+            if (id === 'the-nen') { kq.push([id].concat(hop(el.getBoundingClientRect()))); return; }
+            const r = document.createRange(); r.selectNodeContents(el);
+            [...r.getClientRects()].filter((c) => c.width > 0).forEach((c) => kq.push([id].concat(hop(c))));
+          });
+          document.querySelectorAll('#bang g.bang-dinh polygon, #bang .dong-nguon .dong').forEach((el) => {
+            const ten = el.tagName === 'polygon' ? 'bang-dinh' : 'tai-lieu';
+            if (da(ten === 'bang-dinh' ? 'tieu-de' : 'tai-lieu')) { kq.push([ten].concat(hop(el.getBoundingClientRect()))); }
+          });
+          const loat = [...document.querySelectorAll('#khung-loat span')].map((el) => ['loat'].concat(hop(el.getBoundingClientRect())));
+          return [kq, loat];
+        }"""
+        the_tl = THE_TOI_DA + f"tai-lieu: {chuoi(60)}\n"
+        ds = [("y-tung-y", NOI_DUNG["y-tung-y"] + the_tl), ("khai-niem", NOI_DUNG["khai-niem"] + the_tl),
+              ("y-tung-y", NOI_DUNG["y-tung-y"] + "hinh: clock\n" + the_tl)]
+        for ten_kho in ("ngang", "doc"):
+            k = kho.Kho(ten_kho, 720)
+            for phong_cach in ("viet-tay", "cat-dan"):
+                page = chup.trang_moi(self.browser, k)
+                try:
+                    for canh, html in self.trang(ds, ten_kho, phong_cach, "loat: Kinh tế học nhập môn\n"):
+                        chup.mo_trang(page, html)
+                        gh = page.evaluate("() => window.DU_CANH.thoiLuong")
+                        n = int(gh / 0.2)
+                        for i in range(n + 1):
+                            t = round(gh * i / n, 3)
+                            page.evaluate("(t) => window.datThoiDiem(t)", t)
+                            hop, loat = page.evaluate(do, t)
+                            with self.subTest(kho=ten_kho, phong_cach=phong_cach, so=canh.so, t=t):
+                                if t >= gh - 0.5:
+                                    self.assertTrue(any(h[0] == "the-gia-tri" for h in hop), hop)
+                                    self.assertTrue(any(h[0] == "tai-lieu" for h in hop), hop)
+                                self.assertEqual(len(loat), 2)
+                                for h in hop:
+                                    self.assertGreaterEqual(h[1], -1, h)
+                                    self.assertGreaterEqual(h[2], -1, h)
+                                    self.assertLessEqual(h[3], k.rong + 1, h)
+                                    self.assertLessEqual(h[4], k.cao + 1, h)
+                                    for g in loat:
+                                        self.assertFalse(giao(h, g), (h, g))
+                finally:
+                    page.close()
+
     def test_cong_thuc_M_x_V_kho_doc_mot_dong(self):
         for phong_cach in ("viet-tay", "cat-dan"):
             for cot in ("", "hinh: clock\n"):
@@ -129,10 +189,7 @@ class TheChromiumTest(unittest.TestCase):
                         with self.subTest(phong_cach=phong_cach, cot=cot, so=canh.so):
                             self.assertEqual(chup.kiem_tran(page, html), [])
                             dong = [h for h in page.evaluate(HOP) if h[0] == "bieu-thuc"]
-                            # Một dòng: mọi hộp cùng đỉnh (lệch ≤ 4 điểm: khổ dọc không cột phụ căn biểu thức giữa khung,
-                            # hộp bọc chữ `.trong` cao hơn dòng chữ 2 điểm; dòng thứ hai sẽ thấp hơn cả chục điểm).
-                            tops = [h[2] for h in dong]
-                            self.assertLessEqual(max(tops) - min(tops), 4, dong)
+                            self.assertEqual(len({round(h[2]) for h in dong}), 1, dong)
                             self.assertEqual(page.evaluate(
                                 "() => [...document.querySelectorAll('[data-id=bieu-thuc] span.phan')].map((s) => s.style.whiteSpace)"),
                                 ["nowrap", "nowrap"])

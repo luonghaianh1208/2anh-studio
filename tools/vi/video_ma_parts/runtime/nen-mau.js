@@ -38,6 +38,10 @@
     var b = BANG[kho.ten] && BANG[kho.ten]['noi-dung'];
     return b || { x: kho.rong * 0.05, y: kho.cao * 0.26, w: kho.rong * 0.9, h: kho.day - kho.cao * 0.26 };
   }
+  // Vật trang trí nổi (mặt trời và quầng, mây, đồng hồ) không nằm sau ô tiêu đề và ô thẻ của cảnh kể chuyện: chữ và
+  // thẻ luôn trên nền trời hay tường trơn. Khổ ngang: vật trang trí ở dải trời dưới ô thẻ (y > 180); khổ dọc: ở dải
+  // trên ô tiêu đề (y < 110, có thể lẹm mép trên) hoặc dưới ô thẻ (y > 460).
+
   // Lớp phủ trắng mờ trên ô noi-dung, mép tan dần (không thành khung cứng): độ đục `a` ở giữa.
   function phuGiua(kho, id, a) {
     var o = oGiua(kho);
@@ -98,13 +102,14 @@
     var r = prng(hat * 37 + 1), R = kho.rong, H = kho.cao, doc = laDoc(kho);
     var defs = sacDoc('nm-troi', [[0, '#86c5ec'], [0.55, '#c3e4f6'], [1, '#eaf6fb']]);
     var s = hop(0, 0, R, H, 'url(#nm-troi)');
-    var mx = R * 0.84, my = H * (doc ? 0.09 : 0.15), mr = Math.min(R, H) * 0.075;
+    // Mặt trời: khổ ngang ở mép phải dưới ô thẻ; khổ dọc lẹm mép trên, phía trên ô tiêu đề.
+    var mx = doc ? R * 0.86 : R * 0.91, my = doc ? 34 : 300, mr = doc ? 36 : Math.min(R, H) * 0.075;
     s += tron(mx, my, mr * 2, '#fffbe6', ' opacity="0.35"') + tron(mx, my, mr, '#fff3c4');
     var n = doc ? 4 : 5;
-    // Khổ dọc: mây chỉ ở dải trời trên ô thẻ (thẻ khổ dọc ở y 320–460 của 1280): mây nằm dưới mép thẻ lòi ra như một mấu.
     for (var i = 0; i < n; i++) {
-      var cx = R * (i + 0.2 + 0.6 * r()) / n, cy = H * (doc ? trongKhoang(r, 0.06, 0.2) : trongKhoang(r, 0.08, 0.36));
-      if (Math.abs(cx - mx) < mr * 2 + 80 && Math.abs(cy - my) < mr * 2 + 40) { cy = my + mr * 2 + 70; }  // không che mặt trời
+      // Khổ ngang: mây ở dải y 265–400 (đỉnh mây dưới ô thẻ); khổ dọc: xen kẽ dải trên ô tiêu đề và dải dưới ô thẻ.
+      var cx = R * (i + 0.2 + 0.6 * r()) / n, cy = doc ? (i % 2 ? trongKhoang(r, 540, 780) : trongKhoang(r, 60, 88)) : trongKhoang(r, 265, 400);
+      if (Math.abs(cx - mx) < mr * 2 + 80 && Math.abs(cy - my) < mr * 2 + 70) { cy = doc ? trongKhoang(r, 540, 780) : 440; }  // không che mặt trời
       s += may(cx, cy, trongKhoang(r, 0.7, 1.25) * (doc ? 0.9 : 1), '#fff', so(trongKhoang(r, 0.8, 0.95)));
     }
     var nen = H * (doc ? 0.7 : 0.7);
@@ -173,7 +178,7 @@
     s += hop(b.x - 24, b.y + b.h + 14, b.w + 48, 12, '#8d5a2e', ' rx="3"') + hop(phan, b.y + b.h + 8, 26, 7, '#fbf7ee', ' rx="3"') +
       hop(phan + b.w * 0.06, b.y + b.h + 8, 20, 7, '#f6d98a', ' rx="3"');
     // Đồng hồ treo tường (kim, không số).
-    var dx = doc ? R / 2 : 1135, dy = doc ? 180 : 150;
+    var dx = doc ? R / 2 : 1135, dy = doc ? 64 : 240;  // trên ô tiêu đề (dọc), dưới ô thẻ (ngang)
     var gio = r() * 2 * Math.PI, phut = r() * 2 * Math.PI;
     s += tron(dx, dy, 36, '#a9723f') + tron(dx, dy, 29, '#fffaf0') +
       '<path d="M' + dx + ' ' + dy + ' L' + so(dx + 13 * Math.sin(gio)) + ' ' + so(dy - 13 * Math.cos(gio)) + ' M' + dx + ' ' + dy +
@@ -269,7 +274,7 @@
     var dat = H * (doc ? 0.86 : 0.8);
     var defs = sacDoc('nm-pho', [[0, '#bfe1f3'], [0.7, '#e9f1ee'], [1, '#fbeedb']]);
     var s = hop(0, 0, R, H, 'url(#nm-pho)');
-    s += may(R * 0.22, H * (doc ? 0.1 : 0.14), 0.9, '#fff', 0.8) + may(R * 0.74, H * (doc ? 0.2 : 0.1), 0.7, '#fff', 0.7);
+    s += may(R * 0.22, doc ? 88 : 255, 0.9, '#fff', 0.8) + may(R * 0.74, doc ? 80 : 250, 0.7, '#fff', 0.7);
     // Dãy nhà xa: khối nhạt cùng tông trời.
     for (var x = -20; x < R; ) {
       var w = trongKhoang(r, 50, 100), h = H * (doc ? trongKhoang(r, 0.2, 0.34) : trongKhoang(r, 0.25, 0.4));
@@ -308,9 +313,10 @@
     var ngang = H * (doc ? 0.66 : 0.64);
     var defs = sacDoc('nm-que', [[0, '#9fd2ee'], [0.75, '#e4f1ea'], [1, '#fcefd4']]);
     var s = hop(0, 0, R, H, 'url(#nm-que)');
-    var mx = R * (doc ? 0.74 : 0.8), my = H * (doc ? 0.14 : 0.2), mr = doc ? 54 : 46;
+    // Khổ ngang: mặt trời thấp, lẹm sau núi, dưới ô thẻ; khổ dọc: lẹm mép trên, phía trên ô tiêu đề.
+    var mx = R * (doc ? 0.78 : 0.8), my = doc ? 30 : 300, mr = doc ? 32 : 46;
     s += tron(mx, my, mr * 2.3, '#fff2b8', ' opacity="0.3"') + tron(mx, my, mr * 1.55, '#ffe59a', ' opacity="0.4"') + tron(mx, my, mr, '#ffd166');
-    s += may(R * 0.2, H * (doc ? 0.24 : 0.2), 0.8, '#fff', 0.85);
+    s += may(R * 0.2, doc ? 90 : 250, 0.8, '#fff', 0.85);
     // Núi xa hai lớp: đỉnh nhọn mềm theo PRNG.
     [['#b9cde0', 0.2], ['#a3bdd3', 0.12]].forEach(function (l) {
       var ds = [[0, ngang]], x = 0;

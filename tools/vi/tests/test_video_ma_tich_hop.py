@@ -137,7 +137,8 @@ class EndToEndTest(unittest.TestCase):
 
 def chay_video_ma(thu_muc: Path) -> tuple:
     out = io.StringIO()
-    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()),             mock.patch.object(chup, "so_tien_trinh", return_value=2):
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()), \
+            mock.patch.object(chup, "so_tien_trinh", return_value=2):
         code = video_ma.main([str(thu_muc)])
     lines = [l for l in out.getvalue().splitlines() if l.strip()]
     return code, json.loads(lines[-1])

@@ -263,11 +263,15 @@ class KeChuyenChromiumTest(unittest.TestCase):
             page = chup.trang_moi(self.browser, kho.Kho(ten_kho, 720))
             try:
                 chup.mo_trang(page, trang.dung_trang(du, None))
+                self.assertTrue(du["co"]["banTay"])
+                self.assertEqual(page.evaluate("() => document.querySelectorAll('#ban-tay').length"), 1)
                 clip = "(t) => { window.datThoiDiem(t); return getComputedStyle(document.querySelector('.nen-canh')).clipPath; }"
                 for t in (lau / 4, lau / 2, lau * 3 / 4):
                     mep = -120 + (rong + 120) * t / lau
                     with self.subTest(kho=ten_kho, t=t):
                         self.assertEqual(page.evaluate(clip, t), f"inset(0px {rong - mep:g}px 0px 0px)")
+                        # Không có bàn tay cầm giẻ quét qua tranh nền.
+                        self.assertEqual(page.evaluate("() => getComputedStyle(document.getElementById('ban-tay')).display"), "none")
                 self.assertEqual(page.evaluate(clip, lau + 0.1), "none")
             finally:
                 page.close()

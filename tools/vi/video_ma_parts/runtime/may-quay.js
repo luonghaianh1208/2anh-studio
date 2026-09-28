@@ -55,24 +55,40 @@
     return lo <= hi ? kep(v, lo, hi) : kep(v, phuLo, phuHi);
   }
 
+  function gop(a, b) {
+    var x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+    return { x: x, y: y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
+  }
+
   // Kẹp để lớp bảng phủ kín khung và hộp nằm trong khung, đáy <= DAY.
-  function kepHop(s, h) {
+  // `giu` (tuỳ chọn) = {hop, tren}: hộp phải luôn nằm trọn trong khung cùng mục tiêu (tiêu đề, thẻ, dòng tài liệu),
+  // đỉnh không cao hơn `tren` (dưới khung loạt). Z bị giới hạn để cả hai cùng vừa; Z = 1 luôn vừa vì bố cục đặt
+  // chúng trong khung sẵn.
+  function kepHop(s, h, giu) {
     var k = kho();
     var z = kep(Math.max(s.z, zToiThieu(h)), 1, ZMAX);
+    var tren = 0;
+    if (giu && giu.hop) {
+      h = gop(h, giu.hop);
+      tren = Math.min(giu.tren || 0, h.y);
+      // Trừ 1e-6 để hai cận của tx, ty không đảo nhau vì sai số làm tròn khi z đúng bằng giới hạn.
+      z = Math.max(1, Math.min(z, k.rong / h.w - 1e-6, (Math.max(k.day, h.y + h.h) - tren) / h.h - 1e-6));
+    }
     var phuX = k.rong * (1 - z), phuY = k.cao * (1 - z);
+    var day = giu && giu.hop ? Math.max(k.day, h.y + h.h) : k.day;
     var tx = kepKhoang(s.tx, Math.max(phuX, -z * h.x), Math.min(0, k.rong - z * (h.x + h.w)), phuX, 0);
-    var ty = kepKhoang(s.ty, Math.max(phuY, -z * h.y), Math.min(0, k.day - z * (h.y + h.h)), phuY, 0);
+    var ty = kepKhoang(s.ty, Math.max(phuY, tren - z * h.y), Math.min(0, day - z * (h.y + h.h)), phuY, 0);
     return { z: z, tx: tx, ty: ty };
   }
 
   // Ngưỡng cao khi ngắm mục tiêu: đáy vùng nội dung trừ 60 px lề trên (khổ ngang: 620 − 60 = 560, như cũ).
-  function ngam(h) {
+  function ngam(h, giu) {
     var k = kho();
     var z = kep(Math.min(0.6 * k.rong / h.w, 0.6 * (k.day - 60) / h.h), 1, ZMAX);
-    return kepHop({ z: z, tx: k.tamX - z * (h.x + h.w / 2), ty: k.tamY - z * (h.y + h.h / 2) }, h);
+    return kepHop({ z: z, tx: k.tamX - z * (h.x + h.w / 2), ty: k.tamY - z * (h.y + h.h / 2) }, h, giu);
   }
 
-  function theoMuc(ds, hop, t) {
+  function theoMuc(ds, hop, t, giu) {
     var moc = [];
     ds.forEach(function (m) {
       if (!quayDuoc(m, hop)) { return; }
@@ -83,8 +99,8 @@
     var tu = GOC;
     var luc = -Infinity;
     function hienTai(x) {
-      var s = tron(tu, dang ? ngam(hop[dang.id]) : GOC, em((x - luc) / CHUYEN));
-      return dang ? kepHop(s, hop[dang.id]) : s;
+      var s = tron(tu, dang ? ngam(hop[dang.id], giu) : GOC, em((x - luc) / CHUYEN));
+      return dang ? kepHop(s, hop[dang.id], giu) : s;
     }
     for (var i = 0; i < moc.length && moc[i] <= t; i++) {
       var moi = mucTai(ds, hop, moc[i]);
@@ -106,7 +122,7 @@
     }
     var ve = em((t - (gh - THU)) / (THU - XONG));
     if (ve >= 1) { return { z: 1, tx: 0, ty: 0 }; }
-    return tron(theoMuc(ds, hop, t), GOC, ve);
+    return tron(theoMuc(ds, hop, t, cauHinh.giu), GOC, ve);
   }
 
   function mucTieu(ds, hop, t) {

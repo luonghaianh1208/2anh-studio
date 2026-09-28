@@ -514,12 +514,13 @@
         if (du.nen) { ds.push(net('the-giay', hopQua(o.x, o.y, o.w, h, 17), bd, 0.5, { mau: 'the-giay', quay: false })); }
         ds.push(net('the-khung', hopQua(o.x, o.y, o.w, h, 17), bd, 0.5, { quay: false }));
       }
-      var nhan = chu('the-nhan', d.nhan, x, o.y + 10, w, 20, 13, catDan ? bd : bd + 0.3, { mau: 'the-nhan' });
+      // Chữ của thẻ không bao giờ là mục tiêu máy quay (máy quay chỉ giữ cả thẻ trong khung, xem hopGiu).
+      var nhan = chu('the-nhan', d.nhan, x, o.y + 10, w, 20, 13, catDan ? bd : bd + 0.3, { mau: 'the-nhan', quay: false });
       var gt = chu('the-gia-tri', d.giaTri, x, o.y + 30, w, 58, 44, nhan.batDau + (catDan ? 0 : nhan.thoiLuong),
-        { mau: 'the-gia-tri', khongCum: true, khoi: [demKyTu(d.giaTri, true)] });
+        { mau: 'the-gia-tri', khongCum: true, khoi: [demKyTu(d.giaTri, true)], quay: false });
       ds.push(nhan, gt);
       if (d.chuThich) {
-        ds.push(chu('the-chu-thich', d.chuThich, x, o.y + 90, w, 44, 16, gt.batDau + (catDan ? 0 : gt.thoiLuong), { mau: 'the-chu-thich' }));
+        ds.push(chu('the-chu-thich', d.chuThich, x, o.y + 90, w, 44, 16, gt.batDau + (catDan ? 0 : gt.thoiLuong), { mau: 'the-chu-thich', quay: false }));
       }
       return ds;
     }
@@ -1071,11 +1072,34 @@
       nenCanh.style.clipPath = s ? 'inset(0 ' + lam3(kho.rong - s.mep) + 'px 0 0)' : '';
     }
 
+    // Hộp máy quay phải giữ trọn trong khung cùng mục tiêu: thẻ (the-*), dòng tài liệu, và tiêu đề cảnh khi cảnh có
+    // thẻ hay dòng tài liệu, hoặc ở cat-dan (nhãn băng dính, lề 8 cho dải băng). Không có gì cần giữ thì null (máy
+    // quay như vi.11). Đỉnh không lên trên khung loạt.
+    var giu;
+    function hopGiu() {
+      var chrome = [], tieuDe = [];
+      var coTieuDe = mucVe.some(function (m) { return m.id === 'tieu-de'; });
+      mucVe.forEach(function (m) {
+        var h = hop[m.id] || (m.kieu === 'nguon' ? { x: m.x, y: m.y, w: m.rong, h: m.cao } : null);
+        if (!h) { return; }
+        if (m.id.indexOf('the-') === 0 || m.id === 'tai-lieu') { chrome.push(h); }
+        // Tiêu đề cảnh và nét gạch dưới của nó (viet-tay, chỉ khi cảnh có mục `tieu-de`).
+        if (m.id === 'tieu-de' || (m.id === 'gach' && coTieuDe)) { tieuDe.push(h); }
+      });
+      var catDanCanh = (du.chuDe || {}).ten === 'cat-dan';
+      var ds = chrome.concat(chrome.length || catDanCanh ? tieuDe : []);
+      if (!ds.length) { return null; }
+      var le = catDanCanh ? 8 : 0;
+      var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      ds.forEach(function (h) { x0 = Math.min(x0, h.x - le); y0 = Math.min(y0, h.y - le); x1 = Math.max(x1, h.x + h.w + le); y1 = Math.max(y1, h.y + h.h + le); });
+      return { hop: { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, tren: du.loat ? CHUA_LOAT : 0 };
+    }
+
     function dat(t, noiBo) {
-      if (!noiBo && !hop) { hop = doHop(); }
+      if (!noiBo && !hop) { hop = doHop(); giu = hopGiu(); }
       datMuc(t);
       var moi = datNen(t);
-      var cam = noiBo ? { z: 1, tx: 0, ty: 0 } : Q.tinh(mucVe, hop, t, gh, { mayQuay: co.mayQuay === true, day: thiNghiem });
+      var cam = noiBo ? { z: 1, tx: 0, ty: 0 } : Q.tinh(mucVe, hop, t, gh, { mayQuay: co.mayQuay === true, day: thiNghiem, giu: giu });
       // Loại cảnh tự lái máy quay ngoài các mục (câu hỏi: đẩy nhẹ trong lúc đếm ngược).
       if (!noiBo && co.mayQuay === true && loai.mayQuay) { cam = loai.mayQuay(du, t, cam); }
       var bd = matTran(cam);
@@ -1091,6 +1115,8 @@
       }
       if (!tay) { return; }
       var v = noiBo ? { hien: false } : T.viTri(mucVe, t, ngoiCua(cam), T.NGHI, { chuyen: kieu, giayLau: lau, gh: gh });
+      // Cảnh có nền phủ kín (ke-chuyen): lau bảng chỉ còn mép lau trên nền, không có bàn tay cầm giẻ quét qua tranh.
+      if (du.nen && kieu === 'lau-bang' && t >= 0 && t <= lau) { v = { hien: false }; }
       tay.style.display = v.hien ? 'block' : 'none';
       if (!v.hien) { return; }
       tay.setAttribute('data-kieu', v.kieu);

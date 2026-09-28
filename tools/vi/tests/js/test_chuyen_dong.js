@@ -547,3 +547,24 @@ test('thu tu xuat hien: canh 2 cat-dan xe-giay - moi muc >= giayLau + 0,05, nen 
     assert.ok(cham.batDau <= y.batDau, 'cham-' + k + ' khong duoc den sau chu y-' + k + ' no dung canh: ' + JSON.stringify(boi));
   });
 });
+
+// Hộp giữ (tiêu đề, thẻ, dòng tài liệu): luôn nằm trọn trong khung, đỉnh không cao hơn `tren` (dưới khung loạt),
+// cùng mục tiêu; máy quay vẫn phóng khi còn chỗ.
+test('may quay: hop giu (the, tieu de, tai lieu) luon trong khung va duoi khung loat', function () {
+  globalThis.THI_KHO.dat(null);
+  [{ hop: { x: 880, y: 40, w: 340, h: 140 }, tren: 40 },            // thẻ góc phải trên
+    { hop: { x: 60, y: 40, w: 1160, h: 576 }, tren: 40 },            // tiêu đề trái trên tới tài liệu phải dưới
+    { hop: { x: 300, y: 90, w: 200, h: 60 }, tren: 0 }].forEach(function (giu) {
+    var coPhong = false;
+    for (var i = 0; i < 300; i++) {
+      var t = GH * i / 299;
+      var s = Q.tinh(DS, HOP, t, GH, { giu: giu });
+      assert.ok(phuKin(s), JSON.stringify([t, s]));
+      var b = bienDoi(s, giu.hop);
+      assert.ok(b.x >= -1e-6 && b.x + b.w <= 1280 + 1e-6 && b.y >= giu.tren - 1e-6 && b.y + b.h <= 620 + 1e-6,
+        JSON.stringify([giu, t, b]));
+      if (s.z > 1.02) { coPhong = true; }
+    }
+    if (giu.hop.w < 400) { assert.ok(coPhong, 'hop giu nho thi van phong: ' + JSON.stringify(giu)); }
+  });
+});

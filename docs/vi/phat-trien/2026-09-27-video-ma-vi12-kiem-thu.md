@@ -137,9 +137,9 @@ Ngày 2026-09-28, máy chủ repo (i5-9400F, 6 lõi, 3 tiến trình Chromium m�
 | ngang, `viet-tay` (bản ngang của fixture) | 1920×1080 | 388,4 s (6 phút 28 giây) | 1,29 lần | 46,4 MB |
 | dọc, `cat-dan` (fixture nguyên bản) | 1080×1920 | 572,7 s (9 phút 33 giây) | 1,91 lần | 44,8 MB |
 
-- Cả hai dưới mục tiêu 12 phút của spec (mục 1, tiêu chí 9). Khổ dọc cắt dán chậm hơn khoảng 1,5 lần: mỗi khung vẽ thêm nền giấy, mảng giấy xé, chấm lưới và bóng thẻ.
+- Cả hai dưới mục tiêu 12 phút của spec (mục 1, tiêu chí 9). Khổ dọc cắt dán chậm hơn khoảng 1,5 lần so với khổ ngang viết tay: mỗi khung vẽ thêm nền giấy, mảng giấy xé, chấm lưới và bóng thẻ.
 - Tạo giọng máy (edge-tts) cộng thêm tuỳ mạng; ở hai demo dưới, cả lượt dựng có tạo giọng mất 320 s cho video 92,5 giây (cắt dán ngang) và 128 s cho video 65,1 giây (dọc).
-- Hướng dẫn cho thầy cô (`video-giai-thich.md`, "khoảng 1,5 lần thời lượng") khớp khổ ngang; khổ dọc cắt dán gần 2 lần.
+- Hướng dẫn (`docs/vi/tro-ly/video-giai-thich.md`, `docs/vi/video-giai-thich.md`, `AGENTS.vi.md` §15, `.agents/rules/ppt-master-vi.md`) ghi "khoảng 1,5 lần thời lượng" cho khổ ngang và "khoảng 2 lần" cho khổ dọc cắt dán.
 
 ### Demo cho chủ repo (không commit)
 
@@ -147,8 +147,8 @@ Giọng máy edge-tts thật, dựng ngày 2026-09-28:
 
 | Thư mục | Kiểu | Thời lượng | Kích thước | Dung lượng |
 |---|---|---|---|---|
-| `projects/_video/in-tien-lam-phat-cat-dan/video.mp4` | `cat-dan` ngang, 8 cảnh, loạt "Kinh tế học nhập môn", 5 thẻ, 5 dòng tài liệu, người que ở 4 cảnh, giọng nam | 92,5 s | 1920×1080 | 20,7 MB |
-| `projects/_video/quy-tac-2-phut-doc/video.mp4` | `viet-tay` dọc, 8 cảnh `ke-chuyen`, loạt "Quy tắc 2 phút", người que áo xanh lá, nền mẫu `lop-hoc`, `vong-tron`, `bau-troi`, `dong-que` và `nhu-canh`, một thẻ | 65,1 s | 1080×1920 | 10,2 MB |
+| `projects/_video/in-tien-lam-phat-cat-dan/video.mp4` | `cat-dan` ngang, 8 cảnh, loạt "Kinh tế học nhập môn", 5 thẻ, 5 dòng tài liệu, người que ở 4 cảnh, giọng nam | 92,5 s | 1920×1080 | 17,2 MB |
+| `projects/_video/quy-tac-2-phut-doc/video.mp4` | `viet-tay` dọc, 8 cảnh `ke-chuyen`, loạt "Quy tắc 2 phút", người que áo xanh lá, nền mẫu `lop-hoc`, `vong-tron`, `bau-troi`, `dong-que` và `nhu-canh`, một thẻ | 65,1 s | 1080×1920 | 9,9 MB |
 
 Một lượt tạo giọng edge-tts lỗi "No audio was received" ở cảnh 4 của demo dọc (lỗi `giong`); chạy lại một lần thì qua, đúng như bảng xử lý lỗi của hướng dẫn.
 
@@ -157,3 +157,7 @@ Một lượt tạo giọng edge-tts lỗi "No audio was received" ở cảnh 4 
 - **Khổ dọc bị dồn lên trên.** `y-tung-y`, `quy-trinh` và `cong-thuc` khổ dọc: khối nội dung ngắn hơn ô `noi-dung` (cao 720) được dời xuống nằm giữa ô (`V.giuaDoc`); biểu thức của `cong-thuc` khổ dọc không cột phụ nằm giữa khung cao 300. Khối ở số dòng tối đa gần như không dời, nên giới hạn chữ đã đo giữ nguyên. Khổ ngang không đổi: ảnh tham chiếu vi.11 vẫn giống từng điểm ảnh. Test: `tools/vi/tests/js/test_canh.js` ("kho doc: y-tung-y, quy-trinh, cong-thuc ngan nam giua o noi-dung").
 - **Mây lòi dưới thẻ.** Nền `mau/bau-troi` khổ dọc chỉ đặt mây ở dải trời trên ô thẻ (y < 320 của 1280); trước đây mây có thể nằm dưới mép thẻ và lòi ra như một mấu. Test: `tools/vi/tests/js/test_nen_mau.js` (60 hạt giống).
 - **Chuyển lau bảng trên nền kể chuyện.** Test Chromium mới `test_video_ma_ke_chuyen.test_lau_bang_cat_nen_canh_theo_mep_lau`: ở ¼, ½, ¾ thời gian lau, `.nen-canh` có `clip-path: inset(0 <rộng − mép>px 0 0)`, hết lau thì `none` (cảnh `ke-chuyen` viết tay không cắt cứng).
+- **Máy quay cắt thẻ và tiêu đề.** Chữ của thẻ (`the-nhan`, `the-gia-tri`, `the-chu-thich`) không còn là mục tiêu máy quay. Cảnh có thẻ hay dòng tài liệu (và mọi cảnh `cat-dan`, vì nhãn băng dính) có một hộp giữ: tiêu đề cảnh (cả dải băng dính, lề 8), thẻ và dòng tài liệu; máy quay giới hạn độ phóng và dịch sao cho hộp đó cùng mục tiêu luôn nằm trọn trong khung, đỉnh không lên trên dải khung loạt (y 40). Cảnh vi.11 không có thẻ, tài liệu hay cắt dán nên máy quay không đổi. Test: `test_video_ma_the.test_may_quay_giu_tieu_de_the_tai_lieu_trong_khung_va_duoi_khung_loat` (2 khổ × 2 phong cách, lấy mẫu mỗi 0,2 s) và `tools/vi/tests/js/test_chuyen_dong.js` ("hop giu").
+- **Vật trang trí sau tiêu đề.** Mặt trời và quầng (`bau-troi`, `dong-que`), mây (`bau-troi`, `thanh-pho`, `dong-que`) và đồng hồ (`lop-hoc`) không nằm sau ô `tieu-de` và ô `the` ở cả hai khổ: khổ ngang ở dải dưới ô thẻ (y > 180), khổ dọc ở dải trên ô tiêu đề (y < 110, mặt trời lẹm mép trên) hoặc dưới ô thẻ (y > 460). Test: `tools/vi/tests/js/test_nen_mau.js` (4 nền × 2 khổ × 40 hạt giống).
+- **Bàn tay cầm giẻ trên nền kể chuyện.** Cảnh có nền phủ kín (`ke-chuyen`) không hiện bàn tay cầm giẻ trong lúc lau bảng; chỉ còn mép lau cắt nền. Test: `test_lau_bang_cat_nen_canh_theo_mep_lau` kiểm thêm `#ban-tay` ẩn.
+
