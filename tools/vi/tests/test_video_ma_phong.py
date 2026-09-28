@@ -158,7 +158,24 @@ class ChuDeTest(unittest.TestCase):
         self.assertEqual(phong.CHU_DE["viet-tay"], {"ten": "viet-tay", "font": "Itim", "hienChu": "viet", "net": "ve"})
         self.assertEqual(phong.CHU_DE["cat-dan"], {
             "ten": "cat-dan", "font": "BeVietnamPro", "hienChu": "truot", "net": "nhanh",
-            "mauNhan": ["#e8a33d", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"})
+            "mauNhan": ["#b07419", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"})
+
+    def test_mau_nhan_doc_duoc_tren_giay_va_the(self):
+        # Nhãn nhỏ chữ hoa (nhãn thẻ, số loạt "01/03") tô màu nhãn trên giấy nền và giấy thẻ #fffaf0: tương phản ≥ 3:1.
+        def sang(mau):
+            c = [int(mau[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+            c = [x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in c]
+            return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+        def tuong_phan(a, b):
+            lo, hi = sorted((sang(a), sang(b)))
+            return (hi + 0.05) / (lo + 0.05)
+
+        cd = phong.CHU_DE["cat-dan"]
+        self.assertEqual(len(cd["mauNhan"]), 4)
+        for mau in cd["mauNhan"]:
+            for nen in (cd["giay"], "#fffaf0"):
+                self.assertGreaterEqual(tuong_phan(mau, nen), 3.0, (mau, nen))
 
     def test_chu_de_la_ban_sao(self):
         a = phong.chu_de("cat-dan")

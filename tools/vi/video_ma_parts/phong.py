@@ -21,7 +21,7 @@ FONT_CAT_DAN = {400: _FONTS / "BeVietnamPro-Regular.ttf", 800: _FONTS / "BeVietn
 CHU_DE = {
     "viet-tay": {"ten": "viet-tay", "font": TEN, "hienChu": "viet", "net": "ve"},
     "cat-dan": {"ten": "cat-dan", "font": TEN_CAT_DAN, "hienChu": "truot", "net": "nhanh",
-                "mauNhan": ["#e8a33d", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"},
+                "mauNhan": ["#b07419", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"},
 }
 
 _THUONG = "ạảãàáâậầấẩẫăặằắẳẵẹẻẽèéêệềếểễịỉĩìíọỏõòóôộồốổỗơợờớởỡụủũùúưựừứửữỵỷỹỳýđ"

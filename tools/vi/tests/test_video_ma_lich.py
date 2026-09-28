@@ -217,7 +217,7 @@ class ResourceDataTest(unittest.TestCase):
                          {"ten": "viet-tay", "font": "Itim", "hienChu": "viet", "net": "ve"})
         du = lich.du_lieu_canh(scene, plan[0], tai_nguyen={"meta": {"phong-cach": "cat-dan"}})
         self.assertEqual(du["chuDe"], {"ten": "cat-dan", "font": "BeVietnamPro", "hienChu": "truot", "net": "nhanh",
-                                       "mauNhan": ["#e8a33d", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"})
+                                       "mauNhan": ["#b07419", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"})
 
     def test_lau_bang_off_when_meta_says_khong(self):
         scene2 = canh_dau("loai: tieu-de\nchu: B\n", "Tiếp theo.")
