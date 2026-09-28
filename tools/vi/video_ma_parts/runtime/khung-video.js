@@ -13,6 +13,9 @@
   // Thẻ thông tin: khoảng cách tới nội dung; lề trong; hàng nhãn, giá trị, chú thích (cỡ 13, 44, 16).
   var KHOANG_THE = 20;
   var LE_THE = 12;
+  // Khối dòng nguồn cuối video (#nhac-nguon, viet-tay.css): lề trái và bề rộng tối đa.
+  var NHAC_TRAI = 24;
+  var NHAC_RONG = 760;
   var NS = 'http://www.w3.org/2000/svg';
   var DANH_DAU = /\*\*(.+?)\*\*|~([^~]+)~|\^([^\^]+)\^/g;
   // Cùng ngữ pháp với kiem.py (_CUM_RE, _SO_DUNG). `____` (ô trống) và ` == ` có khoảng trắng hai bên là chữ thường.
@@ -696,10 +699,14 @@
       goc.appendChild(nenCanh);
     }
     // Dòng nguồn cuối video (cảnh cuối, 4 s cuối: dòng "tạo bằng AI" trên, nguồn nhạc nền dưới): nằm ngoài lớp bảng
-    // nên không theo máy quay hay chuyển cảnh.
+    // nên không theo máy quay hay chuyển cảnh. Riêng khi ô dòng tài liệu của cảnh lấn vào cột của khối này (khổ dọc: ô
+    // `tai-lieu` trải hết bề ngang), các dòng đó xếp lên đầu chồng dòng tài liệu (div.dong.nhac) để không đè nhau.
     var nhacNguon = null;
+    var dongNhac = [];
     var dongNguon = (du.dongNguon || []).filter(function (d) { return d && d.chu; });
-    if (dongNguon.length) {
+    var mNguon = muc.filter(function (m) { return m.kieu === 'nguon'; })[0];
+    var nhacChung = dongNguon.length > 0 && !!mNguon && mNguon.x < NHAC_TRAI + Math.min(NHAC_RONG, root.THI_KHO.lay().rong - 2 * NHAC_TRAI);
+    if (dongNguon.length && !nhacChung) {
       nhacNguon = document.createElement('div');
       nhacNguon.id = 'nhac-nguon';
       dongNguon.forEach(function (d) {
@@ -746,6 +753,16 @@
         el.style.height = m.cao + 'px';
         el.style.fontSize = m.co + 'px';
         el.style.opacity = '0';
+        if (nhacChung) {
+          dongNguon.forEach(function (dn) {
+            var d = document.createElement('div');
+            d.className = 'dong nhac';
+            d.textContent = dn.chu;
+            d.style.display = 'none';
+            el.appendChild(d);
+            dongNhac.push(d);
+          });
+        }
         m.dongs.forEach(function (chuDong) {
           var d = document.createElement('div');
           d.className = 'dong';
@@ -1108,10 +1125,12 @@
       goc.style.opacity = moi && moi.opacity !== 1 ? String(moi.opacity) : '';
       goc.style.clipPath = moi && moi.clipPath !== 'none' ? moi.clipPath : '';
       if (nenCanh) { datNenCanh(t); }
-      if (nhacNguon) {
+      if (dongNguon.length) {
         var pn = noiBo ? 0 : tienDo(t, dongNguon[0].tu, 0.3);
-        nhacNguon.style.display = pn > 0 ? 'block' : 'none';
-        nhacNguon.style.opacity = String(lam3(pn));
+        (nhacNguon ? [nhacNguon] : dongNhac).forEach(function (el) {
+          el.style.display = pn > 0 ? 'block' : 'none';
+          el.style.opacity = String(lam3(pn));
+        });
       }
       if (!tay) { return; }
       var v = noiBo ? { hien: false } : T.viTri(mucVe, t, ngoiCua(cam), T.NGHI, { chuyen: kieu, giayLau: lau, gh: gh });
@@ -1181,10 +1200,20 @@
         });
         if (deChu || rv.left < -1 || rv.top < -1 || rv.right > R || rv.bottom > D) { loi.push('nhan-vat'); }
       }
-      // Dòng nguồn nhạc nền: trong khung hình và trên vạch phụ đề.
+      // Dòng nguồn cuối video (khối riêng): trong khung hình và trên vạch phụ đề (`nhac-nguon`); không đè dòng tài
+      // liệu hay dòng chữ nào của cảnh cuối (`nhac-nguon-de`).
       if (nhacNguon) {
         var rm = nhacNguon.getBoundingClientRect();
         if (rm.left < -1 || rm.top < -1 || rm.right > R || rm.bottom > D) { loi.push('nhac-nguon'); }
+        var giaoNn = function (c) { return c.width > 0 && rm.left < c.right - 0.5 && c.left < rm.right - 0.5 && rm.top < c.bottom - 0.5 && c.top < rm.bottom - 0.5; };
+        var deNn = Array.prototype.some.call(goc.querySelectorAll('.dong-nguon .dong'), function (d) {
+          return giaoNn(d.getBoundingClientRect());
+        }) || Array.prototype.some.call(goc.querySelectorAll('.chu'), function (el) {
+          var rg = document.createRange();
+          rg.selectNodeContents(el);
+          return Array.prototype.some.call(rg.getClientRects(), giaoNn);
+        });
+        if (deNn) { loi.push('nhac-nguon-de'); }
       }
       // Vòng khoanh và nét gạch của cụm nhấn: trong khung hình và trên vạch phụ đề.
       var cacNet = svg.querySelectorAll('path.nhan-net');

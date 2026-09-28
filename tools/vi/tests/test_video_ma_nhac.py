@@ -362,6 +362,13 @@ class DungTest(unittest.TestCase):
         self.assertIn("nguồn nhạc", data["error"]["message"])
         self.assertEqual(data["error"]["fix"], video_ma.FIX_NGUON_NHAC)
 
+    def test_dong_nguon_cuoi_de_chu_canh_cuoi_co_cach_sua_rieng(self):
+        code, data, _ = self.dung("nhac-nen: em.mp3\nnguon-nhac: Êm · An · CC0\n", kiem_tran=["nhac-nguon-de"])
+        self.assertEqual(code, 1)
+        self.assertEqual(data["error"]["step"], "canh")
+        self.assertIn("đè", data["error"]["message"])
+        self.assertEqual(data["error"]["fix"], video_ma.FIX_NGUON_DE)
+
     def test_tran_khung_noi_dung_canh_van_bao_nhu_cu(self):
         code, data, _ = self.dung("nhac-nen: em.mp3\nnguon-nhac: Êm · An · CC0\n", kiem_tran=["tieu-de", "nhac-nguon"])
         self.assertEqual(code, 1)

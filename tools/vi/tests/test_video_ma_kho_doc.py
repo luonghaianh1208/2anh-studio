@@ -16,6 +16,7 @@ from unittest import mock
 
 TOOLS_VI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_VI))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import video_ma  # noqa: E402
 from video_ma_parts import chup, hinh, kho, kiem, lich, parse  # noqa: E402
@@ -195,6 +196,109 @@ class KhoDocGioiHanTest(unittest.TestCase):
         self.assertEqual(r[2], "block")
         self.assertLessEqual(r[1], 1080)
         self.assertGreater(r[1], 1080 - 20)
+
+
+# Dòng nguồn cuối video (khối #nhac-nguon, hoặc dòng .nhac xếp trong chồng dòng tài liệu) và mọi thứ khác của cảnh cuối
+# ở trạng thái cuối (sau kiemTran): dòng tài liệu, từng dòng chữ.
+DO_NGUON_CUOI = """() => {
+  const hop = (b) => [b.left, b.top, b.right, b.bottom];
+  const nhac = [], khac = [];
+  const nn = document.getElementById('nhac-nguon');
+  if (nn && getComputedStyle(nn).display !== 'none') { nhac.push(['nhac-nguon', nn.textContent, ...hop(nn.getBoundingClientRect())]); }
+  document.querySelectorAll('.dong-nguon .dong').forEach((d) => {
+    (d.classList.contains('nhac') ? nhac : khac).push(['dong', d.textContent, ...hop(d.getBoundingClientRect())]);
+  });
+  document.querySelectorAll('#bang .chu').forEach((el) => {
+    const rg = document.createRange();
+    rg.selectNodeContents(el);
+    for (const c of rg.getClientRects()) { if (c.width > 0) { khac.push(['chu', el.getAttribute('data-id'), ...hop(c)]); } }
+  });
+  return {nhac, khac};
+}"""
+
+
+@unittest.skipUnless(CO_CHROMIUM, "máy không có Chromium hoặc playwright")
+class NguonCuoiVaTaiLieuTest(unittest.TestCase):
+    """Cảnh cuối có dòng tài liệu + dòng nguồn cuối video (ảnh AI, nhạc nền): hai khối không bao giờ đè nhau, ở cả
+    hai khổ (khổ dọc: ô `tai-lieu` trải hết bề ngang, trùng cột với dòng nguồn cuối video)."""
+
+    NHAC = {"nguon": "Nhạc: Morning Light Over The Quiet Hills · Nguyễn Văn Nghệ Sĩ Rất Dài Tên · CC BY 4.0"}
+    TAI_LIEU = "Nguồn: Ngân hàng Trung ương Đức, Báo cáo thường niên 1923, trang 45 và các trang sau"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.cm = chup.trinh_duyet()
+        cls.browser = cls.cm.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.cm.__exit__(None, None, None)
+        cls.tmp.cleanup()
+
+    def trang_cuoi(self, ten_kho: str, ds: list, ten: str, so_nen: int) -> str:
+        """Trang của cảnh cuối; cảnh `so_nen` có nền `ve:` (ảnh AI giả, có nguồn) để có dòng "tạo bằng AI"."""
+        from test_video_ma_anh import nguon_ai, png
+        meta = (f"tieu-de: Vì sao in thêm tiền gây lạm phát\nmon: Kinh tế\nlop: 11\nphong-cach: cat-dan\nkho: {ten_kho}\n"
+                "loat: Kinh tế dễ hiểu cho học sinh\nnhan-vat: nguoi-que\nmau-ao: do\n")
+        thu_muc = thu_muc_bai(Path(self.tmp.name) / f"{ten}-{ten_kho}", video_md(ds, meta))
+        png(thu_muc / "anh" / "ai" / f"nen-{so_nen}.png", 16, 9, kieu=2)
+        nguon_ai(thu_muc, (f"nen-{so_nen}.png", "Nano Banana Pro", {"mo_ta": "một khu chợ đông người buổi sáng", "canh": so_nen}))
+        video = parse.parse((thu_muc / "video.md").read_text(encoding="utf-8"))
+        self.assertEqual(kiem.kiem(video, thu_muc), [])
+        return video_ma._trang_tam(video, thu_muc, {}, self.NHAC)[-1]
+
+    def kiem_khong_de(self, ten_kho: str, html: str) -> None:
+        page = chup.trang_moi(self.browser, kho.Kho(ten_kho, 720))
+        try:
+            self.assertEqual(chup.kiem_tran(page, html), [])
+            do = page.evaluate(DO_NGUON_CUOI)
+        finally:
+            page.close()
+        k = kho.Kho(ten_kho, 720)
+        chu_nhac = " ".join(h[1] for h in do["nhac"])
+        self.assertIn("Hình minh hoạ tạo bằng AI (Nano Banana Pro)", chu_nhac)
+        self.assertIn("Nhạc: Morning Light", chu_nhac)
+        self.assertTrue(any(self.TAI_LIEU in h[1] for h in do["khac"]), do["khac"])
+        for a in do["nhac"]:
+            self.assertGreaterEqual(a[2], -1, a)
+            self.assertGreaterEqual(a[3], -1, a)
+            self.assertLessEqual(a[4], k.rong + 1, a)
+            self.assertLessEqual(a[5], k.day + 1, a)
+            for b in do["khac"]:
+                de = a[2] < b[4] - 0.5 and b[2] < a[4] - 0.5 and a[3] < b[5] - 0.5 and b[3] < a[5] - 0.5
+                self.assertFalse(de, (a, b))
+
+    def test_ke_chuyen_cuoi_co_tai_lieu_hai_kho(self):
+        ds = [("tieu-de", "chu: Vì sao in thêm tiền gây lạm phát?\nphu: Kinh tế 11\ntu-the: chao\n"),
+              ("ke-chuyen", "tieu-de: Tiền nhiều hàng ít giá tăng\nnen: ve: một khu chợ đông người buổi sáng\n"
+                            "tu-the: vo-dau\nthe: Giá bánh mì | 200 tỉ | mác Đức, tháng 11/1923\n"
+                            f"tai-lieu: {self.TAI_LIEU}\n")]
+        for ten_kho in ("ngang", "doc"):
+            with self.subTest(kho=ten_kho):
+                self.kiem_khong_de(ten_kho, self.trang_cuoi(ten_kho, ds, "ke-chuyen", 2))
+
+    def test_cong_thuc_cuoi_co_tai_lieu_hai_kho(self):
+        ds = [("ke-chuyen", "tieu-de: Chợ buổi sáng\nnen: ve: một khu chợ đông người buổi sáng\n"),
+              ("cong-thuc", "bieu-thuc: M × V = P × Y\ngiai-thich: M là lượng tiền, V là vòng quay\n"
+                            "the: Phương trình | MV = PY | Thuyết số lượng tiền tệ\n"
+                            f"tai-lieu: {self.TAI_LIEU}\n")]
+        for ten_kho in ("ngang", "doc"):
+            with self.subTest(kho=ten_kho):
+                self.kiem_khong_de(ten_kho, self.trang_cuoi(ten_kho, ds, "cong-thuc", 1))
+
+    def test_kiem_tran_bat_khoi_nguon_cuoi_de_dong_tai_lieu(self):
+        # Khổ ngang: khối nguồn cuối video đứng riêng góc trái dưới; dời nó lên dòng tài liệu thì kiemTran phải báo.
+        ds = [("ke-chuyen", "tieu-de: Chợ\nnen: ve: một khu chợ đông người buổi sáng\n"
+                            f"tai-lieu: {self.TAI_LIEU}\n")]
+        html = self.trang_cuoi("ngang", ds, "de", 1)
+        page = chup.trang_moi(self.browser, kho.Kho("ngang", 720))
+        try:
+            self.assertEqual(chup.kiem_tran(page, html), [])
+            page.evaluate("() => { document.getElementById('nhac-nguon').style.left = '880px'; }")
+            self.assertIn("nhac-nguon-de", page.evaluate("() => window.THI_VIDEO.kiemTran()"))
+        finally:
+            page.close()
 
 
 def chay(thu_muc: Path, *them: str) -> dict:

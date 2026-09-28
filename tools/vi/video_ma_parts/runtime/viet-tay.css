@@ -81,8 +81,10 @@ path.net.the-giay { fill: rgba(251, 250, 245, 0.94); stroke: none; }
     3px -1px 0 #1b1b1b, -3px -1px 0 #1b1b1b, 1px 3px 0 #1b1b1b, -1px 3px 0 #1b1b1b, 1px -3px 0 #1b1b1b,
     -1px -3px 0 #1b1b1b; }
 /* Nguồn cuối video (dòng "tạo bằng AI" trên, nguồn nhạc nền dưới): góc dưới trái, đáy cách vạch phụ đề 8 (khổ
-   ngang y = 612), dài thì xuống dòng lên trên. */
-#nhac-nguon { position: absolute; left: 24px; bottom: calc(var(--cao) - var(--day) + 8px); max-width: 760px; font-size: 14px; line-height: 1.25;
+   ngang y = 612), dài thì xuống dòng lên trên; không rộng quá khung trừ lề 24 hai bên. Cảnh cuối có dòng tài liệu cùng
+   cột (khổ dọc) thì các dòng này nằm trong chồng .dong-nguon thay cho khối này (khung-video.js). */
+#nhac-nguon { position: absolute; left: 24px; bottom: calc(var(--cao) - var(--day) + 8px);
+  max-width: min(760px, calc(var(--rong) - 48px)); font-size: 14px; line-height: 1.25;
   padding: 1px 6px; border-radius: 4px; background: rgba(251, 250, 245, 0.85); color: #374151; z-index: 3;
   pointer-events: none; }
 /* Thẻ thông tin: nhãn chữ hoa nhỏ, giá trị lớn (một khối không ngắt), chú thích; khung vẽ tay là nét SVG. */
