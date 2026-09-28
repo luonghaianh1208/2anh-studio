@@ -545,3 +545,36 @@ test('ke-chuyen viet-tay: the co giay lot duoi khung ve tay (nen phu kin); canh 
   assert.strictEqual(tim(C['khai-niem'].muc(cu), 'the-giay'), undefined);
   assert.strictEqual(tim(C['ke-chuyen'].muc(keChuyen(1, 12, { the: the, chuDe: CAT_DAN })), 'the-giay'), undefined);
 });
+
+// ---------- khổ dọc: nội dung ngắn nằm giữa ô, khổ ngang giữ vị trí vi.11 ----------
+
+test('kho doc: y-tung-y, quy-trinh, cong-thuc ngan nam giua o noi-dung; kho ngang khong doi', function () {
+  // Khoảng trống trên và dưới khối các ô chữ (trừ tiêu đề); chênh nhau không quá 30 (chữ có lề riêng trong hộp).
+  function giuaDoc(ds, o) {
+    var tren = Infinity, duoi = -Infinity;
+    ds.forEach(function (m) {
+      if (m.kieu !== 'chu' || m.id === 'tieu-de') { return; }
+      tren = Math.min(tren, m.y);
+      duoi = Math.max(duoi, m.y + m.cao);
+    });
+    return [tren - o.y, o.y + o.h - duoi];
+  }
+  K.dat(DOC_K);
+  var o = K.o('noi-dung');
+  ['y-tung-y', 'quy-trinh', 'cong-thuc'].forEach(function (loai) {
+    var ds = C[loai].muc(tatCa(12)[loai]);
+    var k = giuaDoc(ds, o);
+    assert.ok(k[0] > 60 && Math.abs(k[0] - k[1]) <= 30, loai + ' ' + JSON.stringify(k));
+  });
+  // Đủ 6 ý (khối cao gần hết ô): gần như không dời.
+  var d6 = tatCa(12)['y-tung-y'];
+  d6.truong.y = ['a', 'b', 'c', 'd', 'e', 'f'];
+  d6.moc = [0.7, 1, 2, 3, 4, 5];
+  assert.ok(giuaDoc(C['y-tung-y'].muc(d6), o)[0] < 70);
+  // Khổ ngang: ý đầu ở đúng y của vi.11 (đỉnh ô − 4), khung công thức ở đỉnh ô, bước đầu lùi 40.
+  K.dat(NGANG_K);
+  var n = K.o('noi-dung');
+  assert.strictEqual(tim(C['y-tung-y'].muc(tatCa(12)['y-tung-y']), 'y-0').y, n.y - 4);
+  assert.strictEqual(tim(C['quy-trinh'].muc(tatCa(12)['quy-trinh']), 'buoc-0').y, n.y + 60);
+  assert.strictEqual(tim(C['cong-thuc'].muc(tatCa(12)['cong-thuc']), 'bieu-thuc').y, n.y + 25);
+});

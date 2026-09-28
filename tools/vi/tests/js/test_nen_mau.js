@@ -69,6 +69,20 @@ test('kho doc bo tri lai (vi tri tuong doi khac), khong co gian ban kho ngang', 
   });
 });
 
+// Mây của bau-troi khổ dọc nằm hẳn trên ô thẻ (y 320): mây dưới mép thẻ lòi ra như một mấu.
+test('bau-troi kho doc: moi dam may nam tren o the', function () {
+  var the = require(path.join(RT, 'o-bo-cuc.json')).doc.the;
+  for (var hat = 1; hat <= 60; hat++) {
+    var s = N.ve('bau-troi', DOC, hat);
+    var may = s.match(/<g fill="#fff" opacity="[0-9.]+"><rect [^>]*>/g) || [];
+    assert.strictEqual(may.length, 4, 'hat ' + hat);
+    may.forEach(function (g) {
+      var y = +g.match(/ y="([-0-9.]+)"/)[1], h = +g.match(/ height="([-0-9.]+)"/)[1];
+      assert.ok(y + h <= the.y, 'hat ' + hat + ': may day ' + (y + h));
+    });
+  }
+});
+
 test('giay dung lai THI_CAT_DAN.nenGiay', function () {
   assert.strictEqual(N.ve('giay', NGANG, 7), globalThis.THI_CAT_DAN.nenGiay(7, NGANG));
 });

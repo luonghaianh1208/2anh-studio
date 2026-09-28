@@ -332,6 +332,9 @@
   function oBoCuc(ten) { return root.THI_KHO.o(ten); }
   // Khổ dọc 9:16: cảnh nào cần xếp khác (xếp chồng thay cho xếp ngang) hỏi hàm này.
   function laDoc() { return root.THI_KHO.lay().ten === 'doc'; }
+  // Khổ dọc: khối nội dung cao `cao` thấp hơn ô `o` thì dời xuống nằm giữa ô (ô dọc cao 720, ba ý chỉ chiếm 300 nên
+  // nửa dưới khung trống). Khổ ngang không dời: giữ đúng vị trí của vi.11.
+  function giuaDoc(o, cao) { return laDoc() ? Math.max(0, (o.h - cao) / 2) : 0; }
   function giayLau(du) { return typeof du.giayLauBang === 'number' ? du.giayLauBang : LAU_BANG; }
   // Kiểu chuyển cảnh đầu cảnh: du.co.chuyen, hoặc du.co.lauBang của dữ liệu kiểu cũ; không có thì null.
   function kieuChuyen(du) {
@@ -1179,6 +1182,6 @@
     LAU_BANG: LAU_BANG,
     kep: kep, tienDo: tienDo, thoat: thoat, demKyTu: demKyTu, catDanhDau: catDanhDau, phanTich: phanTich, demRong: demRong, viTriSo: viTriSo,
     thoiGianViet: thoiGianViet, kyTuHien: kyTuHien, lucKyTu: lucKyTu, tachPhan: tachPhan, duongQua: duongQua, hopQua: hopQua, vongTron: vongTron, muiTen: muiTen,
-    rng: rng, tachDoanCongThuc: tachDoanCongThuc, tienDoTruot: tienDoTruot, vuaKhung: vuaKhung, phuKin: phuKin, phongNen: phongNen, o: oBoCuc, doc: laDoc, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
+    rng: rng, tachDoanCongThuc: tachDoanCongThuc, tienDoTruot: tienDoTruot, vuaKhung: vuaKhung, phuKin: phuKin, phongNen: phongNen, o: oBoCuc, doc: laDoc, giuaDoc: giuaDoc, tao: tao, khoiDong: khoiDong, suKienCua: suKienCua, san: false
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -129,7 +129,10 @@ class TheChromiumTest(unittest.TestCase):
                         with self.subTest(phong_cach=phong_cach, cot=cot, so=canh.so):
                             self.assertEqual(chup.kiem_tran(page, html), [])
                             dong = [h for h in page.evaluate(HOP) if h[0] == "bieu-thuc"]
-                            self.assertEqual(len({round(h[2]) for h in dong}), 1, dong)
+                            # Một dòng: mọi hộp cùng đỉnh (lệch ≤ 4 điểm: khổ dọc không cột phụ căn biểu thức giữa khung,
+                            # hộp bọc chữ `.trong` cao hơn dòng chữ 2 điểm; dòng thứ hai sẽ thấp hơn cả chục điểm).
+                            tops = [h[2] for h in dong]
+                            self.assertLessEqual(max(tops) - min(tops), 4, dong)
                             self.assertEqual(page.evaluate(
                                 "() => [...document.querySelectorAll('[data-id=bieu-thuc] span.phan')].map((s) => s.style.whiteSpace)"),
                                 ["nowrap", "nowrap"])

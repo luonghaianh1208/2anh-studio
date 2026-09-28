@@ -72,6 +72,10 @@ TUONG_PHAN = """async ([a, b]) => {
 }"""
 
 
+# PNG 1×1 đỏ: ảnh "khung cuối cảnh trước" giả cho chuyển cảnh.
+ANH_1X1 = ("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==")
+
+
 def ti_so(a: float, b: float) -> float:
     return (max(a, b) + 0.05) / (min(a, b) + 0.05)
 
@@ -239,6 +243,32 @@ class KeChuyenChromiumTest(unittest.TestCase):
                         self.assertTrue(page.evaluate(
                             "() => { const i = document.querySelector('.nhan-vat-anh img'); return i.complete && i.naturalWidth === 300; }"))
                         self.assertEqual(page.evaluate("() => document.querySelectorAll('g.nhan-vat').length"), 0)
+            finally:
+                page.close()
+
+    def test_lau_bang_cat_nen_canh_theo_mep_lau(self):
+        # Cảnh ke-chuyen viet-tay từ cảnh 2 (chuyển lau-bang mặc định): nền phủ kín chỉ hiện bên trái mép lau, không
+        # hiện cả khung ngay từ t = 0 (cắt cứng). Mép lau ở t: −120 + (rộng + 120) · t / lau.
+        from video_ma_parts import trang
+        for ten_kho, rong in (("ngang", 1280), ("doc", 720)):
+            type(self).dem += 1
+            thu_muc = thu_muc_bai(Path(self.tmp.name) / f"lau{self.dem}",
+                                  video_md([ke(1, "mau/lop-hoc"), ke(2, "mau/bau-troi")], meta(ten_kho, "viet-tay") + "nhan-vat: nguoi-que\n"))
+            video = parse.parse((thu_muc / "video.md").read_text(encoding="utf-8"))
+            cac_lich, _ = video_ma.lich.dung_lich(video.canh, video_ma._giong_tam(video), kiem_moc=False)
+            du = video_ma._cac_du(video, cac_lich, {}, thu_muc)[1]
+            self.assertEqual(du["co"]["chuyen"], "lau-bang")
+            du["nenTruoc"] = ANH_1X1  # ảnh khung cuối cảnh trước (chup.py gắn khi dựng thật)
+            lau = du["giayLauBang"]
+            page = chup.trang_moi(self.browser, kho.Kho(ten_kho, 720))
+            try:
+                chup.mo_trang(page, trang.dung_trang(du, None))
+                clip = "(t) => { window.datThoiDiem(t); return getComputedStyle(document.querySelector('.nen-canh')).clipPath; }"
+                for t in (lau / 4, lau / 2, lau * 3 / 4):
+                    mep = -120 + (rong + 120) * t / lau
+                    with self.subTest(kho=ten_kho, t=t):
+                        self.assertEqual(page.evaluate(clip, t), f"inset(0px {rong - mep:g}px 0px 0px)")
+                self.assertEqual(page.evaluate(clip, lau + 0.1), "none")
             finally:
                 page.close()
 

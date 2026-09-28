@@ -101,8 +101,9 @@
     var mx = R * 0.84, my = H * (doc ? 0.09 : 0.15), mr = Math.min(R, H) * 0.075;
     s += tron(mx, my, mr * 2, '#fffbe6', ' opacity="0.35"') + tron(mx, my, mr, '#fff3c4');
     var n = doc ? 4 : 5;
+    // Khổ dọc: mây chỉ ở dải trời trên ô thẻ (thẻ khổ dọc ở y 320–460 của 1280): mây nằm dưới mép thẻ lòi ra như một mấu.
     for (var i = 0; i < n; i++) {
-      var cx = R * (i + 0.2 + 0.6 * r()) / n, cy = H * (doc ? trongKhoang(r, 0.06, 0.42) : trongKhoang(r, 0.08, 0.36));
+      var cx = R * (i + 0.2 + 0.6 * r()) / n, cy = H * (doc ? trongKhoang(r, 0.06, 0.2) : trongKhoang(r, 0.08, 0.36));
       if (Math.abs(cx - mx) < mr * 2 + 80 && Math.abs(cy - my) < mr * 2 + 40) { cy = my + mr * 2 + 70; }  // không che mặt trời
       s += may(cx, cy, trongKhoang(r, 0.7, 1.25) * (doc ? 0.9 : 1), '#fff', so(trongKhoang(r, 0.8, 0.95)));
     }

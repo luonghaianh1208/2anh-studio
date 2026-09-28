@@ -15,9 +15,11 @@
       // Khổ ngang có thẻ hay dòng tài liệu (ô nội dung dừng trên dòng tài liệu): hàng chia theo chiều cao ô, tối đa 74.
       var buoc = V.doc() ? Math.min(100, (o.h + 4) / t.y.length)
         : (B.coThe || du.taiLieu ? Math.min(74, (o.h + 4) / t.y.length) : 74);
+      // Khổ dọc: danh sách ngắn nằm giữa ô theo chiều dọc.
+      var dy = V.giuaDoc(o, t.y.length * buoc);
       t.y.forEach(function (y, k) {
         // Chấm ở x + 36, chữ từ x + 64 tới mép ô (không cột phụ: lố mép ô 4 như bản vi.11).
-        var top = o.y - 4 + k * buoc;
+        var top = o.y - 4 + dy + k * buoc;
         kq.push(B.net('cham-' + k, V.vongTron(o.x + 36, top + 22, 9), du.moc[k], 0.3, { mau: 'nhan', am: 'ting' }));
         kq.push(B.chu('y-' + k, y, o.x + 64, top, cot ? o.w - 64 : o.w - 60, buoc - 2, co, du.moc[k], {}));
       });

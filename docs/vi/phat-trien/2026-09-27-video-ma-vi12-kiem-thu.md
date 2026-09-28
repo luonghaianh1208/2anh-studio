@@ -118,3 +118,42 @@ Bảng hạ khi cảnh có thẻ hay dòng tài liệu, `kiem.HA_CO_THE`, chọn
 
 - Không có thẻ, `bieu-thuc` giữ giới hạn cũ (90 ngang và dọc viet-tay, 89 cat-dan): do lại khổ dọc hai phong cách với `cong-thuc` ra bảng rỗng.
 - Test giữ kết quả: `tools/vi/tests/test_video_ma_the.py` (nội dung ở giới hạn cộng thẻ và dòng tài liệu, bốn loại × hai khổ × hai phong cách, có và không có cột phụ; công thức 90 ký tự kiểu vi.11; đoạn liền quá dài).
+
+## Task 14: tích hợp, đo thời gian, demo
+
+### Test tích hợp
+
+`tools/vi/tests/test_video_ma_tich_hop.py`, lớp `Vi12EndToEndTest` (giọng giả tạo bằng FFmpeg, không gọi mạng, 2 tiến trình Chromium):
+
+- Fixture mới `tools/vi/fixtures/video-ke-chuyen/` (`cat-dan`, khổ dọc, `loat`, người que, 3 cảnh `ke-chuyen` với `mau/thanh-pho`, `nhu-canh 1`, `mau/vong-tron`; 1 `khai-niem` có `the` và `tai-lieu`; 1 `cong-thuc`) dựng thật: 1080×1920, 30 khung/giây, có tiếng; số khung video khớp tổng số khung của lịch ±1.
+- Video viết tay khổ ngang có một cảnh `ke-chuyen` với `nen: ve:`: nền "AI" giả vẽ bằng lavfi vào `anh/ai/goc/nen-2.png`, qua `anh_ai.chay_ke_hoach` và `anh_ai.chay_nhan`, rồi dựng thật: 1920×1080, có tiếng; trang cảnh cuối có dòng "Hình minh hoạ tạo bằng AI (<mô hình>)", trang cảnh đầu không có.
+
+### Đo thời gian dựng video 5 phút
+
+Ngày 2026-09-28, máy chủ repo (i5-9400F, 6 lõi, 3 tiến trình Chromium mặc định). Kịch bản: 5 cảnh của fixture `video-ke-chuyen` lặp 6 lần (30 cảnh, `nhu-canh` trỏ về cảnh gốc của mỗi lượt), giọng giả 8,4 giây mỗi cảnh (tiếng hồng, coi như giọng thầy cô), nên video đúng 300,0 giây, 9000 khung. Đo cả lệnh `video_ma.py <thư_mục>` (kiểm tràn, chụp khung, ghép FFmpeg; không gồm tạo giọng).
+
+| Khổ, phong cách | Độ phân giải | Thời gian dựng | Tỉ lệ với thời lượng | Dung lượng |
+|---|---|---|---|---|
+| ngang, `viet-tay` (bản ngang của fixture) | 1920×1080 | 388,4 s (6 phút 28 giây) | 1,29 lần | 46,4 MB |
+| dọc, `cat-dan` (fixture nguyên bản) | 1080×1920 | 572,7 s (9 phút 33 giây) | 1,91 lần | 44,8 MB |
+
+- Cả hai dưới mục tiêu 12 phút của spec (mục 1, tiêu chí 9). Khổ dọc cắt dán chậm hơn khoảng 1,5 lần: mỗi khung vẽ thêm nền giấy, mảng giấy xé, chấm lưới và bóng thẻ.
+- Tạo giọng máy (edge-tts) cộng thêm tuỳ mạng; ở hai demo dưới, cả lượt dựng có tạo giọng mất 320 s cho video 92,5 giây (cắt dán ngang) và 128 s cho video 65,1 giây (dọc).
+- Hướng dẫn cho thầy cô (`video-giai-thich.md`, "khoảng 1,5 lần thời lượng") khớp khổ ngang; khổ dọc cắt dán gần 2 lần.
+
+### Demo cho chủ repo (không commit)
+
+Giọng máy edge-tts thật, dựng ngày 2026-09-28:
+
+| Thư mục | Kiểu | Thời lượng | Kích thước | Dung lượng |
+|---|---|---|---|---|
+| `projects/_video/in-tien-lam-phat-cat-dan/video.mp4` | `cat-dan` ngang, 8 cảnh, loạt "Kinh tế học nhập môn", 5 thẻ, 5 dòng tài liệu, người que ở 4 cảnh, giọng nam | 92,5 s | 1920×1080 | 20,7 MB |
+| `projects/_video/quy-tac-2-phut-doc/video.mp4` | `viet-tay` dọc, 8 cảnh `ke-chuyen`, loạt "Quy tắc 2 phút", người que áo xanh lá, nền mẫu `lop-hoc`, `vong-tron`, `bau-troi`, `dong-que` và `nhu-canh`, một thẻ | 65,1 s | 1080×1920 | 10,2 MB |
+
+Một lượt tạo giọng edge-tts lỗi "No audio was received" ở cảnh 4 của demo dọc (lỗi `giong`); chạy lại một lần thì qua, đúng như bảng xử lý lỗi của hướng dẫn.
+
+### Chỉnh bố cục sau khi xem demo
+
+- **Khổ dọc bị dồn lên trên.** `y-tung-y`, `quy-trinh` và `cong-thuc` khổ dọc: khối nội dung ngắn hơn ô `noi-dung` (cao 720) được dời xuống nằm giữa ô (`V.giuaDoc`); biểu thức của `cong-thuc` khổ dọc không cột phụ nằm giữa khung cao 300. Khối ở số dòng tối đa gần như không dời, nên giới hạn chữ đã đo giữ nguyên. Khổ ngang không đổi: ảnh tham chiếu vi.11 vẫn giống từng điểm ảnh. Test: `tools/vi/tests/js/test_canh.js` ("kho doc: y-tung-y, quy-trinh, cong-thuc ngan nam giua o noi-dung").
+- **Mây lòi dưới thẻ.** Nền `mau/bau-troi` khổ dọc chỉ đặt mây ở dải trời trên ô thẻ (y < 320 của 1280); trước đây mây có thể nằm dưới mép thẻ và lòi ra như một mấu. Test: `tools/vi/tests/js/test_nen_mau.js` (60 hạt giống).
+- **Chuyển lau bảng trên nền kể chuyện.** Test Chromium mới `test_video_ma_ke_chuyen.test_lau_bang_cat_nen_canh_theo_mep_lau`: ở ¼, ½, ¾ thời gian lau, `.nen-canh` có `clip-path: inset(0 <rộng − mép>px 0 0)`, hết lau thì `none` (cảnh `ke-chuyen` viết tay không cắt cứng).

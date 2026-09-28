@@ -13,9 +13,11 @@
       var doc = V.doc();
       var w = doc ? o.w : (o.w - (n - 1) * 70) / n;
       var h = doc ? Math.min(160, (o.h - (n - 1) * 50) / n) : o.h - 130;
+      // Khổ dọc: chồng bước ngắn nằm giữa ô theo chiều dọc.
+      var dy = V.giuaDoc(o, n * h + (n - 1) * 50);
       t.buoc.forEach(function (b, k) {
         var x = doc ? o.x : o.x + k * (w + 70);
-        var y = doc ? o.y + k * (h + 50) : o.y + 40;
+        var y = doc ? o.y + dy + k * (h + 50) : o.y + 40;
         kq.push(B.net('hop-' + k, V.hopQua(x, y, w, h, 20 + k), Math.max(0.1, du.moc[k] - 0.4), 0.5, { am: 'ting' }));
         kq.push(B.chu('buoc-' + k, b, x + 14, y + 20, w - 28, h - 40, 24, du.moc[k], {}));
         if (k > 0) {
