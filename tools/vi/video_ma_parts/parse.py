@@ -21,24 +21,28 @@ META_CHOICES = {
     # Khổ khung (kho.py): ngang 16:9 hoặc dọc 9:16; độ phân giải xuất 1080 (Full HD) hoặc 720 cho máy yếu.
     "kho": ("ngang", "doc"),
     "do-phan-giai": ("1080", "720"),
+    # Màu áo của người que (`nhan-vat: nguoi-que`); bảng mã màu ở runtime/nhan-vat.js.
+    "mau-ao": ("vang", "do", "xanh-duong", "xanh-la", "cam", "tim", "hong", "xam"),
 }
 # Khoá đầu tự do (không có mặc định): nhạc nền là tên file trong nhac/; nguồn nhạc là chữ (chỉ dùng kèm `nhac-nen`);
 # `loat` là tên loạt video (≤ 30 ký tự), có thì hiện tên loạt và "0k/N" ở hai góc trên.
-META_FREE = ("nhac-nen", "nguon-nhac", "loat")
+# `nhan-vat`: `khong` (mặc định), `nguoi-que` hoặc `ve: <mô tả ≤ 200>` (nhân vật AI vẽ); kiểm ở _kiem_nhan_vat.
+META_FREE = ("nhac-nen", "nguon-nhac", "loat", "nhan-vat")
 # `ban-tay` và `chuyen-canh` không có mặt ở đây: mặc định của hai khoá này đổi theo `phong-cach` (lich.mac_dinh),
 # nên kịch bản không ghi thì để trống trong `meta` thay vì điền cứng "co"/"lau-bang".
 META_DEFAULTS = {
     "phong-cach": "viet-tay", "giong": "nu", "toc-do": "vua", "phu-de": "karaoke",
     "may-quay": "co",
     "chu-dong": "co", "am-thanh": "co", "kho": "ngang", "do-phan-giai": "1080",
+    "nhan-vat": "khong", "mau-ao": "vang",
 }
 
 # loại cảnh -> (trường đơn bắt buộc, trường đơn tuỳ chọn, trường lặp {khoá: (tối thiểu, tối đa)})
 SCENE_SPEC = {
-    "tieu-de": (("chu",), ("phu", "hinh", "anh", "nguon", "the", "tai-lieu"), {}),
-    "khai-niem": (("thuat-ngu", "dinh-nghia"), ("hinh", "anh", "nguon", "the", "tai-lieu"), {}),
+    "tieu-de": (("chu",), ("phu", "hinh", "anh", "nguon", "the", "tai-lieu", "tu-the"), {}),
+    "khai-niem": (("thuat-ngu", "dinh-nghia"), ("hinh", "anh", "nguon", "the", "tai-lieu", "tu-the"), {}),
     "cong-thuc": (("bieu-thuc",), ("hinh", "anh", "nguon", "the", "tai-lieu"), {"giai-thich": (0, 4)}),
-    "y-tung-y": (("tieu-de",), ("hinh", "anh", "nguon", "the", "tai-lieu"), {"y": (1, 6)}),
+    "y-tung-y": (("tieu-de",), ("hinh", "anh", "nguon", "the", "tai-lieu", "tu-the"), {"y": (1, 6)}),
     "quy-trinh": (("tieu-de",), (), {"buoc": (2, 5)}),
     "so-sanh": (("tieu-de", "trai", "phai"), (), {"y-trai": (1, 4), "y-phai": (1, 4)}),
     "do-thi": (("tieu-de", "truc-ngang", "truc-doc"), (), {"diem": (2, 12)}),
@@ -64,6 +68,19 @@ MAX_PHAN = 4
 SCENE_TYPES = tuple(SCENE_SPEC)
 # Trường `chuyen:` (mọi loại cảnh, từ cảnh 2) ghi đè khoá đầu `chuyen-canh` cho riêng cảnh đó.
 SCENE_KIEU_CHUYEN = ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "xe-giay", "khong")
+
+# Mười tư thế của nhân vật dẫn chuyện (trường `tu-the`, runtime/nhan-vat.js). Loại cảnh nhận `tu-the` là loại có nó
+# trong phần tuỳ chọn của SCENE_SPEC; nhân vật chiếm cột phụ nên `tu-the` không đi cùng `hinh`/`anh`.
+TU_THE = ("dung", "chao", "chi-tay", "giai-thich", "suy-nghi", "ngac-nhien", "vo-dau", "dung-lai", "an-mung", "buon")
+# Tên tiếng Anh hay gặp, chỉ để gợi ý tên đúng khi viết sai.
+_TU_THE_ANH = {
+    "dung": ("stand", "idle"), "chao": ("wave", "hello", "hi"), "chi-tay": ("point", "pointing"),
+    "giai-thich": ("explain", "present"), "suy-nghi": ("think", "thinking"), "ngac-nhien": ("surprised", "surprise", "wow"),
+    "vo-dau": ("confused", "stressed", "panic"), "dung-lai": ("stop", "halt"), "an-mung": ("celebrate", "cheer", "happy"),
+    "buon": ("sad",),
+}
+NHAN_VAT_MO_TA = 200
+_NHAN_VAT_VE_RE = re.compile(r"^ve:\s*(.*)$")
 
 _KEY_RE = re.compile(r"^([a-z][a-z0-9-]*):\s*(.*)$")
 _SCENE_RE = re.compile(r"^##\s+Cảnh\s+(\d+)\s*$")
@@ -95,6 +112,40 @@ def tach_the(value: str):
     if len(phan) not in (2, 3) or not phan[0] or not phan[1]:
         return None
     return (phan[0], phan[1], phan[2] if len(phan) == 3 else "")
+
+
+def _bo_dau(chu: str) -> str:
+    """Chữ thường, bỏ dấu thanh và dấu mũ, đ -> d, bỏ gạch nối và khoảng trắng: `Chí tay` -> `chitay`."""
+    chu = unicodedata.normalize("NFD", chu.lower().replace("đ", "d"))
+    return "".join(c for c in chu if not unicodedata.combining(c) and c not in "- _")
+
+
+def _khoang_cach(a: str, b: str) -> int:
+    truoc = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        hang = [i]
+        for j, cb in enumerate(b, 1):
+            hang.append(min(truoc[j] + 1, hang[j - 1] + 1, truoc[j - 1] + (ca != cb)))
+        truoc = hang
+    return truoc[-1]
+
+
+def goi_y_tu_the(sai: str) -> list:
+    """Tối đa 3 tên tư thế gần `sai` nhất theo khoảng cách chỉnh sửa trên chữ bỏ dấu, bỏ gạch (tính cả tên tiếng Anh
+    hay gặp); bằng nhau thì theo thứ tự TU_THE."""
+    goc = _bo_dau(sai)
+    diem = {ten: min(_khoang_cach(goc, k) for k in (_bo_dau(ten), *_TU_THE_ANH[ten])) for ten in TU_THE}
+    return sorted(TU_THE, key=lambda ten: (diem[ten], TU_THE.index(ten)))[:3]
+
+
+def _kiem_nhan_vat(value: str, no: int) -> None:
+    if value in ("khong", "nguoi-que"):
+        return
+    match = _NHAN_VAT_VE_RE.match(value)
+    if match is None or not match.group(1).strip():
+        raise ParseError(no, "`nhan-vat` phải là `khong`, `nguoi-que` hoặc `ve: <mô tả nhân vật>`.")
+    if len(match.group(1).strip()) > NHAN_VAT_MO_TA:
+        raise ParseError(no, f"`nhan-vat`: mô tả dài {len(match.group(1).strip())} ký tự, tối đa {NHAN_VAT_MO_TA}. Rút gọn mô tả.")
 
 
 def phan_cong_thuc(value: str) -> list:
@@ -203,6 +254,8 @@ def _read_meta(lines: list, start: int) -> tuple:
             _check_value(i + 1, key, value)
             if key in META_CHOICES and value not in META_CHOICES[key]:
                 raise ParseError(i + 1, f"`{key}` phải là một trong: {', '.join(META_CHOICES[key])}.")
+            if key == "nhan-vat":
+                _kiem_nhan_vat(value, i + 1)
             meta[key] = value
             dong_meta[key] = i + 1
         i += 1
@@ -263,6 +316,16 @@ def _finish(so: int, dong0: int, fields: list) -> Scene:
     if "hinh" in truong and "anh" in truong:
         dong_sau = max(dong_truong["hinh"][0], dong_truong["anh"][0])
         raise ParseError(dong_sau, f"Cảnh {so} chỉ được có `hinh` hoặc `anh`, không cả hai.")
+    if "tu-the" in truong:
+        ten, no = truong["tu-the"][0], dong_truong["tu-the"][0]
+        if ten not in TU_THE:
+            goi_y = ", ".join(f"`{g}`" for g in goi_y_tu_the(ten))
+            raise ParseError(no, f"`tu-the` `{ten}` không có. Có phải: {goi_y}? Mười tư thế: {', '.join(TU_THE)}.")
+        for khac in ("hinh", "anh"):
+            if khac in truong:
+                dong_sau = max(no, dong_truong[khac][0])
+                raise ParseError(dong_sau, f"Cảnh {so} có nhân vật (`tu-the`) đứng ở cột phụ nên không có `{khac}`; "
+                                           f"bỏ dòng `{khac}` hoặc dòng `tu-the`.")
     if "nguon" in truong and "anh" not in truong:
         raise ParseError(dong_truong["nguon"][0],
                          f"`nguon` chỉ dùng kèm `anh` (dòng nguồn của ảnh thật); Cảnh {so} chưa có `anh`.")
@@ -329,4 +392,9 @@ def parse(text: str) -> Video:
         scenes.append(_finish(*current))
     if not scenes:
         raise ParseError(i + 1, "video.md chưa có cảnh nào; bắt đầu bằng `## Cảnh 1`.")
+    if meta["nhan-vat"] == "khong":
+        for scene in scenes:
+            if "tu-the" in scene.truong:
+                raise ParseError(scene.dong_truong["tu-the"][0], "`tu-the` cần nhân vật dẫn chuyện; thêm "
+                                 "`nhan-vat: nguoi-que` (hoặc `nhan-vat: ve: <mô tả>`) vào khối thông tin, hoặc bỏ dòng này.")
     return Video(meta=meta, canh=scenes, dong_meta=dong_meta)

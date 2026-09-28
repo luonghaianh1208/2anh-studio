@@ -446,8 +446,22 @@
     // Cột phụ (ô `cot-phu`, khổ ngang là cột phải x 900, y 200, rộng 320, cao 380) cho cảnh có `hinh` hoặc `anh`.
     // Hình lùi 10 hai bên, 40 từ đỉnh. Ảnh thấp hơn ô 30 để hai dòng nguồn dưới khung (trải hết bề rộng cột) vẫn
     // nằm trên vạch phụ đề.
-    var coCot = !!(du.hinh || du.anh);
+    // Nhân vật dẫn chuyện (du.nhanVat, cảnh có `tu-the`) cũng chiếm cột phụ; chỉ người que được vẽ ở đây.
+    var coCot = !!(du.hinh || du.anh || du.nhanVat);
+    // Nhân vật trong ô `o`: cao 310 đơn vị (kể cả bật nhảy) co giãn vừa ô, chân ở đáy ô lùi 10 (chỗ cho giày và viền sticker), giữa ô; quay mặt về
+    // phía nội dung (lật khi ô nằm ở nửa phải khung, `lat` đưa vào thì theo đó). Bật vào ở 0,2 s trong 0,4 s;
+    // cat-dan: sticker viền trắng, góc xoay ±3° từ prng(số cảnh). Không bút, máy quay bỏ qua.
+    function nhanVat(o, lat) {
+      var nv = du.nhanVat;
+      var ti = Math.min((o.h - 16) / 310, o.w / 300);
+      var x = o.x + o.w / 2, y = o.y + o.h - 10;
+      if (typeof lat !== 'boolean') { lat = x > root.THI_KHO.lay().rong / 2 + 1; }
+      return { id: 'nhan-vat', kieu: 'nhan-vat', tuThe: nv.tuThe, mauAo: nv.mauAo || 'vang', x: x, y: y, ti: ti, lat: lat,
+        sticker: catDan, goc: catDan ? xoayDan() * 6 - 3 : 0, batDau: 0.2, thoiLuong: 0.4, tay: false, quay: false,
+        hop: { x: x - 150 * ti, y: y - 310 * ti, w: 300 * ti, h: 310 * ti } };
+    }
     function cot() {
+      if (du.nhanVat) { return du.nhanVat.kieu === 'nguoi-que' ? [nhanVat(oCanh('cot-phu'))] : []; }
       // cat-dan: hình chính hiện ở 0,3 s, trước tiêu đề và chữ.
       var batDau = catDan ? 0.3 : (du.moc && du.moc.length ? du.moc[0] : 1.0);
       var o = oCanh('cot-phu');
@@ -502,7 +516,8 @@
       if (du.taiLieu) { ds.push(taiLieu()); }
       return ds;
     }
-    return { chu: chu, net: net, hinh: hinh, anh: anh, tieuDe: tieuDe, cot: cot, coCot: coCot, gh: gh, o: oCanh, coThe: coThe, them: them };
+    return { chu: chu, net: net, hinh: hinh, anh: anh, tieuDe: tieuDe, cot: cot, coCot: coCot, gh: gh, o: oCanh, coThe: coThe, them: them,
+      nhanVat: nhanVat };
   }
 
   // Nhịp viết của mục chữ: tổng ký tự, hệ số kéo (chữ nảy), và lúc ký tự thứ i hiện ra (viết tay: khi
@@ -547,7 +562,7 @@
         lichCum(m, nhipChu(m), du.tu, gh).forEach(function (c) { if (c.daiNo > 0) { ds.push({ t: c.no, loai: 'nhan' }); } });
       }
       // Chữ nảy, dòng số của thí nghiệm, ảnh, dòng tài liệu, chữ trượt và sticker (cat-dan) không có ngòi bút.
-      if (m.dong || m.nay || m.kieu === 'anh' || m.kieu === 'nguon' || m.truot || m.sticker) { return; }
+      if (m.dong || m.nay || m.kieu === 'anh' || m.kieu === 'nguon' || m.kieu === 'nhan-vat' || m.truot || m.sticker) { return; }
       (m.phan || [m]).forEach(function (p) { but.push([p.batDau, p.batDau + p.thoiLuong]); });
     });
     var q = du.cauHoi;
@@ -662,6 +677,8 @@
         el = H.taoHinh(svg, m);
       } else if (m.kieu === 'anh') {
         el = H.taoAnh(goc, m);
+      } else if (m.kieu === 'nhan-vat') {
+        el = root.THI_NHAN_VAT.tao(svg, m);
       } else if (m.kieu === 'nguon') {
         // Dòng tài liệu (và dòng nguồn ảnh xếp trên): khối neo đáy ô, dòng dài thì lên trên.
         el = document.createElement('div');
@@ -786,6 +803,8 @@
           H.datAnh(o.el, o.m, p, t, gh, du.so);
         } else if (o.m.kieu === 'nguon') {
           o.el.style.opacity = String(lam3(p));
+        } else if (o.m.kieu === 'nhan-vat') {
+          root.THI_NHAN_VAT.dat(o.el, o.m, t);
         } else if (!o.m.dong) {
           datChu(o, t);
         }
@@ -881,6 +900,8 @@
           kq[m.id] = { x: m.x, y: m.y, w: m.kich, h: m.kich };
         } else if (m.kieu === 'anh') {
           kq[m.id] = { x: m.x, y: m.y, w: m.rong, h: m.cao };
+        } else if (m.kieu === 'nhan-vat') {
+          kq[m.id] = m.hop;
         } else {
           var r = document.createRange();
           r.selectNodeContents(o.el);
@@ -1056,6 +1077,18 @@
           });
           if (de && loi.indexOf('tai-lieu') < 0) { loi.push('tai-lieu'); }
         });
+      }
+      // Nhân vật: trong khung, trên vạch phụ đề, không đè dòng chữ nào của cảnh.
+      var nv = svg.querySelector('g.nhan-vat');
+      if (nv) {
+        var rv = nv.getBoundingClientRect();
+        var giaoNv = function (c) { return c.width > 0 && rv.left < c.right - 0.5 && c.left < rv.right - 0.5 && rv.top < c.bottom - 0.5 && c.top < rv.bottom - 0.5; };
+        var deChu = Array.prototype.some.call(goc.querySelectorAll('.chu'), function (el) {
+          var rg = document.createRange();
+          rg.selectNodeContents(el);
+          return Array.prototype.some.call(rg.getClientRects(), giaoNv);
+        });
+        if (deChu || rv.left < -1 || rv.top < -1 || rv.right > R || rv.bottom > D) { loi.push('nhan-vat'); }
       }
       // Dòng nguồn nhạc nền: trong khung hình và trên vạch phụ đề.
       if (nhacNguon) {

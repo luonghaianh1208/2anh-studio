@@ -70,6 +70,8 @@ Khối thông tin:
 | `nhac-nen` | không | tên file nhạc trong thư mục `nhac/` của video (`.mp3`, `.m4a`, `.wav`, `.ogg`); không ghi thì không có nhạc |
 | `nguon-nhac` | không | dòng nguồn của nhạc nền, chỉ ghi kèm `nhac-nen` khi `nhac/nguon.json` không có bản ghi cho file đó (nhạc thầy cô gửi) |
 | `loat` | không | tên loạt video, tối đa 30 ký tự; có thì mỗi cảnh hiện tên loạt ở góc trái trên và số cảnh "03/08" ở góc phải trên; không ghi thì không hiện |
+| `nhan-vat` | không | `khong` (mặc định: không có nhân vật), `nguoi-que` (người que vẽ sẵn, đứng ở cột phụ của cảnh có `tu-the`) hoặc `ve: <mô tả>` (nhân vật do AI vẽ, mô tả tối đa 200 ký tự) |
+| `mau-ao` | không | màu áo người que: `vang` (mặc định), `do`, `xanh-duong`, `xanh-la`, `cam`, `tim`, `hong` hoặc `xam` |
 
 Các khoá `ban-tay`, `may-quay`, `chuyen-canh`, `chu-dong`, `am-thanh` chỉ ghi khi muốn đổi: không ghi thì đều bật (`chuyen-canh` là lau bảng ở `phong-cach: viet-tay`; ở `cat-dan` không ghi thì `ban-tay` mặc định `khong` và `chuyen-canh` mặc định `xe-giay`). Ghi `khong` khi thầy cô thấy rối mắt hay ồn và muốn tắt. Cảnh `thi-nghiem` không có bàn tay, máy quay chỉ đẩy chậm. Kịch bản cũ ghi `phu-de: hinh` vẫn giữ phụ đề kiểu cũ.
 

@@ -283,6 +283,10 @@ def du_lieu_canh(scene: Scene, cl: CanhLich, model=None, tai_nguyen: dict | None
         du["the"] = {"nhan": nhan, "giaTri": gia_tri, "chuThich": chu_thich}
     if "tai-lieu" in scene.truong:
         du["taiLieu"] = tai_lieu_hien(scene.truong["tai-lieu"][0])
+    # Nhân vật dẫn chuyện: chỉ cảnh có `tu-the` (parse bảo đảm `nhan-vat` khác `khong`). `anh`: nhân vật AI vẽ.
+    if "tu-the" in scene.truong:
+        du["nhanVat"] = {"kieu": "nguoi-que" if meta.get("nhan-vat") == "nguoi-que" else "anh",
+                         "mauAo": meta.get("mau-ao", "vang"), "tuThe": scene.truong["tu-the"][0]}
     if scene.loai == "do-thi":
         du["diem"] = [[float(p) for p in v.split(",")] for v in scene.truong["diem"]]
     if scene.loai == "bieu-do":

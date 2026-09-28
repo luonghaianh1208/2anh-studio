@@ -14,7 +14,14 @@
       var oGoc = V.o('bia');
       var o = B.o('bia');
       var doc = V.doc();
-      if (B.coThe && !doc && !B.coCot) { o.w = V.o('the').x - 20 - o.x; }
+      // Nhân vật (`tu-the`) đứng trong cột phụ: chữ, gạch và dòng phụ ở phần ô bìa ngoài cột phụ (khổ ngang: bên trái
+      // cột; khổ dọc: phía trên), cỡ chữ như cảnh có thẻ.
+      var nv = !!du.nhanVat;
+      if (nv) {
+        var cp = B.o('cot-phu');
+        if (doc) { o.h = cp.y - 20 - o.y; } else { o.w = Math.min(o.w, cp.x - 20 - o.x); }
+      }
+      if (B.coThe && !doc && (!B.coCot || nv)) { o.w = Math.min(o.w, V.o('the').x - 20 - o.x); }
       var oThe = doc ? { x: oGoc.x, y: oGoc.y, w: oGoc.w, h: V.o('the').h } : null;
       var giua = o.x + o.w / 2;
       var dai = Math.min(600, o.w - 40);
@@ -22,14 +29,17 @@
       function gach(y, sau) {
         return B.net('gach', V.duongQua([[giua - dai / 2, y], [giua + dai / 2, y]], 3), sau, 0.4, { mau: 'nhan', quay: false });
       }
-      if (!B.coCot) {
+      if (!B.coCot || nv) {
         // Có thẻ (ô chữ hẹp hơn ở khổ ngang, thấp hơn ở khổ dọc): tiêu đề 48 thay cho 60, dòng phụ 28 thay cho 34.
-        var c = B.chu('chu', t.chu[0], o.x, o.y + 20, o.w, o.h - 70 - hPhu, B.coThe ? 48 : 60, 0.3, { can: 'giua', mau: 'nhan', day: true, nay: nay });
+        // Khổ dọc có nhân vật (ô chữ chỉ cao tới đỉnh cột phụ): tiêu đề 40, dòng phụ 26.
+        var nho = B.coThe || nv;
+        var coChu = doc && nv ? 40 : (nho ? 48 : 60), coPhu = doc && nv ? 26 : (nho ? 28 : 34);
+        var c = B.chu('chu', t.chu[0], o.x, o.y + 20, o.w, o.h - 70 - hPhu, coChu, 0.3, { can: 'giua', mau: 'nhan', day: true, nay: nay });
         kq.push(c);
         var yGach = c.y + c.cao + 20;
         kq.push(gach(yGach, c.batDau + c.thoiLuong));
-        if (t.phu) { kq.push(B.chu('phu', t.phu[0], o.x, yGach + 30, o.w, hPhu, B.coThe ? 28 : 34, c.batDau + c.thoiLuong + 0.4, { can: 'giua' })); }
-        return B.them(kq, oThe);
+        if (t.phu) { kq.push(B.chu('phu', t.phu[0], o.x, yGach + 30, o.w, hPhu, coPhu, c.batDau + c.thoiLuong + 0.4, { can: 'giua' })); }
+        return B.them(nv ? kq.concat(B.cot()) : kq, oThe);
       }
       // Có hình: hình 180×180 ở giữa đỉnh ô, vẽ trước; tiêu đề (cao 150; khổ dọc hẹp nên cao 300) dời xuống ngay dưới
       // (cách 5). Dòng nguồn của ảnh nằm bên phải khung, không chen vào ô tiêu đề hai dòng; khổ dọc không đủ chỗ bên

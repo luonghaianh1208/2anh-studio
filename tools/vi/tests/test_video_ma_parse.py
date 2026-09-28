@@ -845,5 +845,95 @@ class TheTaiLieuLoatTest(unittest.TestCase):
         self.assertIn("tối đa 30", str(caught.exception))
 
 
+class NhanVatTuTheTest(unittest.TestCase):
+    """Khoá đầu `nhan-vat`, `mau-ao` và trường cảnh `tu-the` (spec Q8, Review Focus 5)."""
+
+    NV = META + "nhan-vat: nguoi-que\n"
+
+    def loi(self, text: str, needle: str, *fragments: str):
+        with self.assertRaises(parse.ParseError) as caught:
+            parse.parse(text)
+        self.assertEqual(caught.exception.line_no, line_of(text, needle), str(caught.exception))
+        for fragment in fragments:
+            self.assertIn(fragment, str(caught.exception))
+        return str(caught.exception)
+
+    def test_khoa_dau_va_mac_dinh(self):
+        self.assertEqual(parse.TU_THE, ("dung", "chao", "chi-tay", "giai-thich", "suy-nghi", "ngac-nhien", "vo-dau",
+                                        "dung-lai", "an-mung", "buon"))
+        self.assertEqual(parse.META_CHOICES["mau-ao"],
+                         ("vang", "do", "xanh-duong", "xanh-la", "cam", "tim", "hong", "xam"))
+        self.assertEqual(parse.META_DEFAULTS["mau-ao"], "vang")
+        self.assertEqual(parse.META_DEFAULTS["nhan-vat"], "khong")
+        self.assertIn("nhan-vat", parse.META_FREE)
+        video = parse.parse(doc(CANH_1))
+        self.assertEqual((video.meta["nhan-vat"], video.meta["mau-ao"]), ("khong", "vang"))
+        for gia_tri in ("khong", "nguoi-que", "ve: cô giáo trẻ mặc áo dài xanh, tóc đen buộc gọn"):
+            self.assertEqual(parse.parse(doc(CANH_1, META + f"nhan-vat: {gia_tri}\n")).meta["nhan-vat"], gia_tri)
+
+    def test_nhan_vat_sai_gia_tri(self):
+        for dong in ("nhan-vat: robot\n", "nhan-vat: ve:\n", "nhan-vat: ve: " + "a" * 201 + "\n"):
+            with self.subTest(dong=dong):
+                self.loi(doc(CANH_1, META + dong), "nhan-vat:", "`nhan-vat`")
+        parse.parse(doc(CANH_1, META + "nhan-vat: ve: " + "a" * 200 + "\n"))
+        self.loi(doc(CANH_1, META + "mau-ao: bac\n"), "mau-ao:", "`mau-ao`")
+
+    def test_tu_the_o_ba_loai_canh(self):
+        for loai, noi in (("tieu-de", "chu: A\n"), ("khai-niem", "thuat-ngu: A\ndinh-nghia: B\n"),
+                          ("y-tung-y", "tieu-de: A\ny: B\n")):
+            for ten in parse.TU_THE:
+                with self.subTest(loai=loai, ten=ten):
+                    video = parse.parse(doc(f"## Cảnh 1\nloai: {loai}\n{noi}tu-the: {ten}\nloi: Xin chào.\n", self.NV))
+                    self.assertEqual(video.canh[0].truong["tu-the"], [ten])
+        for loai in parse.SCENE_TYPES:
+            _, optional, _ = parse.SCENE_SPEC[loai]
+            self.assertEqual("tu-the" in optional, loai in ("tieu-de", "khai-niem", "y-tung-y"), loai)
+
+    def test_tu_the_o_loai_canh_khac_la_loi(self):
+        text = doc("## Cảnh 1\nloai: cong-thuc\nbieu-thuc: a = b\ntu-the: chao\nloi: Xin chào.\n", self.NV)
+        self.loi(text, "tu-the:", "không có trường `tu-the`")
+
+    def test_tu_the_khi_nhan_vat_khong(self):
+        for meta in (META, META + "nhan-vat: khong\n"):
+            with self.subTest(meta=meta):
+                text = doc("## Cảnh 1\nloai: tieu-de\nchu: A\nloi: Xin chào.\n\n"
+                           "## Cảnh 2\nloai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\ntu-the: chao\nloi: Xin chào.\n", meta)
+                self.loi(text, "tu-the:", "nhan-vat: nguoi-que")
+
+    def test_tu_the_cung_hinh_hoac_anh(self):
+        for dong in ("hinh: clock", "anh: x.png"):
+            for truoc in (True, False):
+                with self.subTest(dong=dong, truoc=truoc):
+                    hai = [dong, "tu-the: chao"] if truoc else ["tu-the: chao", dong]
+                    text = doc(f"## Cảnh 1\nloai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\n{hai[0]}\n{hai[1]}\nloi: Xin chào.\n", self.NV)
+                    self.loi(text, hai[1], "`tu-the`", f"`{dong.split(':')[0]}`")
+
+    def test_ten_sai_goi_y_toi_da_ba_ten(self):
+        for sai, dau_tien in (("point", "chi-tay"), ("chitay", "chi-tay"), ("chí tay", "chi-tay"), ("suy nghĩ", "suy-nghi"),
+                              ("wave", "chao"), ("vodau", "vo-dau"), ("an mừng", "an-mung")):
+            with self.subTest(sai=sai):
+                text = doc(f"## Cảnh 1\nloai: tieu-de\nchu: A\ntu-the: {sai}\nloi: Xin chào.\n", self.NV)
+                msg = self.loi(text, "tu-the:", f"`{sai}`")
+                goi_y = parse.goi_y_tu_the(sai)
+                self.assertLessEqual(len(goi_y), 3)
+                self.assertEqual(goi_y[0], dau_tien)
+                self.assertTrue(set(goi_y) <= set(parse.TU_THE))
+                self.assertIn(", ".join(f"`{g}`" for g in goi_y), msg)
+
+    def test_du_lieu_canh_co_nhan_vat(self):
+        from video_ma_parts import lich
+
+        text = doc("## Cảnh 1\nloai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\ntu-the: suy-nghi\nloi: Xin chào.\n\n"
+                   "## Cảnh 2\nloai: tieu-de\nchu: A\nloi: Xin chào.\n", META + "nhan-vat: nguoi-que\nmau-ao: tim\n")
+        video = parse.parse(text)
+        cl = lich.CanhLich(so=1, bat_dau=0, thoi_luong=4, so_khung=120, giay_giong=2, cau=[], moc_cau=[], moc_cau_giong=[],
+                           uoc_luong=True)
+        du = lich.du_lieu_canh(video.canh[0], cl, tai_nguyen={"meta": video.meta})
+        self.assertEqual(du["nhanVat"], {"kieu": "nguoi-que", "mauAo": "tim", "tuThe": "suy-nghi"})
+        self.assertNotIn("nhanVat", lich.du_lieu_canh(video.canh[1], cl, tai_nguyen={"meta": video.meta}))
+        video = parse.parse(text.replace("nhan-vat: nguoi-que", "nhan-vat: ve: cô giáo"))
+        self.assertEqual(lich.du_lieu_canh(video.canh[0], cl, tai_nguyen={"meta": video.meta})["nhanVat"]["kieu"], "anh")
+
+
 if __name__ == "__main__":
     unittest.main()
