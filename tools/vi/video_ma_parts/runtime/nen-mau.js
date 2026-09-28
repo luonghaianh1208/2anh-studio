@@ -38,10 +38,6 @@
     var b = BANG[kho.ten] && BANG[kho.ten]['noi-dung'];
     return b || { x: kho.rong * 0.05, y: kho.cao * 0.26, w: kho.rong * 0.9, h: kho.day - kho.cao * 0.26 };
   }
-  // Vật trang trí nổi (mặt trời và quầng, mây, đồng hồ) không nằm sau ô tiêu đề và ô thẻ của cảnh kể chuyện: chữ và
-  // thẻ luôn trên nền trời hay tường trơn. Khổ ngang: vật trang trí ở dải trời dưới ô thẻ (y > 180); khổ dọc: ở dải
-  // trên ô tiêu đề (y < 110, có thể lẹm mép trên) hoặc dưới ô thẻ (y > 460).
-
   // Lớp phủ trắng mờ trên ô noi-dung, mép tan dần (không thành khung cứng): độ đục `a` ở giữa.
   function phuGiua(kho, id, a) {
     var o = oGiua(kho);
@@ -96,14 +92,18 @@
   }
 
   // ---- Tám nền ----
+  // Vật trang trí nổi (mặt trời và quầng, mây, đồng hồ) không nằm sau ô tiêu đề và ô thẻ của cảnh kể chuyện: chữ và
+  // thẻ luôn trên nền trời hay tường trơn; mặt trời cũng không nằm sau ô nhân vật. Khổ ngang: vật trang trí ở dải trời
+  // dưới ô thẻ (y > 180); khổ dọc: ở dải trên ô tiêu đề (y < 110, có thể lẹm mép trên) hoặc dưới ô thẻ (y > 460).
   function giay(kho, hat) { return root.THI_CAT_DAN.nenGiay(hat, kho); }
 
   function bauTroi(kho, hat) {
     var r = prng(hat * 37 + 1), R = kho.rong, H = kho.cao, doc = laDoc(kho);
     var defs = sacDoc('nm-troi', [[0, '#86c5ec'], [0.55, '#c3e4f6'], [1, '#eaf6fb']]);
     var s = hop(0, 0, R, H, 'url(#nm-troi)');
-    // Mặt trời: khổ ngang ở mép phải dưới ô thẻ; khổ dọc lẹm mép trên, phía trên ô tiêu đề.
-    var mx = doc ? R * 0.86 : R * 0.91, my = doc ? 34 : 300, mr = doc ? 36 : Math.min(R, H) * 0.075;
+    // Mặt trời: khổ ngang dưới dải tiêu đề, bên trái ô thẻ và ô nhân vật (x < 880); khổ dọc lẹm mép trên, phía trên
+    // ô tiêu đề.
+    var mx = doc ? R * 0.86 : R * 0.6, my = doc ? 34 : 300, mr = doc ? 36 : Math.min(R, H) * 0.075;
     s += tron(mx, my, mr * 2, '#fffbe6', ' opacity="0.35"') + tron(mx, my, mr, '#fff3c4');
     var n = doc ? 4 : 5;
     for (var i = 0; i < n; i++) {
@@ -313,8 +313,9 @@
     var ngang = H * (doc ? 0.66 : 0.64);
     var defs = sacDoc('nm-que', [[0, '#9fd2ee'], [0.75, '#e4f1ea'], [1, '#fcefd4']]);
     var s = hop(0, 0, R, H, 'url(#nm-que)');
-    // Khổ ngang: mặt trời thấp, lẹm sau núi, dưới ô thẻ; khổ dọc: lẹm mép trên, phía trên ô tiêu đề.
-    var mx = R * (doc ? 0.78 : 0.8), my = doc ? 30 : 300, mr = doc ? 32 : 46;
+    // Khổ ngang: mặt trời thấp, lẹm sau núi, ngay trên điểm hội tụ của đồng lúa (giữa khung, ngoài ô thẻ và ô nhân
+    // vật); khổ dọc: lẹm mép trên, phía trên ô tiêu đề.
+    var mx = R * (doc ? 0.78 : 0.5), my = doc ? 30 : 330, mr = doc ? 32 : 46;
     s += tron(mx, my, mr * 2.3, '#fff2b8', ' opacity="0.3"') + tron(mx, my, mr * 1.55, '#ffe59a', ' opacity="0.4"') + tron(mx, my, mr, '#ffd166');
     s += may(R * 0.2, doc ? 90 : 250, 0.8, '#fff', 0.85);
     // Núi xa hai lớp: đỉnh nhọn mềm theo PRNG.

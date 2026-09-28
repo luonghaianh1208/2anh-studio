@@ -69,7 +69,9 @@ test('kho doc bo tri lai (vi tri tuong doi khac), khong co gian ban kho ngang', 
   });
 });
 
-// Vật trang trí nổi (mây, mặt trời và quầng, đồng hồ) không nằm sau ô tiêu đề và ô thẻ ở cả hai khổ, mọi hạt giống.
+// Vật trang trí nổi (mây, mặt trời và quầng, đồng hồ) không nằm sau ô tiêu đề và ô thẻ ở cả hai khổ, mọi hạt giống;
+// mặt trời và quầng cũng không nằm sau ô `nhan-vat` (người que đứng trước mặt trời trông như bị cắm vào đó). Mây và
+// đồng hồ treo tường thì được: mây trôi, đồng hồ trên tường sau lưng nhân vật là cảnh bình thường.
 var BANG = require(path.join(RT, 'o-bo-cuc.json'));
 function soThuoc(tag, ten) { var m = tag.match(new RegExp(' ' + ten + '="([-0-9.]+)"')); return m ? +m[1] : null; }
 function vatTrangTri(ten, s) {
@@ -90,15 +92,16 @@ function vatTrangTri(ten, s) {
 }
 function giao(a, b) { return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h; }
 
-test('may, mat troi, dong ho khong nam sau o tieu-de va o the (2 kho, 40 hat)', function () {
+test('may, mat troi, dong ho khong nam sau o tieu-de, o the; mat troi khong sau o nhan-vat (2 kho, 40 hat)', function () {
   [NGANG, DOC].forEach(function (kho) {
     var o = [BANG[kho.ten]['tieu-de'], BANG[kho.ten].the];
+    var nv = BANG[kho.ten]['nhan-vat'];
     ['bau-troi', 'thanh-pho', 'dong-que', 'lop-hoc'].forEach(function (ten) {
       for (var hat = 1; hat <= 40; hat++) {
         var ds = vatTrangTri(ten, N.ve(ten, kho, hat));
         assert.ok(ds.length >= 1, ten + ' ' + kho.ten + ' khong thay vat trang tri');
         ds.forEach(function (v) {
-          o.forEach(function (b) {
+          o.concat(v.ten === 'may' || v.ten === '#a9723f' ? [] : [nv]).forEach(function (b) {
             assert.ok(!giao(v, b), ten + ' ' + kho.ten + ' hat ' + hat + ': ' + v.ten + ' ' + JSON.stringify([v, b]));
           });
         });
