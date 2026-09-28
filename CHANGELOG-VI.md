@@ -1,6 +1,8 @@
 # Nhật ký thay đổi — Bản Việt
 
-## Chưa phát hành
+## 6.3.2-vi.12 — 2026-09-29
+
+Video giải thích kiểu kể chuyện, cắt dán và khổ dọc Full HD, học từ bốn video mẫu: cảnh kể chuyện có nền tranh và nhân vật dẫn chuyện, phong cách giấy cắt dán kiểu Vox, thẻ thông tin và dòng tài liệu, khung loạt bài, khổ 9:16 1080×1920 cho TikTok và Reels. Hình ảnh do AI của chính nền tảng vẽ (Antigravity, Codex); Claude Code dùng tám nền mẫu và người que vẽ bằng mã. Kèm hai việc thầy cô hay gặp ở slide: câu hỏi mật độ chữ, và "làm đẹp mà ít chữ hơn" nay tạo mới từ file thay vì giữ nguyên văn.
 
 ### Thêm
 - Mật độ chữ cho Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop: câu hỏi hiệu ứng hỏi thêm "ít chữ, vừa, hay nhiều chữ" (vẫn tối đa 7 câu), brief ghi dòng "Mật độ chữ", và mục mới "Mật độ chữ" trong `quy-trinh-hoi.md` quy đổi sang chế độ đọc `presentation` / `balanced` / `text` của upstream. Ít chữ là mặc định cho bài giảng, tập huấn, hoạt động Đoàn; báo cáo mặc định vừa. Ít chữ chuyển phần giải thích vào lời giảng hoặc chia thêm trang, không bỏ thông tin.
@@ -19,6 +21,12 @@
 - ChatGPT Codex chỉ tự đọc `AGENTS.md` nên trước đây bỏ qua toàn bộ quy tắc bản Việt (không hỏi trước, không dùng `venv`). Cuối `AGENTS.md` nay có mục "Vietnamese Edition" trỏ sang `AGENTS.vi.md`, nên Codex, Antigravity, Claude Code và Cursor đều đọc cùng một bộ quy tắc mà không cần câu khởi động. Có test báo lỗi nếu một lần đồng bộ bản gốc làm mất mục này.
 - Phụ đề video giải thích khó đọc trên nền sáng: ở phong cách cắt dán và khổ dọc, phụ đề nay có khung nền tối bo góc, chữ trắng, từ đang đọc tô vàng. Phụ đề karaoke nay hiện **một dòng một lúc** ở mọi phong cách và khổ (trước đây hai dòng hiện cùng lúc nên học sinh không biết giọng đang đọc tới đâu): dòng sau thay dòng trước đúng lúc giọng đọc tới, các dòng của một câu được chia dài gần bằng nhau, không còn từ mồ côi. Tối đa 22 ký tự một dòng ở khổ dọc, 42 ở khổ ngang; ở khổ dọc câu dài được ngắt ở dấu phẩy trước. Kiểu viết tay khổ ngang giữ font và màu phụ đề như cũ.
 - Công thức bị ngắt dòng giữa chừng (kiểu "M x V = P x / Y"): công thức nay chỉ xuống dòng giữa các phần ` | ` hoặc trước dấu `=`, `≈`…; đoạn quá rộng thì chữ nhỏ dần tới 70 % trước khi xuống dòng ở khoảng trắng, và một cụm liền không bao giờ bị cắt đôi (cụm quá dài thì báo lỗi kèm cách sửa).
+
+### Rủi ro
+- Nhân vật do AI vẽ (`nhan-vat: ve:`) là **thử nghiệm**: luồng vẽ nhân vật mẫu rồi từng tư thế có ảnh tham chiếu chưa được chạy thật trên Antigravity (gói thử ở `docs/vi/phat-trien/2026-09-27-video-ma-vi12-chay-thu-antigravity.md`). Nhân vật có thể lệch dáng giữa các cảnh; khi đó dùng `nhan-vat: nguoi-que`. Nền do AI vẽ và người que không phụ thuộc rủi ro này.
+- Tách nền xanh chạy tốt với nền #00FF00 thuần; ảnh có bóng mềm dưới chân có thể còn vệt mờ. Công cụ báo đúng màu đo được và yêu cầu vẽ lại khi góc ảnh không sạch.
+- Khổ dọc cắt dán dựng mất khoảng 2 lần thời lượng video (khổ ngang viết tay khoảng 1,3 lần) trên máy chủ repo; máy 2–3 lõi chậm hơn, có thể dùng `do-phan-giai: 720`.
+- Các cảnh báo "hình khớp lời" chỉ bắt được ba trường hợp dễ thấy; hình có khớp lời hay không vẫn cần thầy cô xem bản xem trước.
 
 ## 6.3.2-vi.11 — 2026-09-26
 

@@ -2059,7 +2059,7 @@ class ExplainerVi12DocsTest(unittest.TestCase):
                 self.assertIn(phrase, text)
 
     def test_changelog_and_maintenance_cover_vi12(self):
-        unreleased = section(read("CHANGELOG-VI.md"), "## Chưa phát hành")
+        unreleased = section(read("CHANGELOG-VI.md"), "## 6.3.2-vi.12 — 2026-09-29")
         for phrase in ("khổ dọc", "cắt dán", "ke-chuyen", "người que", "anh_ai.py", "loat", "Be Vietnam Pro", "Full HD"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, unreleased)
