@@ -41,16 +41,31 @@ test('cung hat ra cung chuoi, hat khac ra chuoi khac (nen co PRNG)', function ()
       assert.strictEqual(N.ve(ten, kho, 5), N.ve(ten, kho, 5), ten + ' ' + kho.ten);
     });
   });
-  ['giay', 'vu-tru', 'vong-tron', 'bau-troi'].forEach(function (ten) {
-    assert.notStrictEqual(N.ve(ten, NGANG, 1), N.ve(ten, NGANG, 2), ten);
+  TEN.forEach(function (ten) {
+    [NGANG, DOC].forEach(function (kho) {
+      assert.notStrictEqual(N.ve(ten, kho, 1), N.ve(ten, kho, 2), ten + ' ' + kho.ten);
+    });
   });
 });
 
-test('kho doc bo tri lai chu khong phai ban co gian cua kho ngang', function () {
+// Vị trí tương đối (x/rộng, y/cao) của phần tử đầu tiên có màu `mau` (circle: tâm; rect: góc trên trái).
+function viTri(svg, mau, kho) {
+  var m = svg.match(new RegExp('<(circle|rect) ([^>]*)fill="' + mau + '"'));
+  assert.ok(m, 'khong thay ' + mau);
+  function lay(ten) { return +m[2].match(new RegExp('\\b' + ten + '="([-0-9.]+)"'))[1]; }
+  return m[1] === 'circle' ? [lay('cx') / kho.rong, lay('cy') / kho.cao] : [lay('x') / kho.rong, lay('y') / kho.cao];
+}
+
+test('kho doc bo tri lai (vi tri tuong doi khac), khong co gian ban kho ngang', function () {
   TEN.forEach(function (ten) {
     var ngang = N.ve(ten, NGANG, 4).replace(/^<svg[^>]*>/, '');
     var doc = N.ve(ten, DOC, 4).replace(/^<svg[^>]*>/, '');
     assert.notStrictEqual(ngang, doc, ten);
+  });
+  // Mốc nhận ra được: hành tinh, khung bảng, mặt trời, vỉa hè; co giãn thì vị trí tương đối giữ nguyên.
+  [['vu-tru', '#eea56a'], ['lop-hoc', '#a9723f'], ['dong-que', '#ffd166'], ['thanh-pho', '#ddd3c4']].forEach(function (c) {
+    var a = viTri(N.ve(c[0], NGANG, 4), c[1], NGANG), b = viTri(N.ve(c[0], DOC, 4), c[1], DOC);
+    assert.ok(Math.abs(a[0] - b[0]) > 0.02 || Math.abs(a[1] - b[1]) > 0.02, c[0] + ' ' + JSON.stringify([a, b]));
   });
 });
 

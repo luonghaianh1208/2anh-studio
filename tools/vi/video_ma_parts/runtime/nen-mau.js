@@ -76,6 +76,12 @@
     for (var j = 1; j < hang; j++) { s += hop(x, y + h * j / hang - 3, w, 6, '#fbf4e4'); }
     return s + hop(x - 14, y + h + 6, w + 28, 10, '#e6d3b3', ' rx="3"');
   }
+  // Xáo trộn bản sao của ds theo PRNG (Fisher–Yates).
+  function xao(r, ds) {
+    var kq = ds.slice();
+    for (var i = kq.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)); var t = kq[i]; kq[i] = kq[j]; kq[j] = t; }
+    return kq;
+  }
   // Sao nhỏ rải trong hộp, độ sáng theo PRNG.
   function sao(r, n, x, y, w, h) {
     var s = '';
@@ -105,6 +111,7 @@
     var truoc = nen + H * 0.15;
     s += doi(r, R, H, truoc, H * 0.03, '#8cc58e');
     [0.06, 0.13, 0.9, 0.96].forEach(function (u, k) { s += cay(R * u, truoc + H * 0.03, (doc ? 1.2 : 1) * (k % 2 ? 0.8 : 1), '#6fae72', '#9a7453'); });
+    // Phủ nhẹ hơn (0,2) ở cảnh trời/đồng quê: vùng giữa vốn chỉ là trời nhạt, phủ 0,25 làm trời bạc màu.
     var p = phuGiua(kho, 'nm-phu-troi', 0.2);
     return mo(kho, defs + p.defs, s + p.than);
   }
@@ -145,8 +152,10 @@
     return mo(kho, defs, s);
   }
 
-  function lopHoc(kho) {
-    var R = kho.rong, H = kho.cao, doc = laDoc(kho);
+  // Bố cục lớp cố định (bảng giữa, bàn phải, cây trái); hạt đổi chi tiết nhỏ: vệt phấn trên bảng, vị trí phấn,
+  // giờ trên đồng hồ, chồng sách (số cuốn, màu, độ lệch), góc lá cây.
+  function lopHoc(kho, hat) {
+    var r = prng(hat * 59 + 7), R = kho.rong, H = kho.cao, doc = laDoc(kho);
     var san = H * (doc ? 0.82 : 0.86), ghe = H * (doc ? 0.68 : 0.72);
     var s = hop(0, 0, R, H, '#f4e5c6') + hop(0, 0, R, H * 0.05, '#ead7b1');
     s += hop(0, ghe, R, san - ghe, '#e6cb9f') + hop(0, ghe, R, 6, '#d4b283') + hop(0, san - 10, R, 10, '#c49a6a');
@@ -155,14 +164,19 @@
     // Bảng xanh viền gỗ (bảng trống), khay phấn.
     var b = doc ? { x: 70, y: 290, w: 580, h: 400 } : { x: 250, y: 104, w: 780, h: 340 };
     s += hop(b.x - 16, b.y - 16, b.w + 32, b.h + 32, '#a9723f', ' rx="8"') + hop(b.x, b.y, b.w, b.h, '#7fa98c');
-    s += '<ellipse cx="' + so(b.x + b.w * 0.3) + '" cy="' + so(b.y + b.h * 0.4) + '" rx="' + so(b.w * 0.18) + '" ry="' + so(b.h * 0.12) + '" fill="#fff" opacity="0.06"/>' +
-      '<ellipse cx="' + so(b.x + b.w * 0.7) + '" cy="' + so(b.y + b.h * 0.65) + '" rx="' + so(b.w * 0.14) + '" ry="' + so(b.h * 0.1) + '" fill="#fff" opacity="0.05"/>';
-    s += hop(b.x - 24, b.y + b.h + 14, b.w + 48, 12, '#8d5a2e', ' rx="3"') + hop(b.x + b.w * 0.72, b.y + b.h + 8, 26, 7, '#fbf7ee', ' rx="3"') +
-      hop(b.x + b.w * 0.78, b.y + b.h + 8, 20, 7, '#f6d98a', ' rx="3"');
+    [[0.3, 0.4, 0.18, 0.12], [0.7, 0.65, 0.14, 0.1]].forEach(function (v) {
+      var vx = b.x + b.w * (v[0] + trongKhoang(r, -0.12, 0.12)), vy = b.y + b.h * (v[1] + trongKhoang(r, -0.12, 0.12));
+      s += '<ellipse cx="' + so(vx) + '" cy="' + so(vy) + '" rx="' + so(b.w * v[2]) + '" ry="' + so(b.h * v[3]) + '" fill="#fff" opacity="0.06"/>';
+    });
+    var phan = b.x + b.w * trongKhoang(r, 0.1, 0.8);
+    s += hop(b.x - 24, b.y + b.h + 14, b.w + 48, 12, '#8d5a2e', ' rx="3"') + hop(phan, b.y + b.h + 8, 26, 7, '#fbf7ee', ' rx="3"') +
+      hop(phan + b.w * 0.06, b.y + b.h + 8, 20, 7, '#f6d98a', ' rx="3"');
     // Đồng hồ treo tường (kim, không số).
     var dx = doc ? R / 2 : 1135, dy = doc ? 180 : 150;
+    var gio = r() * 2 * Math.PI, phut = r() * 2 * Math.PI;
     s += tron(dx, dy, 36, '#a9723f') + tron(dx, dy, 29, '#fffaf0') +
-      '<path d="M' + dx + ' ' + dy + ' V' + (dy - 19) + ' M' + dx + ' ' + dy + ' H' + (dx + 13) + '" stroke="#5a4632" stroke-width="3" stroke-linecap="round"/>';
+      '<path d="M' + dx + ' ' + dy + ' L' + so(dx + 13 * Math.sin(gio)) + ' ' + so(dy - 13 * Math.cos(gio)) + ' M' + dx + ' ' + dy +
+      ' L' + so(dx + 20 * Math.sin(phut)) + ' ' + so(dy - 20 * Math.cos(phut)) + '" stroke="#5a4632" stroke-width="3" stroke-linecap="round"/>';
     // Cửa sổ (khổ ngang: bên trái bảng).
     if (!doc) { s += cuaSo(52, 120, 150, 250, 2, 3); }
     // Bàn phía trước, chồng sách, chậu cây.
@@ -170,14 +184,19 @@
     s += hop(ban.x, ban.y, ban.w, 18, '#c48d58', ' rx="4"') + hop(ban.x + 14, ban.y + 18, ban.w - 28, H - ban.y, '#b07a47') +
       hop(ban.x + 34, ban.y + 38, ban.w * 0.34, 50, '#a26f3f', ' rx="4"') + hop(ban.x + 34 + ban.w * 0.34 * 0.42, ban.y + 58, 20, 6, '#e8c89a', ' rx="3"');
     var sx = ban.x + ban.w * 0.55;
-    s += hop(sx, ban.y - 16, 90, 16, '#e07a5f', ' rx="2"') + hop(sx + 6, ban.y - 30, 80, 14, '#3d8fa6', ' rx="2"') +
-      hop(sx + 2, ban.y - 42, 86, 12, '#f2c14e', ' rx="2"');
+    var sach = xao(r, ['#e07a5f', '#3d8fa6', '#f2c14e', '#81b29a', '#b392ac']), dayS = ban.y;
+    for (var k = 0, n = 2 + Math.floor(r() * 3); k < n; k++) {
+      var dai = trongKhoang(r, 78, 94), day = trongKhoang(r, 11, 16);
+      s += hop(sx + trongKhoang(r, -4, 8), dayS - day, dai, day, sach[k], ' rx="2"');
+      dayS -= day;
+    }
     var cx = doc ? 90 : 60, cy = san + (doc ? 10 : 6);
     s += daGiac([[cx - 26, cy - 50], [cx + 26, cy - 50], [cx + 20, cy], [cx - 20, cy]], '#d1805a');
     [[-26, -120, -30], [0, -135, 0], [26, -118, 30], [-14, -95, -50], [16, -96, 45]].forEach(function (l) {
-      s += '<ellipse cx="' + (cx + l[0]) + '" cy="' + (cy + l[1] * 0.6 - 20) + '" rx="13" ry="34" fill="#6aa66e" transform="rotate(' + l[2] + ' ' + (cx + l[0]) + ' ' + (cy + l[1] * 0.6 - 20) + ')"/>';
+      var goc = so(l[2] + trongKhoang(r, -8, 8));
+      s += '<ellipse cx="' + (cx + l[0]) + '" cy="' + (cy + l[1] * 0.6 - 20) + '" rx="13" ry="34" fill="#6aa66e" transform="rotate(' + goc + ' ' + (cx + l[0]) + ' ' + (cy + l[1] * 0.6 - 20) + ')"/>';
     });
-    var p = phuGiua(kho, 'nm-phu-lop', 0.25);
+    var p = phuGiua(kho, 'nm-phu-lop', 0.25);  // 0,25: bảng xanh nằm ngay giữa, cần làm dịu nhiều hơn
     return mo(kho, p.defs, s + p.than);
   }
 
@@ -206,18 +225,23 @@
     return s;
   }
 
-  function phongThiNghiem(kho) {
-    var R = kho.rong, H = kho.cao, doc = laDoc(kho);
+  // Bố cục phòng cố định (kệ hai bên, bàn đá dưới); hạt đổi loại bình, chiều cao, màu dung dịch trên từng kệ và
+  // thứ tự màu ống nghiệm.
+  function phongThiNghiem(kho, hat) {
+    var r = prng(hat * 61 + 13), R = kho.rong, H = kho.cao, doc = laDoc(kho);
     var mat = H * (doc ? 0.8 : 0.78);
     var defs = '<pattern id="nm-gach" width="48" height="32" patternUnits="userSpaceOnUse"><path d="M48 0H0V32" fill="none" stroke="#cfe4dc" stroke-width="2"/></pattern>';
     var s = hop(0, 0, R, H, '#e4f2ed') + hop(0, H * (doc ? 0.5 : 0.45), R, mat - H * (doc ? 0.5 : 0.45), 'url(#nm-gach)');
-    var hong = '#f4a4a0', lam = '#8ccbf0', vang = '#ffd479', luc = '#9fd4a6', tim = '#c7aee9';
+    var MAU = ['#f4a4a0', '#8ccbf0', '#ffd479', '#9fd4a6', '#c7aee9'], lam = MAU[1], hong = MAU[0];
+    var CAO = [[78, 90], [76, 90], [62, 74], [60, 72]];  // khoảng chiều cao theo loại bình
+    function day(n) {
+      var loai = xao(r, [0, 1, 2, 3]), mau = xao(r, MAU);
+      return loai.slice(0, n).map(function (l, k) { return [l, Math.round(trongKhoang(r, CAO[l][0], CAO[l][1])), mau[k]]; });
+    }
     if (doc) {
-      s += ke(36, 170, 290, [[0, 80, hong], [1, 86, lam], [3, 70, vang]]) + ke(394, 170, 290, [[2, 70, luc], [0, 90, tim], [1, 76, vang]]);
-      s += ke(36, 330, 290, [[3, 66, lam], [2, 62, hong]]) + ke(394, 330, 290, [[1, 72, luc], [3, 60, tim]]);
+      s += ke(36, 170, 290, day(3)) + ke(394, 170, 290, day(3)) + ke(36, 330, 290, day(2)) + ke(394, 330, 290, day(2));
     } else {
-      s += ke(40, 170, 330, [[0, 84, hong], [1, 90, lam], [3, 72, vang]]) + ke(40, 330, 330, [[2, 70, luc], [0, 78, tim], [1, 70, vang]]);
-      s += ke(910, 170, 330, [[3, 70, luc], [0, 88, vang], [1, 84, hong]]) + ke(910, 330, 330, [[1, 74, tim], [2, 66, lam], [3, 64, hong]]);
+      s += ke(40, 170, 330, day(3)) + ke(40, 330, 330, day(3)) + ke(910, 170, 330, day(3)) + ke(910, 330, 330, day(3));
     }
     // Bàn đá và tủ dưới.
     s += hop(-10, mat, R + 20, 24, '#8f9ba4', ' rx="4"') + hop(0, mat + 24, R, H - mat, '#b9c4ca');
@@ -229,7 +253,7 @@
     // Giá ống nghiệm và cốc trên bàn, ở hai mép.
     var gx = doc ? 60 : 70;
     s += hop(gx, mat - 26, 150, 26, '#c79b6b', ' rx="3"');
-    [hong, lam, vang, luc, tim].forEach(function (m, k) {
+    xao(r, MAU).forEach(function (m, k) {
       var tx = gx + 14 + k * 28;
       s += hop(tx, mat - 86, 16, 76, THUY, ' rx="8" stroke="' + VIEN + '" stroke-width="2"') + hop(tx + 2, mat - 46, 12, 34, m, ' rx="6"');
     });
@@ -324,7 +348,7 @@
     }
     var caoTre = H * (doc ? 0.3 : 0.42);
     s += tre(R * 0.02, chan + 4, caoTre, 1) + tre(R * 0.98, chan + 4, caoTre, -1);
-    var p = phuGiua(kho, 'nm-phu-que', 0.2);
+    var p = phuGiua(kho, 'nm-phu-que', 0.2);  // nhẹ như bau-troi: giữa khung là trời nhạt
     return mo(kho, defs + p.defs, s + p.than);
   }
 
