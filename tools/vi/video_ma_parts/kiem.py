@@ -402,6 +402,43 @@ def doc_nhac(video: Video, thu_muc: Path):
         raise CanhError(0, f"nhạc nền: {exc} (dòng {video.dong_meta.get('nhac-nen', '?')}).") from exc
 
 
+KE_CHUYEN_LIEN_TOI_DA = 2
+TU_THE_LIEN_TOI_DA = 2
+
+
+def _nen_la_mau(scene: Scene, video: Video) -> bool:
+    """Nền `ke-chuyen` là nền mẫu chung chung (kể cả `nhu-canh` trỏ về một nền mẫu)."""
+    nen = scene.nen if scene.nen is not None else parse.giai_nen(scene.truong["nen"][0], scene.so, video.canh)
+    if nen["kieu"] == "nhu":
+        nen = nen["goc"]
+    return nen["kieu"] == "mau"
+
+
+def canh_bao_hinh_khop_loi(video: Video) -> list:
+    """Cảnh báo (không chặn) những chỗ hình dễ không nói gì về lời đọc: cảnh kể chuyện trên nền mẫu mà không có
+    thẻ nêu ý của lời, quá nhiều cảnh kể chuyện liền nhau, nhân vật đứng một tư thế qua nhiều cảnh liền."""
+    ket: list = []
+    lien, tu_the_truoc, lien_tu_the = 0, None, 0
+    for scene in video.canh:
+        if scene.loai == "ke-chuyen":
+            lien += 1
+            if "the" not in scene.truong and _nen_la_mau(scene, video):
+                ket.append(f"Cảnh {scene.so}: cảnh kể chuyện dùng nền mẫu mà không có `the`; nền mẫu không nói được "
+                           "nội dung lời. Thêm `the` nêu ý chính hoặc con số của lời, hoặc đổi sang cảnh có chữ và hình.")
+            if lien == KE_CHUYEN_LIEN_TOI_DA + 1:
+                ket.append(f"Cảnh {scene.so}: {lien} cảnh kể chuyện liền nhau; xen một cảnh có chữ và hình "
+                           "(`khai-niem`, `y-tung-y`, `minh-hoa`…) để hình mang nội dung bài.")
+        else:
+            lien = 0
+        tu_the = parse.tu_the_cua(scene, video.meta)
+        lien_tu_the = lien_tu_the + 1 if tu_the is not None and tu_the == tu_the_truoc else 1
+        if tu_the is not None and lien_tu_the == TU_THE_LIEN_TOI_DA + 1:
+            ket.append(f"Cảnh {scene.so}: nhân vật giữ tư thế `{tu_the}` {lien_tu_the} cảnh liền; chọn tư thế "
+                       "khớp cảm xúc của lời từng cảnh.")
+        tu_the_truoc = tu_the
+    return ket
+
+
 def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
     """`doc_nhac_nen=False`: người gọi đã đọc nhạc nền (`doc_nhac`) rồi, không đo lại bằng ffprobe."""
     warnings: list = []

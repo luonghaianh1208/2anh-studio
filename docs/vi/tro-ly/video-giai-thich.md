@@ -101,13 +101,21 @@ Cách chia bài thành cảnh:
 - Mỗi cảnh nhấn 1–2 ý chính bằng `==`, `((`, `__` và dùng `{{số}}` cho con số cần nhớ; nhấn quá nhiều thì học sinh không còn biết ý nào quan trọng.
 - Video từ 6 cảnh nên dùng `chuyen-canh: luan-phien` cho đỡ lặp; hoặc giữ một kiểu và đặt `chuyen:` riêng ở cảnh mở một phần mới.
 - Cảnh `ke-chuyen` "nói bằng hình": một tiêu đề ngắn là kết luận của cảnh, nền tranh kín khung và nhân vật dẫn chuyện; lời chỉ hiện ở phụ đề. Hợp với cảnh mở đầu, cảnh đặt vấn đề, cảnh kể một tình huống; xen kẽ với các cảnh có chữ và hình. Chọn tư thế khớp nội dung lời (`suy-nghi` khi đặt câu hỏi, `vo-dau` khi gặp rắc rối, `an-mung` khi tìm ra đáp án); bảng tư thế ở mục "Nhân vật dẫn chuyện" của `docs/vi/tro-ly/canh-video.md`.
-- Khổ dọc: phụ đề tối đa 22 ký tự một dòng, hai dòng một lần hiện (khổ ngang 42 ký tự); câu dài hơn bị tách theo dấu phẩy rồi theo từ, kèm cảnh báo. Viết lời thành câu ngắn, có dấu phẩy ở chỗ ngắt tự nhiên.
+- Phụ đề hiện **một dòng một lúc**: tối đa 22 ký tự ở khổ dọc, 42 ký tự ở khổ ngang; dòng sau thay dòng trước đúng lúc giọng đọc tới từ đầu của nó, các dòng của một câu dài gần bằng nhau. Ở khổ dọc câu dài được ngắt ở dấu phẩy trước; câu dài hơn hai dòng có cảnh báo. Viết lời thành câu ngắn, có dấu phẩy ở chỗ ngắt tự nhiên.
 
 Hình và ảnh:
 
 - Video nên có hình, không chỉ có chữ: khoảng một nửa số cảnh có `hinh:` hoặc `anh:`, và có ít nhất một cảnh `minh-hoa` khi bài có dụng cụ, sự vật hay các bước cụ thể. Tên biểu tượng tra ở mục "Bảng tra biểu tượng" của `docs/vi/tro-ly/canh-video.md`; chọn hình nói đúng sự vật trong lời, không chọn hình chỉ để trang trí.
 - Cảnh `minh-hoa`: hình thứ k hiện khi câu thứ k của lời bắt đầu, nên viết mỗi hình ứng với đúng một câu.
 - Ảnh thật (cảnh `anh` hoặc trường `anh:`) chỉ dùng khi thầy cô đồng ý ở câu hỏi 6. AI tải ảnh bằng `image_search.py` vào `anh/` của thư mục video (cách tải và cách ghi nguồn ở mục "Ảnh thật" của `docs/vi/tro-ly/canh-video.md`). Ảnh phải có nguồn; không có nguồn là lỗi `canh`.
+- **Hình phải khớp lời đọc.** Tắt tiếng đi, người xem vẫn đoán được mỗi cảnh nói gì. Trước khi dựng, với từng cảnh viết một dòng "lời nói gì — hình cho thấy gì"; hình không cho thấy ý của lời thì đổi hình hoặc đổi loại cảnh.
+  - Cảnh `ke-chuyen` trên nền mẫu (`mau/…`, kể cả `nhu-canh` trỏ về nền mẫu) phải có `the` nêu ý chính hoặc con số của chính lời cảnh đó: nền mẫu chỉ là bối cảnh chung, không tự nói được nội dung. Tiêu đề là kết luận của lời, không phải tên chủ đề chung.
+  - Chọn nền mẫu theo bối cảnh trong lời: `lop-hoc` khi lời nói về lớp học, bài vở (bảng trống trông như thiếu nội dung, nên luôn kèm `the`); `phong-thi-nghiem` cho thí nghiệm; `thanh-pho`, `dong-que`, `bau-troi`, `vu-tru` theo nơi chốn trong lời; `giay`, `vong-tron` cho ý trừu tượng.
+  - Nền `ve:` mô tả đúng sự vật và hành động trong lời, cụ thể, không tả không khí chung: "bàn học chất chồng giấy tờ và cốc cà phê thành một núi việc" thay vì "phòng học ấm áp".
+  - Tư thế nhân vật theo cảm xúc của câu chính trong lời: `vo-dau` khi rối, `suy-nghi` khi đặt câu hỏi, `dung-lai` khi nói giới hạn, `an-mung` khi làm được; đổi tư thế khi ý đổi.
+  - Không quá hai cảnh `ke-chuyen` liền nhau: nội dung bài (định nghĩa, các ý, số liệu, sơ đồ) nằm ở các cảnh có chữ và hình; `ke-chuyen` dùng để mở bài, đặt vấn đề, kể tình huống, chốt lại.
+  - `hinh:` và cảnh `minh-hoa` gọi đúng sự vật được nói tới trong câu tương ứng.
+  - `video_ma.py` cảnh báo (không chặn) ba trường hợp: `ke-chuyen` nền mẫu không có `the`; ba cảnh `ke-chuyen` liền nhau; nhân vật một tư thế ba cảnh liền. Gặp cảnh báo này thì sửa `video.md` rồi mới dựng thật.
 - Nền của cảnh `ke-chuyen` (`nen:`): `mau/<tên>` là một trong tám nền vẽ sẵn bằng mã (không cần file, không cần mạng); tên file ảnh thật trong `anh/` (cần nguồn như ảnh thật); `ve: <mô tả>` là nền do AI vẽ (mục "Hình do AI vẽ"); `nhu-canh <số>` dùng lại nền của một cảnh `ke-chuyen` đứng trước. Nhân vật: `nhan-vat: nguoi-que` có sẵn ở mọi nền tảng; `nhan-vat: ve: <mô tả>` chỉ dùng khi nền tảng có công cụ vẽ ảnh và thầy cô đồng ý ở câu hỏi 5.
 
 Giọng thu sẵn: thầy cô đưa file MP3 thì đặt vào `giong/canh-1.mp3`, `giong/canh-2.mp3`… trong thư mục video, đúng số cảnh. Cảnh có file thì dùng file đó và không cần mạng; công cụ không bao giờ ghi đè file thầy cô đặt. File thầy cô chép đè lên giọng máy cũ vẫn được nhận là file thầy cô, kể cả khi `giong/canh-N.json` của lần trước còn đó; xoá file `.json` đó cũng không sao. Cảnh không có file thì tạo bằng giọng máy (cần mạng). File giọng thu sẵn không có mốc câu hay mốc từng từ nên các ý, dấu nhấn và phụ đề karaoke chạy theo ước lượng (có thể lệch tiếng vài trăm mili giây) và có một cảnh báo "ước lượng" cho cảnh đó. Giọng máy có mốc từng từ thật; khi không khớp được chữ với giọng, công cụ cũng chuyển sang ước lượng kèm cảnh báo. Cảnh `cau-hoi` có thêm giọng lời giải `giong/canh-N-giai.mp3`, theo cùng luật.
@@ -300,6 +308,7 @@ loai: ke-chuyen
 tieu-de: In thêm tiền có giàu hơn?
 nen: mau/thanh-pho
 tu-the: suy-nghi
+the: Câu hỏi | In thêm tiền | ai cũng giàu hơn?
 loi: Nếu in thật nhiều tiền, rồi chia cho mọi người, liệu ai cũng giàu hơn?
 
 ## Cảnh 2
@@ -317,6 +326,7 @@ tieu-de: Tiền nhiều, hàng không đổi
 nen: nhu-canh 1
 tu-the: vo-dau
 vi-tri: giua
+the: Tiền nhiều | Giá tăng | hàng hoá không nhiều thêm
 loi: Tiền trong túi nhiều lên, nhưng bánh mì vẫn vậy, nên giá bánh mì tăng.
 ```
 

@@ -223,6 +223,7 @@ Khi người dùng cần một video giải thích bài học từ nội dung ch
 - Giọng máy dùng edge-tts và cần mạng; dựng không có mạng thì mọi cảnh phải có file giọng sẵn trong `giong/`.
 - Dựng thật chụp 30 khung/giây bằng nhiều tiến trình Chromium song song nên máy chạy nặng trong lúc dựng; thời gian khoảng 1,5 lần thời lượng video (khổ dọc cắt dán khoảng 2 lần), chưa kể tạo giọng; báo trước cho thầy cô một dòng.
 - Khoá đầu `ban-tay`, `may-quay`, `chuyen-canh`, `chu-dong`, `am-thanh` mặc định đều bật, trừ `phong-cach: cat-dan`: ở đó `ban-tay` mặc định `khong` và `chuyen-canh` mặc định `xe-giay`; chỉ ghi `khong` khi thầy cô muốn tắt. `phu-de` mặc định là `karaoke` (tô vàng từng từ); `chuyen-canh: luan-phien` xoay vòng năm kiểu chuyển cảnh.
+- Hình phải khớp lời đọc (mục "Hình và ảnh" của `docs/vi/tro-ly/video-giai-thich.md`): cảnh `ke-chuyen` trên nền mẫu phải có `the` nêu ý chính của lời, nền và tư thế theo nội dung lời, không quá hai cảnh `ke-chuyen` liền nhau. Cảnh báo về hình của `video_ma.py` phải được sửa trong `video.md` trước khi dựng thật. Phụ đề hiện một dòng một lúc.
 - Dấu nhấn `==…==`, `((…))`, `__…__`, số chạy `{{…}}` và bốn loại cảnh `bieu-do`, `so-do`, `dong-thoi-gian`, `cau-hoi` viết theo `docs/vi/tro-ly/canh-video.md`; câu hỏi và đáp án của cảnh `cau-hoi` phải được thầy cô duyệt.
 
 Điều cấm:

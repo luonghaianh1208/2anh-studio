@@ -256,6 +256,7 @@ def chay(thu_muc: Path, plan_only: bool, xem_truoc: bool, warnings: list) -> dic
     video = parse.parse(md.read_text(encoding="utf-8-sig"))
     nhac = kiem.doc_nhac(video, thu_muc)
     warnings.extend(kiem.kiem(video, thu_muc, doc_nhac_nen=False))
+    warnings.extend(kiem.canh_bao_hinh_khop_loi(video))
     if plan_only:
         return {"files": [], "so_canh": len(video.canh), "thoi_luong_giay": None,
                 "phong_cach": video.meta["phong-cach"], "giong": None}

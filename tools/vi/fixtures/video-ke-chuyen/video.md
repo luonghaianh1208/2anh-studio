@@ -14,6 +14,7 @@ loai: ke-chuyen
 tieu-de: In thêm tiền có giàu hơn?
 nen: mau/thanh-pho
 tu-the: suy-nghi
+the: Câu hỏi | In thêm tiền | ai cũng giàu hơn?
 loi: Nếu in thật nhiều tiền, rồi chia cho mọi người, liệu ai cũng giàu hơn?
 
 ## Cảnh 2
@@ -31,6 +32,7 @@ tieu-de: Tiền nhiều, hàng không đổi
 nen: nhu-canh 1
 tu-the: vo-dau
 vi-tri: giua
+the: Tiền nhiều | Giá tăng | hàng hoá không nhiều thêm
 loi: Tiền trong túi nhiều lên, nhưng bánh mì vẫn vậy, nên giá bánh mì tăng.
 
 ## Cảnh 4
@@ -45,4 +47,5 @@ loai: ke-chuyen
 tieu-de: Tiền phải đi cùng hàng
 nen: mau/vong-tron
 tu-the: an-mung
+the: Chìa khoá | Hàng hoá | làm ra nhiều hàng hơn
 loi: Muốn giàu thật, phải làm ra nhiều hàng hoá hơn, chứ không chỉ in thêm tiền.

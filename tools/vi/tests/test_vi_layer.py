@@ -1929,6 +1929,16 @@ def _anh_ai_steps() -> set:
 class ExplainerVi12DocsTest(unittest.TestCase):
     """Tài liệu vi.12: khổ dọc, cắt dán, nhân vật, cảnh kể chuyện, ảnh AI theo nền tảng (spec Q15)."""
 
+    def test_guides_require_pictures_that_match_the_narration_and_one_subtitle_line(self):
+        guide = read("docs/vi/tro-ly/video-giai-thich.md")
+        for phrase in ("Hình phải khớp lời đọc", "lời nói gì — hình cho thấy gì", "phải có `the`",
+                       "Không quá hai cảnh `ke-chuyen` liền nhau", "một dòng một lúc"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, guide)
+        self.assertIn("một dòng một lần hiện", read("docs/vi/tro-ly/canh-video.md"))
+        self.assertIn("Hình phải khớp lời đọc", read(".agents/rules/ppt-master-vi.md"))
+        self.assertIn("Hình phải khớp lời đọc", read("AGENTS.vi.md"))
+
     def test_scene_guide_names_every_scene_type_in_code(self):
         from video_ma_parts import parse
 

@@ -95,7 +95,7 @@ Cảnh có thẻ hoặc dòng tài liệu (`the`, `tai-lieu`): thẻ và dòng t
 
 Công thức: mỗi đoạn liền (không có khoảng trắng) trong `bieu-thuc` không bao giờ bị ngắt dòng, nên dài tối đa 66 ký tự ở khổ ngang viết tay, 55 ở khổ ngang cắt dán, 34 ở khổ dọc viết tay, 28 ở khổ dọc cắt dán. Dài hơn là lỗi `canh` "phần công thức … quá dài cho khổ này": thêm khoảng trắng quanh `=`, `+`… hoặc tách thành nhiều phần bằng ` | `.
 
-Phụ đề: tối đa 42 ký tự một dòng ở khổ ngang, 22 ký tự một dòng ở khổ dọc, hai dòng một lần hiện. Ở khổ dọc, câu dài hơn hai dòng được tách theo dấu phẩy rồi theo từ, kèm cảnh báo "câu phụ đề dài, đã tách thành … phần"; không phải lỗi, nhưng nên viết lời thành câu ngắn.
+Phụ đề: tối đa 42 ký tự một dòng ở khổ ngang, 22 ký tự một dòng ở khổ dọc, **một dòng một lần hiện**; dòng sau thay dòng trước khi giọng đọc tới nó, các dòng của một câu được chia dài gần bằng nhau. Ở khổ dọc, câu dài hơn hai dòng được ngắt ở dấu phẩy trước, kèm cảnh báo "câu phụ đề dài, đã tách thành … phần"; không phải lỗi, nhưng nên viết lời thành câu ngắn.
 
 ## Tiêu đề
 
@@ -549,6 +549,7 @@ Bốn dạng của `nen`:
 loai: ke-chuyen
 tieu-de: Galileo và chiếc đèn chùm
 nen: mau/lop-hoc
+the: Năm | {{1583}} | Galileo đếm nhịp đèn chùm ở Pisa
 loi: Năm 1583, trong nhà thờ Pisa, Galileo nhìn chiếc đèn chùm đung đưa và đếm nhịp bằng mạch đập của mình.
 ```
 
@@ -591,6 +592,7 @@ loai: ke-chuyen
 tieu-de: Galileo và chiếc đèn chùm
 nen: mau/lop-hoc
 tu-the: suy-nghi
+the: Câu hỏi | Đều đặn? | đèn chùm đung đưa trong nhà thờ Pisa
 loi: Vì sao chiếc đèn chùm luôn đung đưa đều đặn như vậy?
 
 ## Cảnh 2
