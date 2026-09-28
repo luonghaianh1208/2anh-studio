@@ -170,6 +170,19 @@ class AnhAiKiemTest(unittest.TestCase):
                 self.assertIn(ten, str(caught.exception))
                 self.assertIn("anh_ai.py", caught.exception.fix)
 
+    def test_nhan_vat_thieu_nguon_bao_ghi_nguon_khong_bao_tach_nen(self):
+        jpeg(self.thu_muc / "anh" / "ai" / "nen-1.jpg")
+        png(self.thu_muc / "anh" / "ai" / "tu-the-chao.png")
+        png(self.thu_muc / "anh" / "ai" / "tu-the-buon.png")
+        nguon_ai(self.thu_muc, ("nen-1.jpg", "Imagen 4"), ("tu-the-buon.png", "Imagen 4"))
+        with self.assertRaises(kiem.CanhError) as caught:
+            kiem.kiem(self.video(self.CANH), self.thu_muc)
+        self.assertIn("tu-the-chao.png", str(caught.exception))
+        fix = caught.exception.fix
+        self.assertIn("python tools/vi/anh_ai.py <thư_mục> nhan", fix)
+        self.assertIn("nguon.json", fix)
+        self.assertNotIn("tách nền", fix)
+
     def test_nen_file_thuong_can_nguon(self):
         png(self.thu_muc / "anh" / "ruong.png", 4, 3, kieu=2)
         video = self.video(ke(1, "ruong.png"), META)
@@ -206,6 +219,18 @@ class DongAiCuoiVideoTest(unittest.TestCase):
             self.assertTrue(cac_du[1]["nhanVat"]["anh"]["dataUrl"].startswith("data:image/png"))
             # Nền AI không có dòng nguồn riêng trong cảnh (đã có dòng AI cuối video).
             self.assertIsNone(cac_du[0]["nen"]["nguon"])
+
+    def test_anh_ai_trong_truong_anh_cung_duoc_ghi_cong(self):
+        # Ảnh `ai/…` dùng ở trường `anh:` thường vẫn phải có trong dòng "tạo bằng AI" cuối video.
+        with tempfile.TemporaryDirectory() as tmp:
+            thu_muc = Path(tmp)
+            png(thu_muc / "anh" / "ai" / "so-do.png", 16, 9, kieu=2)
+            nguon_ai(thu_muc, ("so-do.png", "GPT Image 1"))
+            video = parse.parse(f"---\n{META}---\n\n## Cảnh 1\nloai: khai-niem\nthuat-ngu: A\ndinh-nghia: B\n"
+                                "anh: ai/so-do.png\nloi: Xin chào.\n\n" + ke(2, "mau/giay"))
+            cac_lich, _ = lich.dung_lich(video.canh, video_ma._giong_tam(video), kiem_moc=False)
+            du = video_ma._cac_du(video, cac_lich, {}, thu_muc)[-1]
+            self.assertEqual([d["chu"] for d in du["dongNguon"]], ["Hình minh hoạ tạo bằng AI (GPT Image 1)"])
 
     def test_khong_anh_ai_chi_dong_nhac(self):
         with tempfile.TemporaryDirectory() as tmp:

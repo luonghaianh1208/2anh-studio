@@ -21,6 +21,10 @@ class AnhError(Exception):
     """Ảnh trong anh/ không đọc được, sai định dạng, quá lớn, hoặc chưa có nguồn."""
 
 
+class NguonAiError(AnhError):
+    """Ảnh AI chưa có (hoặc có sai) bản ghi nguồn trong anh/ai/nguon.json."""
+
+
 AI = "ai/"
 DONG_AI = "Hình minh hoạ tạo bằng AI ({})"
 FIX_NGUON_AI = "chạy `python tools/vi/anh_ai.py <thư_mục> nhan`"
@@ -66,20 +70,20 @@ def _nguon_ai(thu_muc_du_an: Path, ten: str) -> dict:
     manifest = Path(thu_muc_du_an) / "anh" / "ai" / "nguon.json"
     thieu = f"`anh/ai/{ten}` chưa có nguồn trong `anh/ai/nguon.json`: {FIX_NGUON_AI}"
     if not manifest.is_file():
-        raise AnhError(thieu)
+        raise NguonAiError(thieu)
     try:
         du_lieu = json.loads(manifest.read_text(encoding="utf-8-sig"))
     except (OSError, ValueError) as exc:
-        raise AnhError(f"không đọc được `anh/ai/nguon.json` ({exc}): {FIX_NGUON_AI}") from exc
+        raise NguonAiError(f"không đọc được `anh/ai/nguon.json` ({exc}): {FIX_NGUON_AI}") from exc
     if not isinstance(du_lieu, list) or not all(isinstance(m, dict) for m in du_lieu):
-        raise AnhError(f"`anh/ai/nguon.json` sai cấu trúc: cần danh sách [{{\"file\": ..., \"mo_hinh\": ...}}]; {FIX_NGUON_AI}")
+        raise NguonAiError(f"`anh/ai/nguon.json` sai cấu trúc: cần danh sách [{{\"file\": ..., \"mo_hinh\": ...}}]; {FIX_NGUON_AI}")
     for muc in du_lieu:
         if unicodedata.normalize("NFC", str(muc.get("file", ""))) == unicodedata.normalize("NFC", ten):
             mo_hinh = _bo_dia_chi_web(muc.get("mo_hinh"))
             if not mo_hinh:
-                raise AnhError(f"`anh/ai/nguon.json` thiếu `mo_hinh` của `{ten}`: {FIX_NGUON_AI}")
+                raise NguonAiError(f"`anh/ai/nguon.json` thiếu `mo_hinh` của `{ten}`: {FIX_NGUON_AI}")
             return {"moHinh": mo_hinh, "congCu": _bo_dia_chi_web(muc.get("cong_cu"))}
-    raise AnhError(thieu)
+    raise NguonAiError(thieu)
 
 
 def _kich_thuoc_png(du_lieu: bytes) -> tuple:

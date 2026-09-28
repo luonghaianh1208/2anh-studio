@@ -119,11 +119,13 @@ def _tai_nguyen_cot(scene: parse.Scene, thu_muc: Path) -> dict:
 
 def _cac_du(video, cac_lich, models, thu_muc: Path, nhac=None) -> list:
     """`nhac`: nhạc nền (`kiem.doc_nhac`). Cảnh cuối mang các dòng nguồn cuối video: "Hình minh hoạ tạo bằng AI (…)"
-    khi video có ảnh AI (nền hay nhân vật), rồi nguồn nhạc."""
+    khi video có ảnh AI (nền, nhân vật hay trường `anh`), rồi nguồn nhạc."""
     cac_tn = [_tai_nguyen(c, thu_muc, video.meta) for c in video.canh]
     cac_du = [lich.du_lieu_canh(c, cl, models.get(c.so), {**tn, "meta": video.meta})
               for c, cl, tn in zip(video.canh, cac_lich, cac_tn)]
-    mo_hinh = [a["moHinh"] for tn in cac_tn for a in (tn.get("nen"), tn.get("nhanVatAnh")) if a and a.get("moHinh")]
+    # Mọi ảnh AI được ghi công: nền, nhân vật, và ảnh `ai/…` dùng ở trường `anh:` thường.
+    mo_hinh = [a["moHinh"] for tn in cac_tn for a in (tn.get("nen"), tn.get("nhanVatAnh"), tn.get("anh"))
+               if a and a.get("moHinh")]
     dongs = ([lich.dong_ai(mo_hinh)] if mo_hinh else []) + ([nhac["nguon"]] if nhac is not None else [])
     if cac_du:
         lich.gan_dong_nguon(cac_du[-1], dongs)

@@ -285,6 +285,7 @@ FIX_AI = ("Chạy `python tools/vi/anh_ai.py <thư_mục> ke-hoach`, vẽ từng
           "và `nhan-vat: nguoi-que`.")
 FIX_TACH_NEN = ("Chạy `python tools/vi/anh_ai.py <thư_mục> nhan` để tách nền xanh của ảnh nhân vật; vẫn lỗi thì vẽ lại "
                 "tư thế đó trên nền xanh lá thuần #00FF00.")
+FIX_NGUON_AI = ("Chạy `python tools/vi/anh_ai.py <thư_mục> nhan` để ghi nguồn ảnh AI vào `anh/ai/nguon.json`, rồi chạy lại.")
 # Đuôi thay thế khi tìm file AI: nền cắt khổ là JPEG nhưng PNG vẫn nhận; nhân vật cần PNG trong suốt, JPEG thì vẫn tìm
 # thấy để báo "chưa tách nền" thay vì "thiếu".
 _DUOI_AI = {".jpg": (".jpg", ".png"), ".png": (".png", ".jpg")}
@@ -345,6 +346,8 @@ def _kiem_nen_nhan_vat(scene: Scene, video: Video, thu_muc: Path, da_doc: dict) 
         ten = file_ai(thu_muc, f"ai/tu-the-{tu_the}.png")
         try:
             info = doc(ten)
+        except anh.NguonAiError as exc:
+            raise CanhError(scene.so, f"nhân vật: {exc}.", FIX_NGUON_AI) from exc
         except anh.AnhError as exc:
             raise CanhError(scene.so, f"nhân vật: {exc}.", FIX_TACH_NEN) from exc
         if not info["alpha"]:
