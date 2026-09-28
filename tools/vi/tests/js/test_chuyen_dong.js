@@ -554,7 +554,8 @@ test('may quay: hop giu (the, tieu de, tai lieu) luon trong khung va duoi khung 
   globalThis.THI_KHO.dat(null);
   [{ hop: { x: 880, y: 40, w: 340, h: 140 }, tren: 40 },            // thẻ góc phải trên
     { hop: { x: 60, y: 40, w: 1160, h: 576 }, tren: 40 },            // tiêu đề trái trên tới tài liệu phải dưới
-    { hop: { x: 300, y: 90, w: 200, h: 60 }, tren: 0 }].forEach(function (giu) {
+    { hop: { x: 300, y: 90, w: 200, h: 60 }, tren: 0 },
+    { hop: { x: 100, y: 190, w: 1120, h: 426 }, tren: 0 }].forEach(function (giu) {   // khung công thức + tài liệu
     var coPhong = false;
     for (var i = 0; i < 300; i++) {
       var t = GH * i / 299;
@@ -563,6 +564,8 @@ test('may quay: hop giu (the, tieu de, tai lieu) luon trong khung va duoi khung 
       var b = bienDoi(s, giu.hop);
       assert.ok(b.x >= -1e-6 && b.x + b.w <= 1280 + 1e-6 && b.y >= giu.tren - 1e-6 && b.y + b.h <= 620 + 1e-6,
         JSON.stringify([giu, t, b]));
+      // Lề hai bên 24 (LE_GIU) khi đang phóng: nét vẽ tay ngoài hộp đo không bị cắt ở mép khung.
+      if (s.z > 1 + 1e-9) { assert.ok(b.x >= 24 - 1e-6 && b.x + b.w <= 1280 - 24 + 1e-6, JSON.stringify([giu, t, s, b])); }
       if (s.z > 1.02) { coPhong = true; }
     }
     if (giu.hop.w < 400) { assert.ok(coPhong, 'hop giu nho thi van phong: ' + JSON.stringify(giu)); }

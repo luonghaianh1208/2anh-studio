@@ -123,6 +123,42 @@ class TheChromiumTest(unittest.TestCase):
                 finally:
                     page.close()
 
+    def test_may_quay_cong_thuc_co_tai_lieu_giu_tron_khung_bieu_thuc(self):
+        # Cảnh công thức có dòng tài liệu nhưng không thẻ, không tiêu đề: ở mọi t, khung biểu thức (kể cả nửa nét vẽ)
+        # nằm trọn trong khung hình, không bị máy quay cắt mép.
+        do = """() => {
+          const d = window.THI_CANH['cong-thuc'].muc(window.DU_CANH).filter((m) => m.id === 'khung')[0].d;
+          const p = [...document.querySelectorAll('#bang svg.ve path')].filter((el) => el.getAttribute('d') === d)[0];
+          const k = document.getElementById('khung').getBoundingClientRect();
+          const r = p.getBoundingClientRect();
+          const nua = parseFloat(getComputedStyle(p).strokeWidth) / 2 * (r.width / p.getBBox().width);
+          return [r.left - k.left - nua, r.top - k.top - nua, r.right - k.left + nua, r.bottom - k.top + nua];
+        }"""
+        ds = [("cong-thuc", "bieu-thuc: M × V = P × Y\ngiai-thich: M là lượng tiền, V là vòng quay\n"
+                            f"tai-lieu: {chuoi(60)}\n"),
+              ("cong-thuc", f"bieu-thuc: v = s / t\ngiai-thich: {chuoi(30)}\ngiai-thich: {chuoi(30)}\n"
+                            f"tai-lieu: {chuoi(90)}\n")]
+        for ten_kho in ("ngang", "doc"):
+            k = kho.Kho(ten_kho, 720)
+            for phong_cach in ("viet-tay", "cat-dan"):
+                page = chup.trang_moi(self.browser, k)
+                try:
+                    for canh, html in self.trang(ds, ten_kho, phong_cach):
+                        chup.mo_trang(page, html)
+                        gh = page.evaluate("() => window.DU_CANH.thoiLuong")
+                        n = int(gh / 0.1)
+                        for i in range(n + 1):
+                            t = round(gh * i / n, 3)
+                            page.evaluate("(t) => window.datThoiDiem(t)", t)
+                            h = page.evaluate(do)
+                            with self.subTest(kho=ten_kho, phong_cach=phong_cach, so=canh.so, t=t):
+                                self.assertGreaterEqual(h[0], 0, h)
+                                self.assertGreaterEqual(h[1], 0, h)
+                                self.assertLessEqual(h[2], k.rong, h)
+                                self.assertLessEqual(h[3], k.cao, h)
+                finally:
+                    page.close()
+
     def test_may_quay_giu_tieu_de_the_tai_lieu_trong_khung_va_duoi_khung_loat(self):
         # Máy quay bật (mặc định), có khung loạt: ở mọi t của cảnh, tiêu đề (cả dải băng dính cat-dan), thẻ và dòng
         # tài liệu nằm trọn trong khung và không đè khung loạt, sau khi mục đó đã trượt/hiện xong (cat-dan trượt vào từ

@@ -60,23 +60,28 @@
     return { x: x, y: y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
   }
 
+  // Lề hai bên của hộp giữ khi phóng: nét vẽ tay (và viền khung công thức) nằm ngoài hộp đo nên không sát mép khung.
+  var LE_GIU = 24;
+
   // Kẹp để lớp bảng phủ kín khung và hộp nằm trong khung, đáy <= DAY.
   // `giu` (tuỳ chọn) = {hop, tren}: hộp phải luôn nằm trọn trong khung cùng mục tiêu (tiêu đề, thẻ, dòng tài liệu),
-  // đỉnh không cao hơn `tren` (dưới khung loạt). Z bị giới hạn để cả hai cùng vừa; Z = 1 luôn vừa vì bố cục đặt
-  // chúng trong khung sẵn.
+  // cách mép trái/phải ít nhất LE_GIU, đỉnh không cao hơn `tren` (dưới khung loạt). Z bị giới hạn để cả hai cùng vừa;
+  // Z = 1 luôn vừa vì bố cục đặt chúng trong khung sẵn (hộp sát mép hơn LE_GIU thì lớp bảng đứng yên ở Z = 1).
   function kepHop(s, h, giu) {
     var k = kho();
     var z = kep(Math.max(s.z, zToiThieu(h)), 1, ZMAX);
     var tren = 0;
+    var le = 0;
     if (giu && giu.hop) {
       h = gop(h, giu.hop);
       tren = Math.min(giu.tren || 0, h.y);
+      le = LE_GIU;
       // Trừ 1e-6 để hai cận của tx, ty không đảo nhau vì sai số làm tròn khi z đúng bằng giới hạn.
-      z = Math.max(1, Math.min(z, k.rong / h.w - 1e-6, (Math.max(k.day, h.y + h.h) - tren) / h.h - 1e-6));
+      z = Math.max(1, Math.min(z, (k.rong - 2 * le) / h.w - 1e-6, (Math.max(k.day, h.y + h.h) - tren) / h.h - 1e-6));
     }
     var phuX = k.rong * (1 - z), phuY = k.cao * (1 - z);
     var day = giu && giu.hop ? Math.max(k.day, h.y + h.h) : k.day;
-    var tx = kepKhoang(s.tx, Math.max(phuX, -z * h.x), Math.min(0, k.rong - z * (h.x + h.w)), phuX, 0);
+    var tx = kepKhoang(s.tx, Math.max(phuX, le - z * h.x), Math.min(0, k.rong - le - z * (h.x + h.w)), phuX, 0);
     var ty = kepKhoang(s.ty, Math.max(phuY, tren - z * h.y), Math.min(0, day - z * (h.y + h.h)), phuY, 0);
     return { z: z, tx: tx, ty: ty };
   }

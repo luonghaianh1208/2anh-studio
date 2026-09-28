@@ -1106,6 +1106,8 @@
       var catDanCanh = (du.chuDe || {}).ten === 'cat-dan';
       var ds = chrome.concat(chrome.length || catDanCanh ? tieuDe : []);
       if (!ds.length) { return null; }
+      // Cảnh công thức: khung biểu thức cũng giữ trọn (máy quay phóng vào biểu thức không cắt viền khung).
+      if (du.loai === 'cong-thuc' && hop.khung) { ds.push(hop.khung); }
       var le = catDanCanh ? 8 : 0;
       var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       ds.forEach(function (h) { x0 = Math.min(x0, h.x - le); y0 = Math.min(y0, h.y - le); x1 = Math.max(x1, h.x + h.w + le); y1 = Math.max(y1, h.y + h.h + le); });
