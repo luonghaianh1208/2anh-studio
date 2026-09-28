@@ -31,6 +31,8 @@ NGUON_TEN = "nguon.json"
 NGUON_HONG = "nguon.hong.json"
 CONG_CU_MAC_DINH = "công cụ vẽ của nền tảng"
 MO_HINH_MAC_DINH = "AI"
+THIEU_MO_HINH = ("Chưa ghi tên mô hình vẽ: dòng ghi công cuối video sẽ chỉ là \"Hình minh hoạ tạo bằng AI (AI)\". Chạy lại "
+                 "`python tools/vi/anh_ai.py <thư_mục> nhan --mo-hinh \"<tên mô hình>\"` (ví dụ `--mo-hinh \"Nano Banana Pro\"`).")
 FIX_KE_HOACH = "Chạy `python tools/vi/anh_ai.py <thư_mục> ke-hoach` trước, vẽ ảnh theo kế hoạch, rồi chạy lại `nhan`."
 
 # Khổ khung -> kích thước Full HD xuất của nền; kích thước ảnh nhân vật (mẫu và mọi tư thế) cố định.
@@ -79,7 +81,8 @@ def _canh_dung_nen_ai(canh: list, goc: int) -> list:
 
 def lap_ke_hoach(video: parse.Video) -> list:
     """Danh sách mục kế hoạch: nhân vật mẫu trước, các tư thế đã dùng (theo thứ tự `parse.TU_THE`), rồi các nền
-    `ve:` theo số cảnh. `nhu-canh` dùng lại nền của cảnh khác nên không tạo mục riêng."""
+    `ve:` theo số cảnh. `nhu-canh` dùng lại nền của cảnh khác nên không tạo mục riêng. `mo_ta`: mô tả trong video.md
+    lúc lập kế hoạch (`nhan` chép sang nguon.json để video_ma nhận ra ảnh vẽ theo mô tả cũ)."""
     meta = video.meta
     kho = meta["kho"]
     phong_cach = meta["phong-cach"]
@@ -91,7 +94,7 @@ def lap_ke_hoach(video: parse.Video) -> list:
         muc.append({
             "file": "nhan-vat-mau.png", "loai": "nhan-vat-mau",
             "prompt": cau_lenh.nhan_vat_mau(mo_ta_nv, phong_cach),
-            "kich_thuoc": _KICH_THUOC_NHAN_VAT, "tham_chieu": None, "canh": canh_nhan_vat,
+            "kich_thuoc": _KICH_THUOC_NHAN_VAT, "tham_chieu": None, "canh": canh_nhan_vat, "mo_ta": mo_ta_nv,
         })
         for ten in parse.TU_THE:
             canh_tu_the = [c.so for c in video.canh if parse.tu_the_cua(c, meta) == ten]
@@ -101,6 +104,7 @@ def lap_ke_hoach(video: parse.Video) -> list:
                 "file": f"tu-the-{ten}.png", "loai": "tu-the",
                 "prompt": cau_lenh.tu_the(ten, mo_ta_nv, phong_cach),
                 "kich_thuoc": _KICH_THUOC_NHAN_VAT, "tham_chieu": "goc/nhan-vat-mau.png", "canh": canh_tu_the,
+                "mo_ta": mo_ta_nv,
             })
 
     for c in video.canh:
@@ -110,6 +114,7 @@ def lap_ke_hoach(video: parse.Video) -> list:
             "file": f"nen-{c.so}.png", "loai": "nen",
             "prompt": cau_lenh.nen(c.nen["mo_ta"], phong_cach, kho),
             "kich_thuoc": _KICH_THUOC_NEN[kho], "tham_chieu": None, "canh": _canh_dung_nen_ai(video.canh, c.so),
+            "mo_ta": c.nen["mo_ta"],
         })
     return muc
 
@@ -216,9 +221,9 @@ def chay_nhan(thu_muc: Path, warnings: list, cong_cu: str | None = None, mo_hinh
         ten = f"goc/{goc[muc['file']].name}"
         try:
             if muc["loai"] == "nen":
-                (w, h), _, thieu_diem = xu_ly.xu_ly_nen(goc[muc["file"]], thu_muc_ai / ra, ke_hoach["kho"], ten, run)
+                (w, h), (rw, rh), thieu_diem = xu_ly.xu_ly_nen(goc[muc["file"]], thu_muc_ai / ra, ke_hoach["kho"], ten, run)
                 if thieu_diem:
-                    warnings.append(f"Ảnh nền cảnh {muc['canh'][0]} nhỏ hơn Full HD ({w}x{h}).")
+                    warnings.append(f"Ảnh nền cảnh {muc['canh'][0]} nhỏ hơn Full HD: ra {rw}×{rh} (ảnh gốc {w}×{h}).")
             else:
                 xu_ly.xu_ly_nhan_vat(goc[muc["file"]], thu_muc_ai / ra, ten, run)
         except xu_ly.XuLyError as exc:
@@ -230,9 +235,17 @@ def chay_nhan(thu_muc: Path, warnings: list, cong_cu: str | None = None, mo_hinh
             hong.append(exc.message)
             continue
         files.append(f"anh/ai/{ra}")
-        nguon.append({"file": ra, "cong_cu": cong_cu or CONG_CU_MAC_DINH, "mo_hinh": mo_hinh or MO_HINH_MAC_DINH,
-                      "prompt": muc["prompt"], "ngay": ngay})
+        ban_ghi = {"file": ra, "cong_cu": cong_cu or CONG_CU_MAC_DINH, "mo_hinh": mo_hinh or MO_HINH_MAC_DINH,
+                   "prompt": muc["prompt"], "ngay": ngay}
+        # Mô tả đã vẽ (kế hoạch cũ có thể không có) và, với nền, số cảnh vẽ cho: kiem.py so với video.md hiện tại.
+        if isinstance(muc.get("mo_ta"), str):
+            ban_ghi["mo_ta"] = muc["mo_ta"]
+        if muc["loai"] == "nen":
+            ban_ghi["canh"] = muc["canh"][0]
+        nguon.append(ban_ghi)
     _ghi_nguon(thu_muc_ai, nguon, bo, warnings)
+    if nguon and not mo_hinh:
+        warnings.append(THIEU_MO_HINH)
     if loi_dung is not None:
         raise loi_dung
     if hong:

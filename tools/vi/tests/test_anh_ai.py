@@ -336,6 +336,47 @@ class NhanTest(unittest.TestCase):
         cat = [c for c in run.lenh if c[0] == "ffmpeg" and "rawvideo" not in c and str(c[-1]).endswith(".png")][0]
         self.assertIn(xu_ly.LOC_TACH + ",crop=50:100:20:30", cat[cat.index("-vf") + 1])
 
+    def test_nguon_ghi_mo_ta_da_ve_va_canh_cua_nen(self):
+        # Để video_ma nhận ra ảnh cũ khi thầy cô đổi mô tả hay đánh số lại cảnh (kiem so với `nen: ve:`, `nhan-vat: ve:`).
+        anh_ai.chay_nhan(self.thu_muc, [], mo_hinh="Nano Banana", run=self.dat_du(), which=_co_ffmpeg)
+        nguon = {m["file"]: m for m in json.loads((self.thu_muc / "anh" / "ai" / "nguon.json").read_text(encoding="utf-8"))}
+        self.assertEqual((nguon["nen-1.jpg"]["mo_ta"], nguon["nen-1.jpg"]["canh"]), ("cánh đồng lúa chín buổi sáng", 1))
+        self.assertEqual((nguon["nen-3.jpg"]["mo_ta"], nguon["nen-3.jpg"]["canh"]), ("khu chợ đông người buổi sáng", 3))
+        for f in ("nhan-vat-mau.png", "tu-the-dung.png", "tu-the-chao.png", "tu-the-giai-thich.png"):
+            self.assertEqual(nguon[f]["mo_ta"], "cô giáo trẻ, áo dài xanh", f)
+            self.assertNotIn("canh", nguon[f])
+        # Mô tả lấy từ kế hoạch lúc vẽ, không phải video.md lúc nhận.
+        ke = {m["file"]: m for m in self.ke_hoach["muc"]}
+        self.assertEqual(ke["nen-1.png"]["mo_ta"], "cánh đồng lúa chín buổi sáng")
+        self.assertEqual(ke["tu-the-chao.png"]["mo_ta"], "cô giáo trẻ, áo dài xanh")
+
+    def test_ke_hoach_cu_khong_mo_ta_van_nhan(self):
+        ke = json.loads(json.dumps(self.ke_hoach))
+        for m in ke["muc"]:
+            m.pop("mo_ta", None)
+        (self.thu_muc / "anh" / "ai" / "ke-hoach.json").write_text(json.dumps(ke), encoding="utf-8")
+        kq = anh_ai.chay_nhan(self.thu_muc, [], mo_hinh="X", run=self.dat_du(), which=_co_ffmpeg)
+        self.assertEqual(kq["so_anh"], 6)
+        nguon = json.loads((self.thu_muc / "anh" / "ai" / "nguon.json").read_text(encoding="utf-8"))
+        self.assertTrue(all("mo_ta" not in m for m in nguon), nguon)
+
+    def test_nen_nho_canh_bao_kich_thuoc_dau_ra_sau_cat(self):
+        run = self.dat_du()
+        run.kich_thuoc["nen-1.jpg"] = (1200, 1600)
+        warnings: list = []
+        anh_ai.chay_nhan(self.thu_muc, warnings, mo_hinh="X", run=run, which=_co_ffmpeg)
+        self.assertIn("Ảnh nền cảnh 1 nhỏ hơn Full HD: ra 1200×674 (ảnh gốc 1200×1600).", warnings)
+
+    def test_thieu_mo_hinh_thi_canh_bao(self):
+        warnings: list = []
+        anh_ai.chay_nhan(self.thu_muc, warnings, run=self.dat_du(), which=_co_ffmpeg)
+        canh_bao = [w for w in warnings if "--mo-hinh" in w]
+        self.assertEqual(len(canh_bao), 1, warnings)
+        self.assertIn("(AI)", canh_bao[0])
+        warnings = []
+        anh_ai.chay_nhan(self.thu_muc, warnings, mo_hinh="Nano Banana", run=self.dat_du(), which=_co_ffmpeg)
+        self.assertEqual([w for w in warnings if "--mo-hinh" in w], [])
+
     def test_mac_dinh_cong_cu_mo_hinh_va_giu_ban_ghi_cu(self):
         ai = self.thu_muc / "anh" / "ai"
         (ai / "nguon.json").write_text(json.dumps([{"file": "khac.png", "mo_hinh": "Cũ"},

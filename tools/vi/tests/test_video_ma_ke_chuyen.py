@@ -92,8 +92,10 @@ def png_trong_suot(path: Path, rong: int = 300, cao: int = 600) -> None:
                     "-frames:v", "1", str(path)], check=True, timeout=60)
 
 
-def nguon_ai(thu_muc: Path, *cac_file: str) -> None:
-    ds = [{"file": f, "cong_cu": "thử", "mo_hinh": "Mô hình thử", "prompt": "x", "ngay": "2026-09-28"} for f in cac_file]
+def nguon_ai(thu_muc: Path, *cac_file: str, mo_ta: str = "cô giáo trẻ") -> None:
+    """Bản ghi nguồn các ảnh nhân vật AI, vẽ theo mô tả `mo_ta` (khớp `nhan-vat: ve:` của video thử)."""
+    ds = [{"file": f, "cong_cu": "thử", "mo_hinh": "Mô hình thử", "prompt": "x", "ngay": "2026-09-28", "mo_ta": mo_ta}
+          for f in cac_file]
     (thu_muc / "anh" / "ai" / "nguon.json").write_text(json.dumps(ds, ensure_ascii=False), encoding="utf-8")
 
 

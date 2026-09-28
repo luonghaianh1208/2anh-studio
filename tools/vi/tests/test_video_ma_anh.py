@@ -44,8 +44,10 @@ def jpeg(path: Path, rong: int = 4, cao: int = 3) -> Path:
 
 
 def nguon_ai(thu_muc: Path, *cac_file: tuple) -> None:
-    """anh/ai/nguon.json theo khuôn Task 12: [{file, cong_cu, mo_hinh, prompt, ngay}]; `file` là tên trần trong anh/ai/."""
-    ds = [{"file": f, "cong_cu": "Antigravity", "mo_hinh": m, "prompt": "vẽ", "ngay": "2026-09-28"} for f, m in cac_file]
+    """anh/ai/nguon.json theo khuôn Task 12: [{file, cong_cu, mo_hinh, prompt, ngay}]; `file` là tên trần trong anh/ai/.
+    Mỗi phần tử là (file, mô hình) hoặc (file, mô hình, {khoá thêm}) như `mo_ta`, `canh` do `anh_ai.py nhan` ghi."""
+    ds = [{"file": f[0], "cong_cu": "Antigravity", "mo_hinh": f[1], "prompt": "vẽ", "ngay": "2026-09-28",
+           **(f[2] if len(f) > 2 else {})} for f in cac_file]
     (thu_muc / "anh" / "ai").mkdir(parents=True, exist_ok=True)
     (thu_muc / "anh" / "ai" / "nguon.json").write_text(json.dumps(ds, ensure_ascii=False), encoding="utf-8")
 
@@ -147,13 +149,78 @@ class AnhAiKiemTest(unittest.TestCase):
         for phrase in ("anh_ai.py", "ke-hoach", "nen: mau/", "nhan-vat: nguoi-que"):
             self.assertIn(phrase, fix)
 
+    NV = {"mo_ta": "cô giáo trẻ áo dài xanh"}
+    NEN1 = {"mo_ta": "ruộng bậc thang buổi sáng", "canh": 1}
+
     def test_du_file_thi_qua_nen_png_cung_nhan(self):
         png(self.thu_muc / "anh" / "ai" / "nen-1.png", 16, 9, kieu=2)
         png(self.thu_muc / "anh" / "ai" / "tu-the-chao.png")
         png(self.thu_muc / "anh" / "ai" / "tu-the-buon.png")
-        nguon_ai(self.thu_muc, ("nen-1.png", "Imagen 4"), ("tu-the-chao.png", "Imagen 4"), ("tu-the-buon.png", "Imagen 4"))
+        nguon_ai(self.thu_muc, ("nen-1.png", "Imagen 4", self.NEN1), ("tu-the-chao.png", "Imagen 4", self.NV),
+                 ("tu-the-buon.png", "Imagen 4", self.NV))
         self.assertEqual(kiem.kiem(self.video(self.CANH), self.thu_muc), [])
         self.assertEqual(kiem.file_ai(self.thu_muc, "ai/nen-1.jpg"), "ai/nen-1.png")
+
+    def du_anh(self, nen1=None, nv=None):
+        """Đủ ảnh AI của CANH, bản ghi nguồn có mô tả đã vẽ (mặc định khớp video)."""
+        jpeg(self.thu_muc / "anh" / "ai" / "nen-1.jpg")
+        png(self.thu_muc / "anh" / "ai" / "tu-the-chao.png")
+        png(self.thu_muc / "anh" / "ai" / "tu-the-buon.png")
+        nv = self.NV if nv is None else nv
+        nguon_ai(self.thu_muc, ("nen-1.jpg", "Imagen 4", self.NEN1 if nen1 is None else nen1),
+                 ("tu-the-chao.png", "Imagen 4", nv), ("tu-the-buon.png", "Imagen 4", nv))
+
+    def test_nen_ve_doi_mo_ta_la_loi_ve_lai(self):
+        self.du_anh()
+        video = self.video(self.CANH.replace("ve: ruộng bậc thang buổi sáng", "ve: bến cảng lúc hoàng hôn"))
+        with self.assertRaises(kiem.CanhError) as caught:
+            kiem.kiem(video, self.thu_muc)
+        msg = str(caught.exception)
+        self.assertTrue(msg.startswith("Cảnh 1: "), msg)
+        self.assertIn("anh/ai/nen-1.jpg", msg)
+        self.assertIn("ruộng bậc thang buổi sáng", msg)
+        self.assertIn(f"dòng {video.canh[0].dong_truong['nen'][0]}", msg)
+        self.assertEqual(caught.exception.fix, kiem.FIX_VE_LAI)
+        for phrase in ("python tools/vi/anh_ai.py <thư_mục> ke-hoach", "vẽ lại mục đó", "`nhan`"):
+            self.assertIn(phrase, caught.exception.fix)
+
+    def test_nen_ve_danh_so_lai_la_loi(self):
+        # Xoá một cảnh phía trước: nền `ve:` của cảnh 3 cũ thành cảnh 2, còn `nen-2.jpg` là ảnh vẽ cho cảnh 2 cũ.
+        jpeg(self.thu_muc / "anh" / "ai" / "nen-2.jpg")
+        nguon_ai(self.thu_muc, ("nen-2.jpg", "Imagen 4", {"mo_ta": "ruộng bậc thang buổi sáng", "canh": 2}))
+        video = self.video(ke(1, "mau/giay") + ke(2, "ve: khu chợ đông người"), META)
+        with self.assertRaises(kiem.CanhError) as caught:
+            kiem.kiem(video, self.thu_muc)
+        self.assertTrue(str(caught.exception).startswith("Cảnh 2: "), str(caught.exception))
+        self.assertEqual(caught.exception.fix, kiem.FIX_VE_LAI)
+        # Cùng mô tả nhưng ảnh ghi là vẽ cho cảnh khác (file bị chép/đổi tên): cũng là lỗi.
+        nguon_ai(self.thu_muc, ("nen-2.jpg", "Imagen 4", {"mo_ta": "khu chợ đông người", "canh": 3}))
+        with self.assertRaises(kiem.CanhError) as caught:
+            kiem.kiem(video, self.thu_muc)
+        self.assertIn("Cảnh 3", str(caught.exception))
+        self.assertEqual(caught.exception.fix, kiem.FIX_VE_LAI)
+
+    def test_nhu_canh_khop_nen_goc_thi_qua(self):
+        self.du_anh()
+        self.assertEqual(kiem.kiem(self.video(self.CANH), self.thu_muc), [])
+
+    def test_nhan_vat_doi_mo_ta_la_loi_neu_tu_the(self):
+        self.du_anh(nv={"mo_ta": "thầy giáo già đeo kính"})
+        with self.assertRaises(kiem.CanhError) as caught:
+            kiem.kiem(self.video(self.CANH), self.thu_muc)
+        msg = str(caught.exception)
+        self.assertTrue(msg.startswith("Cảnh 1: "), msg)
+        self.assertIn("tu-the-chao.png", msg)
+        self.assertIn("thầy giáo già đeo kính", msg)
+        self.assertEqual(caught.exception.fix, kiem.FIX_VE_LAI)
+
+    def test_ban_ghi_cu_khong_mo_ta_chi_canh_bao(self):
+        self.du_anh(nen1={}, nv={})
+        warnings = kiem.kiem(self.video(self.CANH), self.thu_muc)
+        self.assertEqual(len(warnings), 3, warnings)
+        for f in ("anh/ai/nen-1.jpg", "anh/ai/tu-the-chao.png", "anh/ai/tu-the-buon.png"):
+            self.assertTrue(any(f in w for w in warnings), (f, warnings))
+        self.assertTrue(all("anh_ai.py" in w and "nhan" in w for w in warnings), warnings)
 
     def test_nhan_vat_khong_trong_suot_la_loi_chua_tach_nen(self):
         jpeg(self.thu_muc / "anh" / "ai" / "nen-1.jpg")

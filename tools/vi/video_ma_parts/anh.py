@@ -66,7 +66,8 @@ def co_alpha(du_lieu: bytes, duoi: str) -> bool:
 
 def _nguon_ai(thu_muc_du_an: Path, ten: str) -> dict:
     """Bản ghi của `ten` (tên trần trong anh/ai/) trong anh/ai/nguon.json (anh_ai.py ghi:
-    [{file, cong_cu, mo_hinh, prompt, ngay}]); thiếu file, thiếu bản ghi hay thiếu mô hình là AnhError."""
+    [{file, cong_cu, mo_hinh, prompt, ngay, mo_ta?, canh?}]); thiếu file, thiếu bản ghi hay thiếu mô hình là AnhError.
+    `moTa`, `canh`: mô tả đã vẽ và (nền) số cảnh vẽ cho; bản ghi cũ không có thì None."""
     manifest = Path(thu_muc_du_an) / "anh" / "ai" / "nguon.json"
     thieu = f"`anh/ai/{ten}` chưa có nguồn trong `anh/ai/nguon.json`: {FIX_NGUON_AI}"
     if not manifest.is_file():
@@ -82,7 +83,10 @@ def _nguon_ai(thu_muc_du_an: Path, ten: str) -> dict:
             mo_hinh = _bo_dia_chi_web(muc.get("mo_hinh"))
             if not mo_hinh:
                 raise NguonAiError(f"`anh/ai/nguon.json` thiếu `mo_hinh` của `{ten}`: {FIX_NGUON_AI}")
-            return {"moHinh": mo_hinh, "congCu": _bo_dia_chi_web(muc.get("cong_cu"))}
+            mo_ta = muc.get("mo_ta")
+            return {"moHinh": mo_hinh, "congCu": _bo_dia_chi_web(muc.get("cong_cu")),
+                    "moTa": mo_ta if isinstance(mo_ta, str) else None,
+                    "canh": muc.get("canh") if isinstance(muc.get("canh"), int) else None}
     raise NguonAiError(thieu)
 
 
@@ -210,7 +214,8 @@ def _tim_theo_nfc(thu_muc_anh: Path, ten_file: str):
 
 def doc(thu_muc_du_an: Path, ten_file: str, nguon_tay: str | None) -> dict:
     """Ảnh `anh/<ten_file>` nhúng data:. `ai/<file>`: ảnh AI vẽ trong anh/ai/, nguồn luôn lấy từ anh/ai/nguon.json
-    (bỏ qua `nguon_tay`); kết quả có thêm `ai`, `moHinh` và `alpha` (có kênh trong suốt)."""
+    (bỏ qua `nguon_tay`); kết quả có thêm `ai`, `moHinh`, `alpha` (có kênh trong suốt), `moTa` và `canhVe` (mô tả đã
+    vẽ, số cảnh vẽ cho; None khi bản ghi không có)."""
     if not _hop_le(ten_file):
         raise AnhError(f"`{ten_file}` không hợp lệ: `anh` chỉ được là tên file nằm trong `anh/`, không phải đường dẫn.")
     la_ai = ten_file.startswith(AI)
@@ -235,7 +240,7 @@ def doc(thu_muc_du_an: Path, ten_file: str, nguon_tay: str | None) -> dict:
     if la_ai:
         ai = _nguon_ai(thu_muc_du_an, ten)
         return {"dataUrl": data_url, "nguon": DONG_AI.format(ai["moHinh"]), "rong": rong, "cao": cao, "ai": True,
-                "moHinh": ai["moHinh"], "alpha": co_alpha(du_lieu, duoi)}
+                "moHinh": ai["moHinh"], "alpha": co_alpha(du_lieu, duoi), "moTa": ai["moTa"], "canhVe": ai["canh"]}
     nguon = nguon_tay.strip() if nguon_tay else _nguon_tu_manifest(thu_muc_du_an, ten_file)
     if not nguon:
         raise AnhError(f"`anh/{ten_file}` chưa có nguồn: ghi `nguon:` trong cảnh, hoặc thêm bản ghi cho "

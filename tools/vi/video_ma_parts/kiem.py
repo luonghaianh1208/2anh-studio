@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from pathlib import Path
 
 from thi_nghiem_parts import thu_vien
@@ -289,6 +290,7 @@ FIX_AI = ("Chạy `python tools/vi/anh_ai.py <thư_mục> ke-hoach`, vẽ từng
 FIX_TACH_NEN = ("Chạy `python tools/vi/anh_ai.py <thư_mục> nhan` để tách nền xanh của ảnh nhân vật; vẫn lỗi thì vẽ lại "
                 "tư thế đó trên nền xanh lá thuần #00FF00.")
 FIX_NGUON_AI = ("Chạy `python tools/vi/anh_ai.py <thư_mục> nhan` để ghi nguồn ảnh AI vào `anh/ai/nguon.json`, rồi chạy lại.")
+FIX_VE_LAI = "chạy lại `python tools/vi/anh_ai.py <thư_mục> ke-hoach`, vẽ lại mục đó, rồi `nhan`."
 # Đuôi thay thế khi tìm file AI: nền cắt khổ là JPEG nhưng PNG vẫn nhận; nhân vật cần PNG trong suốt, JPEG thì vẫn tìm
 # thấy để báo "chưa tách nền" thay vì "thiếu".
 _DUOI_AI = {".jpg": (".jpg", ".png"), ".png": (".png", ".jpg")}
@@ -330,7 +332,28 @@ def nen_goc(scene: Scene) -> dict:
     return scene.nen.get("goc", scene.nen) if scene.nen["kieu"] == "nhu" else scene.nen
 
 
-def _kiem_nen_nhan_vat(scene: Scene, video: Video, thu_muc: Path, da_doc: dict) -> None:
+def _cung_mo_ta(a: str, b: str) -> bool:
+    return unicodedata.normalize("NFC", " ".join(a.split())) == unicodedata.normalize("NFC", " ".join(b.split()))
+
+
+def _kiem_ve_cu(so: int, ten: str, info: dict, mo_ta: str, canh_ve, warnings: list, da_bao: set) -> str | None:
+    """Ảnh AI `anh/<ten>` có vẽ đúng mô tả hiện tại (`mo_ta`) và, với nền, đúng cảnh `canh_ve` không (spec Q10: tên
+    file theo số cảnh và tư thế nên ảnh cũ trùng tên). Trả lý do sai; bản ghi cũ không có mô tả thì cảnh báo một lần."""
+    if info.get("moTa") is None:
+        if ten not in da_bao:
+            da_bao.add(ten)
+            warnings.append(f"Cảnh {so}: `anh/{ten}` chưa ghi mô tả đã vẽ trong `anh/ai/nguon.json` (bản ghi cũ), không "
+                            "kiểm được ảnh còn khớp video.md không; chạy lại `python tools/vi/anh_ai.py <thư_mục> nhan` "
+                            "để ghi.")
+        return None
+    if not _cung_mo_ta(info["moTa"], mo_ta):
+        return f"vẽ theo mô tả cũ \"{info['moTa']}\", không khớp mô tả hiện tại \"{mo_ta}\""
+    if canh_ve is not None and info.get("canhVe") is not None and info["canhVe"] != canh_ve:
+        return f"vẽ cho Cảnh {info['canhVe']}, không phải Cảnh {canh_ve} (cảnh đã đánh số lại?)"
+    return None
+
+
+def _kiem_nen_nhan_vat(scene: Scene, video: Video, thu_muc: Path, da_doc: dict, warnings: list, da_bao: set) -> None:
     def doc(ten: str, nguon_tay=None):
         if ten not in da_doc:
             da_doc[ten] = anh.doc(thu_muc, ten, nguon_tay)
@@ -341,9 +364,15 @@ def _kiem_nen_nhan_vat(scene: Scene, video: Video, thu_muc: Path, da_doc: dict) 
         ten = nen["file"] if nen["kieu"] == "file" else (file_ai(thu_muc, nen["file"]) if nen["kieu"] == "ai" else None)
         if ten:
             try:
-                doc(ten)
+                info = doc(ten)
             except anh.AnhError as exc:
                 raise CanhError(scene.so, f"nền: {exc} (dòng {no}).") from exc
+            if nen["kieu"] == "ai":
+                # Cảnh gốc của nền: chính cảnh này, hoặc cảnh mà `nhu-canh` trỏ về.
+                goc = scene.nen["canh"] if scene.nen["kieu"] == "nhu" else scene.so
+                sai = _kiem_ve_cu(scene.so, ten, info, nen["mo_ta"], goc, warnings, da_bao)
+                if sai:
+                    raise CanhError(scene.so, f"nền `anh/{ten}` {sai} (dòng {no}).", FIX_VE_LAI)
     tu_the = parse.tu_the_cua(scene, video.meta)
     if tu_the and video.meta.get("nhan-vat", "").startswith("ve:"):
         ten = file_ai(thu_muc, f"ai/tu-the-{tu_the}.png")
@@ -355,6 +384,11 @@ def _kiem_nen_nhan_vat(scene: Scene, video: Video, thu_muc: Path, da_doc: dict) 
             raise CanhError(scene.so, f"nhân vật: {exc}.", FIX_TACH_NEN) from exc
         if not info["alpha"]:
             raise CanhError(scene.so, f"ảnh nhân vật `anh/{ten}` chưa tách nền (không có phần trong suốt).", FIX_TACH_NEN)
+        mo_ta_nv = video.meta["nhan-vat"][len("ve:"):].strip()
+        sai = _kiem_ve_cu(scene.so, ten, info, mo_ta_nv, None, warnings, da_bao)
+        if sai:
+            raise CanhError(scene.so, f"tư thế `{tu_the}` (`anh/{ten}`) {sai} (khoá đầu `nhan-vat`, dòng "
+                                      f"{video.dong_meta.get('nhan-vat', '?')}).", FIX_VE_LAI)
 
 
 def doc_nhac(video: Video, thu_muc: Path):
@@ -375,6 +409,7 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
         doc_nhac(video, thu_muc)
     _kiem_ai(video, thu_muc)
     da_doc: dict = {}
+    da_bao: set = set()
     ten_kho, phong_cach = video.meta.get("kho", "ngang"), video.meta.get("phong-cach", "viet-tay")
     for scene in video.canh:
         bang, bang_hai_phan = bang_gioi_han(ten_kho, phong_cach, co_the(scene))
@@ -407,5 +442,5 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
         if scene.loai == "thi-nghiem":
             _kiem_thi_nghiem(scene, thu_muc)
         _kiem_hinh_anh(scene, thu_muc)
-        _kiem_nen_nhan_vat(scene, video, thu_muc, da_doc)
+        _kiem_nen_nhan_vat(scene, video, thu_muc, da_doc, warnings, da_bao)
     return warnings
