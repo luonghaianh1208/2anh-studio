@@ -4,7 +4,7 @@ File dành cho AI. Luôn đọc docs/vi/tro-ly/quy-trinh-hoi.md trước file n�
 
 ## Khi nào dùng
 
-Thầy cô, cán bộ nhà trường cần một văn bản hành chính ra file Word đúng thể thức Nghị định 30/2020/NĐ-CP: công văn, tờ trình, quyết định, thông báo, giấy mời, biên bản, kế hoạch, báo cáo dạng văn bản… Đầu ra là `van-ban.docx` mở bằng Word sửa được, kèm `kiem-tra.md` ghi kết quả bộ kiểm thể thức.
+Thầy cô, cán bộ nhà trường, hoặc cán bộ cơ quan ngoài trường (UBND xã, phòng ban) cần một văn bản hành chính ra file Word đúng thể thức Nghị định 30/2020/NĐ-CP: công văn, tờ trình, quyết định, thông báo, giấy mời, biên bản, kế hoạch, báo cáo dạng văn bản… Đầu ra là `van-ban.docx` mở bằng Word sửa được, kèm `kiem-tra.md` ghi kết quả bộ kiểm thể thức.
 
 Ví dụ câu lệnh:
 - "Soạn công văn cử giáo viên đi tập huấn ứng dụng AI"
@@ -50,7 +50,13 @@ Công cụ đọc lại chính file Word vừa dựng, nên cả ô bộ dựng 
 
 Riêng hai chỗ do văn thư và người ký điền tay:
 - Số văn bản (`header.so_vb`) để trống là đúng quy trình: văn thư điền khi vào sổ. Công cụ chỉ cảnh báo B3, không coi là bản nháp.
-- Ngày ban hành: để trống riêng `ngay` (vẫn ghi `thang`, `nam`) thì Word để khoảng trắng cho ngày, không coi là bản nháp. Bỏ trống cả `ngay`, `thang`, `nam` thì bộ dựng tự in tháng, năm hiện tại, còn công cụ tính một ô "chưa có ngày ban hành" và file là bản nháp. Thiếu riêng `thang` hoặc `nam` thì bộ dựng cũng tự lấy tháng, năm hiện tại: chỉ bỏ trống khi thầy cô đồng ý.
+- Ngày ban hành: để trống riêng `ngay` (vẫn ghi `thang`, `nam`) thì Word để khoảng trắng cho ngày, không coi là bản nháp. Hễ thiếu `thang` hoặc `nam` (kể cả bỏ trống cả ba) thì bộ dựng tự in tháng, năm hiện tại, nên công cụ tính một ô "chưa có ngày ban hành" và file là bản nháp.
+
+Trường bắt buộc mà để chuỗi rỗng thì bộ dựng vẫn in ra văn bản trông như đã xong, nên công cụ tính mỗi trường đó là một ô cần bổ sung: họ tên và chức vụ người ký, tên cơ quan ban hành, ký hiệu, trích yếu, địa danh, dòng "Kính gửi" của công văn, và `body` rỗng.
+
+Chỗ trống viết sai dạng (chuỗi dấu chấm "....", "……", "…/…", "XX/XX", "[CAN BO SUNG" không dấu) không tính là ô, nhưng `warnings` có dòng "Nghi còn chỗ trống chưa đánh dấu": hỏi lại thầy cô chỗ đó, còn thiếu thì đổi thành `[CẦN BỔ SUNG: …]`.
+
+Máy không biết số liệu thật, nên `kiem-tra.md` có mục "Thầy cô đối chiếu" và `warnings` có một dòng cùng tên, in nguyên văn: số và ký hiệu, ngày ban hành, người ký kèm chức vụ, cơ quan chủ quản, cơ quan ban hành, địa danh, kính gửi, từng căn cứ. Đọc dòng này cho thầy cô soát với văn bản gốc trước khi trình ký.
 
 ## Chọn loại văn bản
 
@@ -58,6 +64,8 @@ Riêng hai chỗ do văn thư và người ký điền tay:
 - Mở ví dụ gần nhất trong `tools/vi/nd30/examples/` trước khi viết: `cong_van.json` (công văn), `input-sample.json` (tờ trình), `quyet_dinh.json`, `thong_bao.json`, `giay_moi.json`, `bien_ban.json`. Loại không có ví dụ riêng (kế hoạch, báo cáo, hướng dẫn…) thì đi theo `quyet_dinh.json` hoặc `thong_bao.json` và đổi `ten_loai_in_hoa`.
 - Thể thức từng thành phần (quốc hiệu, tên cơ quan, số ký hiệu, trích yếu, nơi nhận) và chữ viết tắt tên loại: `tools/vi/nd30/references/the-thuc-nd30.md`.
 - Văn bản quy phạm pháp luật của HĐND, UBND (nghị quyết HĐND, quyết định UBND có tính quy phạm) theo thể thức riêng, không theo Nghị định 30: đọc `tools/vi/nd30/references/the-thuc-qppl-nq-hdnd.md` hoặc `tools/vi/nd30/references/the-thuc-qppl-qd-ubnd.md`, và ví dụ `nghi_quyet_hdnd.json`, `nghi_quyet_hdnd_kem_quy_dinh.json`, `quyet_dinh_ubnd_qppl.json`.
+  - Nghị quyết hoặc quyết định "ban hành kèm theo Quy định/Quy chế" là hai văn bản riêng: tạo hai thư mục (một cho nghị quyết/quyết định, một cho quy định đính kèm), mỗi thư mục một `noi-dung.json`, và chạy `tools/vi/van_ban.py` hai lần.
+  - Bộ kiểm chưa có bộ luật riêng cho văn bản quy phạm (xem hai file tham chiếu trên), nên cảnh báo như B2 (tên cơ quan ban hành, HĐND không có cơ quan chủ quản) là đã biết: kết quả kiểm chỉ để tham khảo, nhắc thầy cô soát tay kỹ hơn.
 - Văn bản của Đảng và văn bản của Đoàn Thanh niên có thể thức riêng: bản này **không hỗ trợ**. Nói rõ với thầy cô một dòng, không dựng bằng thể thức Nghị định 30 thay thế. Poster, slide cho hoạt động Đoàn thì vẫn theo loại việc "Hoạt động Đoàn – sự kiện".
 
 ## Viết noi-dung.json
@@ -137,6 +145,8 @@ Lệnh in đúng một dòng JSON ở stdout: `ready`, `files`, `loai_van_ban`, 
 - các cảnh báo còn lại trong `warnings`, kèm cách hiểu:
   - B7 (dấu, chữ ký số) lần nào cũng có vì máy không kiểm được: bình thường, nhắc thầy cô soát tay;
   - B3 (số văn bản đang trống) là bình thường: văn thư điền khi vào sổ;
+  - "Thầy cô đối chiếu": đọc nguyên văn để thầy cô soát các giá trị máy không kiểm được;
+  - "Nghi còn chỗ trống chưa đánh dấu": hỏi lại thầy cô chỗ đó;
 - câu nhắc cuối: văn bản chưa đóng dấu, chưa ký; soát, điền đủ rồi trình ký và đóng dấu theo quy trình văn thư của đơn vị.
 
 `error` khác `null`: xử lý theo `error.step`:
@@ -144,7 +154,7 @@ Lệnh in đúng một dòng JSON ở stdout: `ready`, `files`, `loai_van_ban`, 
 | `error.step` | Nghĩa | Xử lý |
 |---|---|---|
 | `input` | Thiếu thư mục hoặc `noi-dung.json`, file không đọc được bằng UTF-8, hoặc sai tham số lệnh | Viết file, lưu lại bằng UTF-8, hoặc sửa lệnh theo `error.fix` rồi chạy lại. |
-| `json` | Sai cú pháp JSON (có dòng và cột) hoặc sai schema (nêu đúng tên trường, ví dụ `header.ky_hieu`, `body[3].type`) | Sửa đúng chỗ đó theo schema và ví dụ đúng loại rồi chạy lại. |
+| `json` | Sai cú pháp JSON (có dòng và cột), sai schema (nêu đúng tên trường, ví dụ `header.ky_hieu`, `body[3].type`), hoặc `profile` quá lỏng so với loại văn bản | Sửa đúng chỗ đó theo schema, ví dụ đúng loại và `error.fix` rồi chạy lại. |
 | `the-thuc` | Bộ kiểm báo lỗi thể thức nặng không phải ô cần bổ sung; không có `van-ban.docx` (file cũ cũng bị xoá), chỉ có `kiem-tra.md` | Đọc các mục ✗ trong `kiem-tra.md`, sửa `noi-dung.json` rồi chạy lại, tối đa hai lần; vẫn lỗi thì báo nguyên `error.message` cho thầy cô. |
 | `docx` | Chưa cài `python-docx` | Có `venv\Scripts\python.exe` thì chạy `venv\Scripts\python.exe -m pip install -r tools/vi/requirements-vi.txt`, không thì `python -m pip install -r tools/vi/requirements-vi.txt`; chạy lại tối đa một lần. |
 | `write` | `van-ban.docx` đang mở trong Word, hoặc ổ đĩa không ghi được | Xin thầy cô đóng file Word đang mở, kiểm ổ đĩa còn chỗ, rồi chạy lại. |
@@ -156,6 +166,7 @@ Thầy cô gửi lại thông tin cho các ô cần bổ sung: sửa đúng các
 
 - Không tự điền số, ký hiệu, ngày ban hành, người ký, căn cứ pháp lý, số tiền hay số liệu thầy cô chưa nêu (xem mục "Luật không bịa").
 - Không giao bản nháp như thành phẩm; không bỏ ô `[CẦN BỔ SUNG: …]` để công cụ báo "đạt".
+- Không hạ bộ kiểm, tức là không đổi profile để qua bộ kiểm: công văn và văn bản có tên loại dùng `administrative` (hoặc `bieu-mau-noi-bo`, `minutes-administrative` đúng loại); `academic`, `general` với các văn bản đó bị báo lỗi `json`.
 - Không viết hay sửa file Word bằng tay hoặc bằng thư viện khác; chỉ xuất bằng `tools/vi/van_ban.py`.
 - Không sửa file nào trong `tools/vi/nd30/` (mã nhúng có kiểm SHA-256).
 - Không dùng thể thức Nghị định 30 cho văn bản Đảng, văn bản Đoàn.

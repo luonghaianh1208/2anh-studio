@@ -6,24 +6,25 @@ trigger: always_on
 
 Khi làm việc trong repo này, luôn đọc và áp dụng @../../AGENTS.md và @../../AGENTS.vi.md.
 
-Antigravity không chép nội dung các file nhắc bằng `@` vào luật, nên các điểm bắt buộc dưới đây được ghi thẳng ở đây. Chi tiết nằm ở `AGENTS.vi.md` và `docs/vi/tro-ly/`.
+Antigravity không chép file nhắc bằng `@`, nên điểm bắt buộc ghi thẳng dưới đây; chi tiết ở `AGENTS.vi.md`, `docs/vi/tro-ly/`.
 
 ## Hỏi thầy cô trước khi làm
 
-Người dùng viết tiếng Việt, bối cảnh là trường học hoặc Đoàn, và yêu cầu thuộc một trong 11 loại việc ở bảng dưới: trước mọi lệnh của quy trình tạo bài, làm đúng ba bước.
+Người dùng viết tiếng Việt, bối cảnh trường học hoặc Đoàn, yêu cầu thuộc một trong 11 loại việc ở bảng dưới (văn bản hành chính: cả cơ quan ngoài trường như UBND xã, phòng ban): trước mọi lệnh tạo bài, làm đúng ba bước.
 
-1. Đọc `docs/vi/tro-ly/quy-trinh-hoi.md`, rồi đọc file hướng dẫn của loại việc.
+1. Đọc `docs/vi/tro-ly/quy-trinh-hoi.md`, rồi file hướng dẫn của loại việc.
 2. Gửi thầy cô một tin nhắn hỏi theo hai file đó.
-3. Dừng và chờ thầy cô trả lời. Trong lúc chờ không chạy `project_manager.py init`, không tra cứu, không tìm hay tạo ảnh, không viết SVG hay file Word.
+3. Dừng và chờ thầy cô trả lời. Lúc chờ không chạy `project_manager.py init`, không tra cứu, không tìm hay tạo ảnh, không viết SVG hay file Word.
 
-- Lượt hỏi này không trái `SKILL.md`: nó chỉ tạo thêm tài liệu nguồn (brief) trước khi quy trình của upstream bắt đầu. Bước xác nhận của upstream vẫn giữ nguyên.
-- Turbo Mode, Always Proceed hay việc người dùng cho phép chạy lệnh không cần duyệt không phải là yêu cầu tạo nhanh, không bỏ được lượt hỏi.
-- Câu lệnh có "không cần hỏi lại" hoặc "không hỏi gì": không hỏi câu nào. Câu lệnh chỉ có "tạo nhanh" hoặc "làm nhanh": vẫn hỏi các câu còn thiếu trong mục "Tạo nhanh" của file loại việc. Cả hai trường hợp đều đọc mục "Tạo nhanh" của `docs/vi/tro-ly/quy-trinh-hoi.md` và ghi brief.
-- Trước khi gửi tin nhắn hỏi, chạy kiểm tra máy theo `AGENTS.vi.md` mục 9 (`tools/vi/doctor.py --no-smoke --json`) và thêm dòng báo máy chưa cài xong nếu cần.
+- Lượt hỏi không trái `SKILL.md`: chỉ thêm tài liệu nguồn (brief); bước xác nhận của upstream giữ nguyên.
+- Turbo Mode, Always Proceed hay quyền chạy lệnh không cần duyệt không phải yêu cầu tạo nhanh, không bỏ được lượt hỏi.
+- Có "không cần hỏi lại" hoặc "không hỏi gì": không hỏi câu nào. Chỉ "tạo nhanh", "làm nhanh": vẫn hỏi các câu còn thiếu trong mục "Tạo nhanh" của file loại việc. Cả hai đọc mục "Tạo nhanh" của `docs/vi/tro-ly/quy-trinh-hoi.md` và ghi brief.
+- Trước khi hỏi, kiểm tra máy theo `AGENTS.vi.md` mục 9 (`tools/vi/doctor.py --no-smoke --json`), báo máy chưa cài xong nếu cần.
 - Chữ "giáo án" một mình: hỏi đúng một câu "Thầy cô cần file Word kế hoạch bài dạy (giáo án 5512), hay slide trình chiếu cho bài này?" trước khi làm gì khác.
-- Chữ "làm video" hoặc "xuất video" một mình: hỏi đúng một câu "Thầy cô muốn làm video từ bài giảng slide đã có, hay dựng video giải thích mới từ nội dung chữ?" trước khi làm gì khác. Trả lời slide thì theo `docs/vi/tro-ly/video-bai-giang.md`; trả lời video mới thì theo `docs/vi/tro-ly/video-giai-thich.md`.
-- Chữ "báo cáo" hoặc "kế hoạch" một mình: hỏi đúng một câu "Thầy cô cần văn bản Word đúng thể thức Nghị định 30, hay slide trình chiếu?" trước khi làm gì khác. Trả lời Word thì theo `docs/vi/tro-ly/van-ban-hanh-chinh.md`.
-- Soạn đề KHTN tiếng Anh, soạn giáo án, văn bản hành chính có tài liệu thầy cô gửi: đọc tài liệu đó trước, rồi mới hỏi (xem `AGENTS.vi.md` mục 12, 13 và 16).
+- Chữ "làm video" hoặc "xuất video" một mình: hỏi đúng một câu "Thầy cô muốn làm video từ bài giảng slide đã có, hay dựng video giải thích mới từ nội dung chữ?" trước khi làm gì khác. Slide thì theo `docs/vi/tro-ly/video-bai-giang.md`; video mới thì theo `docs/vi/tro-ly/video-giai-thich.md`.
+- Chữ "báo cáo" hoặc "kế hoạch" một mình: hỏi đúng một câu "Thầy cô cần văn bản Word đúng thể thức Nghị định 30, hay slide trình chiếu?" trước khi làm gì khác. Word thì theo `docs/vi/tro-ly/van-ban-hanh-chinh.md`.
+- Khớp hai dòng: từ chỉ dạng đầu ra thắng "thông báo", "quyết định" ("poster", "ảnh đăng", "slide", "trình chiếu", "video"); tên loại văn bản đứng ngay sau động từ soạn thảo thắng các từ chủ đề ("soạn công văn cử đi tập huấn" là văn bản hành chính).
+- Soạn đề KHTN tiếng Anh, giáo án, văn bản hành chính có tài liệu gửi kèm: đọc trước rồi mới hỏi (`AGENTS.vi.md` mục 12, 13, 16).
 
 | Loại việc | Dấu hiệu nhận biết | File hướng dẫn |
 |---|---|---|
@@ -41,60 +42,60 @@ Người dùng viết tiếng Việt, bối cảnh là trường học hoặc Đ
 
 ## Ảnh minh hoạ
 
-Với bài mới thuộc 5 loại việc tạo PPTX ở bảng trên (không áp dụng làm đẹp hay sửa PPTX có sẵn), kể cả khi tạo nhanh: không làm bài toàn chữ, nhưng cũng không chèn ảnh trang trí cho đủ số.
+Bài mới thuộc 5 loại việc tạo PPTX ở bảng trên (không áp dụng làm đẹp hay sửa PPTX có sẵn), kể cả tạo nhanh: không làm bài toàn chữ, nhưng không chèn ảnh trang trí cho đủ số.
 
-- Sự vật, chất, hiện tượng, dụng cụ thí nghiệm, địa danh, nhân vật có thật: lên kế hoạch nguồn `web` ngay từ đầu, tìm bằng `skills/ppt-master/scripts/image_search.py` (Openverse, Wikimedia, không cần khoá). Quá trình, cấu tạo, sơ đồ thí nghiệm: vẽ sơ đồ trên slide.
-- Thiếu khoá API tạo ảnh không phải lý do bỏ ảnh `web`; không mở file cấu hình để dò khoá.
+- Sự vật, hiện tượng, dụng cụ, địa danh, nhân vật có thật: nguồn `web` từ đầu, tìm bằng `skills/ppt-master/scripts/image_search.py` (không cần khoá). Quá trình, cấu tạo: vẽ sơ đồ trên slide.
+- Thiếu khoá API tạo ảnh không phải lý do bỏ ảnh `web`; không mở file cấu hình dò khoá.
 - Chi tiết: mục "Ảnh minh hoạ" của `docs/vi/tro-ly/quy-trinh-hoi.md`.
 
 ## Mật độ chữ
 
-Bài mới thuộc Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop hỏi mật độ chữ: ít chữ → chế độ đọc `presentation`, vừa → `balanced`, nhiều chữ → `text`. Thầy cô chưa chọn: báo cáo dùng vừa, ba loại còn lại dùng ít chữ.
+Bài mới thuộc Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop hỏi mật độ chữ: ít chữ → chế độ đọc `presentation`, vừa → `balanced`, nhiều chữ → `text`. Chưa chọn: báo cáo dùng vừa, ba loại còn lại dùng ít chữ.
 
-- Ít chữ: mỗi trang một ý, từ khoá hoặc cụm ngắn, khoảng 5 dòng; phần giải thích vào lời giảng (ghi chú người trình bày). Không bỏ thông tin: nội dung không vừa thì chia thêm trang.
-- Thầy cô muốn làm đẹp slide có sẵn mà ít chữ hơn, rút gọn, tách hay gộp trang: không dùng chế độ làm đẹp (Beautify giữ nguyên văn từng chữ), mà tạo mới từ file đó như tài liệu nguồn; nói trước với thầy cô một dòng.
+- Ít chữ: mỗi trang một ý, cụm ngắn, khoảng 5 dòng; giải thích vào lời giảng (ghi chú người trình bày). Không bỏ thông tin: không vừa thì chia trang.
+- Làm đẹp slide có sẵn mà muốn ít chữ hơn, rút gọn, tách hay gộp trang: không dùng chế độ làm đẹp (Beautify giữ nguyên văn), mà tạo mới từ file đó như tài liệu nguồn; báo trước một dòng.
 - Chi tiết: mục "Mật độ chữ" của `docs/vi/tro-ly/quy-trinh-hoi.md`.
 
 ## Hiệu ứng
 
-Bài mới thuộc Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop có câu hỏi mức hiệu ứng (không, vừa, nhiều); thầy cô chưa chọn thì dùng mức vừa. Không áp dụng cho làm đẹp hay sửa PPTX có sẵn.
+Bài mới thuộc bốn loại ở mục Mật độ chữ hỏi mức hiệu ứng (không, vừa, nhiều); chưa chọn thì dùng vừa. Không áp dụng cho làm đẹp hay sửa PPTX có sẵn.
 
-- Đọc `docs/vi/tro-ly/hieu-ung-lop-hoc.md` trước khi lên danh sách trang: Morph cần vẽ sẵn hai trang, hiện từng ý cần mỗi ý một nhóm `<g id>`.
-- Mức vừa hoặc nhiều: chạy bước `customize-animations` của upstream, kể cả khi tạo nhanh. Không thêm chuyển động chỉ để đủ tỉ lệ.
+- Đọc `docs/vi/tro-ly/hieu-ung-lop-hoc.md` trước khi lên danh sách trang (Morph cần hai trang vẽ sẵn, hiện từng ý cần mỗi ý một `<g id>`).
+- Mức vừa, nhiều: chạy `customize-animations` của upstream, kể cả tạo nhanh; không thêm chuyển động cho đủ tỉ lệ.
 - Sau khi xuất PPTX, chạy `tools\vi\kiem_hieu_ung.py <file.pptx> --muc khong|vua|nhieu`. Không đạt thì sửa và kiểm lại đúng một lần.
-- Video bài giảng: bản thuyết minh không dùng `on-click` hay `trigger_shape`. Chép `animations.json` thành `animations_video.json`, đổi sang tự chạy, xuất với `--animation-config animations_video.json`, rồi kiểm file `_narrated.pptx` bằng `--video` trước khi dựng video.
+- Video bài giảng: không dùng `on-click` hay `trigger_shape`. Chép `animations.json` thành `animations_video.json`, đổi sang tự chạy, xuất với `--animation-config animations_video.json`, kiểm `_narrated.pptx` bằng `--video` trước khi dựng.
 
 ## Thí nghiệm ảo
 
-Đầu ra là file HTML chạy không cần mạng và phiếu học tập Word, không phải PPTX.
+Đầu ra là HTML chạy không cần mạng và phiếu học tập Word, không phải PPTX.
 
 - Đọc `docs/vi/tro-ly/thi-nghiem-ao.md` và `docs/vi/tro-ly/mo-hinh-thi-nghiem.md`, hỏi một lượt, viết `thi-nghiem.md` trong `projects/_thi-nghiem/<tên>/`, rồi chạy `tools\vi\thi_nghiem.py <thư_mục>`.
-- Không viết file HTML bằng tay, không chèn thư viện hay địa chỉ web. Thí nghiệm ngoài danh mục thì viết mô hình mới theo khuôn, có công thức, điều kiện áp dụng và bảng số kiểm.
-- Đọc nguyên văn `can-soat.md` cho thầy cô; mô hình do AI viết thì thầy cô phải soát công thức trước khi dùng.
+- Không viết file HTML bằng tay, không chèn thư viện hay địa chỉ web. Ngoài danh mục thì viết mô hình mới theo khuôn (công thức, điều kiện áp dụng, bảng số kiểm).
+- Đọc nguyên văn `can-soat.md`; mô hình do AI viết thì thầy cô soát công thức trước khi dùng.
 
 ## Video giải thích
 
-Đầu ra là video MP4 (viết tay hoặc cắt dán, khổ ngang hoặc dọc) dựng từ nội dung chữ, không phải PPTX.
+Đầu ra là video MP4 dựng từ nội dung chữ, không phải PPTX.
 
 - Đọc `docs/vi/tro-ly/video-giai-thich.md` và `docs/vi/tro-ly/canh-video.md`, hỏi một lượt, viết `video.md` trong `projects/_video/<tên>/`.
-- Chạy `tools\vi\video_ma.py <thư_mục> --plan-only`, rồi `--xem-truoc` và xem ảnh từng cảnh, rồi mới dựng thật bằng `tools\vi\video_ma.py <thư_mục>`; báo trước thầy cô là dựng mất khoảng 1,5 lần thời lượng video (khổ dọc cắt dán khoảng 2 lần).
-- Không viết HTML hay ảnh cảnh bằng tay, không tự chạy FFmpeg. `error.step` là `chromium` thì hỏi thầy cô trước khi tải Chromium (150–300 MB).
-- Ảnh thật (thầy cô đồng ý): tải bằng `skills/ppt-master/scripts/image_search.py "<từ khoá>" --filename <tên>.jpg -o projects\_video\<tên>\anh` trước `--plan-only`; có ảnh thật thì bắt buộc chạy `--xem-truoc` và cho thầy cô xem ảnh trước khi dựng thật.
+- Chạy `tools\vi\video_ma.py <thư_mục> --plan-only`, rồi `--xem-truoc` xem ảnh từng cảnh, rồi mới dựng thật; báo trước dựng mất khoảng 1,5 lần thời lượng (dọc cắt dán khoảng 2 lần).
+- Không viết HTML hay ảnh cảnh bằng tay, không tự chạy FFmpeg. `error.step` là `chromium` thì hỏi trước khi tải Chromium (150–300 MB).
+- Ảnh thật (thầy cô đồng ý): tải bằng `skills/ppt-master/scripts/image_search.py "<từ khoá>" --filename <tên>.jpg -o projects\_video\<tên>\anh` trước `--plan-only`; rồi bắt buộc `--xem-truoc`, cho thầy cô xem ảnh trước khi dựng thật.
 - Nhạc nền (thầy cô đồng ý): tải bằng `tools\vi\tim_nhac.py "<từ khoá>" -o projects\_video\<tên>\nhac` (CC0/CC BY, nguồn tự ghi vào `nhac/nguon.json`), ghi `nhac-nen: <file>`, gửi thầy cô nghe thử trước khi dựng. `error.step` là `mang` thì kiểm mạng, chạy lại tối đa một lần. Không dùng nhạc không rõ nguồn.
-- Nền `ve:` hoặc `nhan-vat: ve:` (ảnh AI): chạy bước anh_ai.py ke-hoach (`tools\vi\anh_ai.py <thư_mục> ke-hoach`), rồi dùng công cụ tạo ảnh của Antigravity vẽ từng mục trong `anh/ai/ke-hoach.json` (nhân vật mẫu trước, tư thế kèm ảnh mẫu, nền xanh lá thuần #00FF00 không bóng), lưu đúng tên vào `anh/ai/goc/`. Được phép dùng công cụ này cho việc đó; không có công cụ tạo ảnh thì dùng `nen: mau/<tên>` và `nhan-vat: nguoi-que`.
+- Nền `ve:` hoặc `nhan-vat: ve:` (ảnh AI): chạy bước anh_ai.py ke-hoach (`tools\vi\anh_ai.py <thư_mục> ke-hoach`), rồi dùng công cụ tạo ảnh của Antigravity (được phép) vẽ từng mục trong `anh/ai/ke-hoach.json` (nhân vật mẫu trước, tư thế kèm ảnh mẫu, nền #00FF00 thuần không bóng), lưu đúng tên vào `anh/ai/goc/`; không có công cụ thì dùng `nen: mau/<tên>`, `nhan-vat: nguoi-que`.
 - Có ảnh AI thì luôn chạy bước anh_ai.py nhan (`tools\vi\anh_ai.py <thư_mục> nhan --mo-hinh "<mô hình>"`), rồi `video_ma.py --xem-truoc` và chờ thầy cô duyệt trước khi dựng thật. Không tự viết `anh/ai/nguon.json`.
-- Hình phải khớp lời đọc: tắt tiếng vẫn đoán được mỗi cảnh nói gì. Cảnh `ke-chuyen` trên nền mẫu phải có `the` nêu ý chính hoặc con số của lời; chọn nền mẫu theo bối cảnh trong lời; nền `ve:` tả đúng sự vật, hành động trong lời; tư thế theo cảm xúc của câu; không quá hai cảnh `ke-chuyen` liền nhau. `video_ma.py` cảnh báo các chỗ này: sửa `video.md` trước khi dựng thật.
+- Hình phải khớp lời đọc: tắt tiếng vẫn đoán được mỗi cảnh nói gì. `ke-chuyen` trên nền mẫu có `the` nêu ý chính hoặc con số; nền theo bối cảnh; nền `ve:` tả đúng sự vật, hành động; tư thế theo cảm xúc; không quá hai `ke-chuyen` liền nhau. `video_ma.py` cảnh báo thì sửa `video.md` trước khi dựng thật.
 - Chữ trên video không bao giờ nằm trong ảnh: ảnh AI có chữ thì vẽ lại; tiêu đề, thẻ, phụ đề do công cụ viết.
-- Câu hỏi và đáp án của cảnh `cau-hoi` phải được thầy cô duyệt. Sau khi dựng, nhắc thầy cô nghe thử tiếng hiệu ứng và nhạc; ồn thì ghi `am-thanh: khong` hoặc bỏ `nhac-nen`.
+- Câu hỏi, đáp án cảnh `cau-hoi` phải được thầy cô duyệt. Dựng xong, nhắc nghe thử tiếng hiệu ứng và nhạc; ồn thì ghi `am-thanh: khong` hoặc bỏ `nhac-nen`.
 
 ## Văn bản hành chính
 
 Đầu ra là file Word đúng thể thức Nghị định 30 (`van-ban.docx`) và `kiem-tra.md`, không phải PPTX.
 
-- Đọc `docs/vi/tro-ly/van-ban-hanh-chinh.md`, hỏi một lượt 7 câu, viết `noi-dung.json` trong `projects/_van-ban/<tên>/` theo ví dụ đúng loại ở `tools/vi/nd30/examples/`, rồi chạy `tools\vi\van_ban.py <thư_mục>`.
-- Không bịa: số, ký hiệu, ngày, người ký, căn cứ, số tiền, số liệu thầy cô chưa nêu thì ghi `[CẦN BỔ SUNG: …]`. Còn ô thì `ban_nhap` là `true`: báo rõ là bản nháp và đọc từng ô trong `warnings`.
-- Không sửa file trong `tools/vi/nd30/`, không viết file Word bằng cách khác. Văn bản Đảng, văn bản Đoàn không hỗ trợ.
+- Đọc `docs/vi/tro-ly/van-ban-hanh-chinh.md`, hỏi một lượt 7 câu, viết `noi-dung.json` trong `projects/_van-ban/<tên>/` theo ví dụ đúng loại ở `tools/vi/nd30/examples/`, rồi chạy `tools\vi\van_ban.py "projects\_van-ban\<tên>"`.
+- Không bịa: số, ký hiệu, ngày, người ký, căn cứ, số tiền, số liệu chưa nêu thì ghi `[CẦN BỔ SUNG: …]`. Còn ô thì `ban_nhap` là `true`: báo rõ là bản nháp, đọc từng ô và dòng "Thầy cô đối chiếu" trong `warnings`.
+- Không sửa file trong `tools/vi/nd30/`, không viết file Word cách khác, không đổi profile để qua bộ kiểm. Văn bản Đảng, Đoàn không hỗ trợ.
 
 ## Các việc khác
 
-Chạy lệnh trên Windows, kiểm tra môi trường trước lệnh Python đầu tiên, làm video, soạn đề, soạn giáo án, video giải thích, văn bản hành chính: đọc `AGENTS.vi.md` trước khi làm.
+Lệnh trên Windows, kiểm tra môi trường, video, đề, giáo án, văn bản: đọc `AGENTS.vi.md` trước.

@@ -155,9 +155,12 @@ class EditorWiringTest(unittest.TestCase):
         self.assertIn("@../../AGENTS.md", rule)
         self.assertIn("@../../AGENTS.vi.md", rule)
 
-    def test_antigravity_rule_fits_the_character_limit(self):
-        # Antigravity giới hạn mỗi file luật 12.000 ký tự.
-        self.assertLessEqual(len(read(".agents/rules/ppt-master-vi.md")), ANTIGRAVITY_RULE_LIMIT)
+    def test_antigravity_rule_fits_the_byte_limit(self):
+        # Antigravity giới hạn mỗi file luật 12.000; đếm theo byte UTF-8 của bản checkout
+        # Windows (CRLF) để chắc chắn vừa cả khi chữ có dấu chiếm 2–3 byte.
+        text = read(".agents/rules/ppt-master-vi.md")
+        size = len(text.replace("\n", "\r\n").encode("utf-8"))
+        self.assertLessEqual(size, ANTIGRAVITY_RULE_LIMIT)
 
     def test_antigravity_rule_inlines_the_intake_gate(self):
         # Antigravity không chép nội dung file nhắc bằng @ vào luật, nên cổng hỏi phải nằm ngay trong luật.
@@ -2089,6 +2092,8 @@ ADMIN_TASK = "Soạn văn bản hành chính (Nghị định 30)"
 ADMIN_ROUTING_QUESTION = "Thầy cô cần văn bản Word đúng thể thức Nghị định 30, hay slide trình chiếu?"
 ADMIN_TRIGGERS = ("công văn", "tờ trình", "quyết định", "thông báo", "giấy mời", "biên bản",
                   "văn bản hành chính", "Nghị định 30", "ND30", "đúng thể thức")
+ADMIN_PRECEDENCE_A = "tên loại văn bản đứng ngay sau động từ soạn thảo thắng các từ chủ đề"
+ADMIN_PRECEDENCE_B = 'từ chỉ dạng đầu ra thắng "thông báo", "quyết định"'
 ADMIN_GUIDE_HEADINGS = (
     "## Khi nào dùng",
     "## Câu hỏi bắt buộc",
@@ -2241,8 +2246,14 @@ class AdminDocWiringTest(unittest.TestCase):
         text = read("AGENTS.vi.md")
         triggers = section(text, "## 3. Câu lệnh tiếng Việt kích hoạt skill `ppt-master`")
         for phrase in ADMIN_TRIGGERS:
+            if phrase == "quyết định":
+                continue
             with self.subTest(phrase=phrase):
                 self.assertIn(f'"{phrase}"', triggers)
+        # "quyết định" là động từ thường gặp: chỉ kích hoạt khi đi với động từ soạn thảo.
+        self.assertNotIn('"quyết định"', triggers)
+        for phrase in ('"soạn quyết định"', '"ra quyết định"'):
+            self.assertIn(phrase, triggers)
         assistant = section(text, AGENTS_VI_ASSISTANT_HEADING)
         for phrase in (f"({ADMIN_GUIDE})", "mục 16", "năm loại việc đó không có bước xác nhận của upstream"):
             with self.subTest(phrase=phrase):
@@ -2291,6 +2302,61 @@ class AdminDocWiringTest(unittest.TestCase):
         quick = read("docs/vi/bat-dau-nhanh.md")
         self.assertNotIn("10 loại", quick)
         self.assertIn("(van-ban-hanh-chinh.md)", quick)
+
+    def test_profile_ban_is_stated_everywhere(self):
+        ban = "không đổi profile để qua bộ kiểm"
+        self.assertIn(ban, section(read(ADMIN_GUIDE), "## Điều cấm"))
+        self.assertIn(ban, section(read("AGENTS.vi.md"), AGENTS_VI_ADMIN_HEADING))
+        self.assertIn(ban, read(".agents/rules/ppt-master-vi.md"))
+
+    def test_routing_precedence_is_stated_in_the_three_rule_files(self):
+        places = {
+            "quy-trinh-hoi.md": section(read("docs/vi/tro-ly/quy-trinh-hoi.md"), "## Khi nào áp dụng"),
+            "AGENTS.vi.md §10": section(read("AGENTS.vi.md"), AGENTS_VI_ASSISTANT_HEADING),
+            "AGENTS.vi.md §16": section(read("AGENTS.vi.md"), AGENTS_VI_ADMIN_HEADING),
+            ".agents/rules": read(".agents/rules/ppt-master-vi.md"),
+        }
+        for name, body in places.items():
+            for phrase in (ADMIN_PRECEDENCE_A, ADMIN_PRECEDENCE_B):
+                with self.subTest(file=name, phrase=phrase):
+                    self.assertIn(phrase, body)
+
+    def test_routing_samples_resolve_to_one_type(self):
+        body = section(read("docs/vi/tro-ly/quy-trinh-hoi.md"), "## Khi nào áp dụng")
+        self.assertIn('"Soạn công văn cử giáo viên đi tập huấn" là văn bản hành chính', body)
+        self.assertIn('"Làm poster Zalo thông báo họp phụ huynh" là Poster', body)
+        poster = section(read("docs/vi/tro-ly/poster-mang-xa-hoi.md"), "## Khi nào dùng")
+        self.assertIn('"Làm poster Zalo thông báo họp phụ huynh"', poster)
+        self.assertIn('"Soạn công văn cử giáo viên đi tập huấn ứng dụng AI"',
+                      section(read(ADMIN_GUIDE), "## Khi nào dùng"))
+
+    def test_type_11_applies_outside_schools(self):
+        gate = section(read("docs/vi/tro-ly/quy-trinh-hoi.md"), "## Khi nào áp dụng")
+        rule = read(".agents/rules/ppt-master-vi.md")
+        for body in (gate, rule):
+            for phrase in ("UBND xã", "phòng ban"):
+                self.assertIn(phrase, body)
+
+    def test_commands_quote_the_folder(self):
+        body = section(read("AGENTS.vi.md"), AGENTS_VI_ADMIN_HEADING)
+        self.assertIn(r'python tools\vi\van_ban.py "projects\_van-ban\<tên_văn_bản>"', body)
+        rule = read(".agents/rules/ppt-master-vi.md")
+        self.assertIn(r'tools\vi\van_ban.py "projects\_van-ban\<tên>"', rule)
+        for text in (body, rule):
+            self.assertNotRegex(text, r"van_ban\.py [^\"`-]")
+
+    def test_guide_covers_legal_documents_and_the_new_report_parts(self):
+        guide = read(ADMIN_GUIDE)
+        choose = section(guide, "## Chọn loại văn bản")
+        for phrase in ("hai thư mục", "chạy `tools/vi/van_ban.py` hai lần", "B2", "tham khảo"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, choose)
+        rules = section(guide, "## Luật không bịa")
+        for phrase in ("Thầy cô đối chiếu", "số và ký hiệu", "ngày", "người ký", "cơ quan chủ quản",
+                       "cơ quan ban hành", "địa danh", "kính gửi", "căn cứ", "Nghi còn chỗ trống",
+                       "thiếu `thang` hoặc `nam`"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, rules)
 
     def test_b6_is_fixed_in_the_tool_not_explained_away(self):
         self.assertNotIn("B6", read(ADMIN_GUIDE))
