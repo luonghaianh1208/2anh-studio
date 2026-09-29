@@ -19,6 +19,7 @@ import os
 import re
 import sys
 import tempfile
+import unicodedata
 from pathlib import Path
 
 ND30_SCRIPTS = Path(__file__).resolve().parent / "nd30" / "scripts"
@@ -28,7 +29,16 @@ REPORT_NAME = "kiem-tra.md"
 ERROR_STEPS = ("input", "json", "the-thuc", "docx", "write", "internal")
 REMINDER = "Văn bản chưa đóng dấu, chưa ký; soát và điền đủ trước khi ban hành."
 BLANK_RE = re.compile(r"\[CẦN BỔ SUNG[^\]]*\]?|\?\?\?", re.IGNORECASE)
-DATE_BLANK = ("phần đầu (ngày ban hành)", "chưa có ngày ban hành (ngay/thang/nam trống)")
+SUSPECT_RE = re.compile(r"…{2,}|\.{4,}|…\s*/\s*…|\bX{2}/X{2}\b|\[CAN BO SUNG[^\]]*\]?", re.IGNORECASE)
+CHECK_VALUES_PREFIX = "Thầy cô đối chiếu"
+HEADER_BLANKS = (
+    ("co_quan_ban_hanh", "tên cơ quan ban hành"),
+    ("ky_hieu", "ký hiệu văn bản"),
+    ("trich_yeu", "trích yếu"),
+    ("dia_danh", "địa danh"),
+)
+SIGNATURE_BLANKS = (("nguoi_ky", "họ tên người ký"), ("chuc_vu", "chức vụ người ký"))
+LOW_PROFILES = ("academic", "general")
 
 PROFILES = {
     "administrative": "văn bản hành chính gửi ra ngoài: đủ 9 thành phần thể thức, khổ A4, lề, "
@@ -61,6 +71,10 @@ FIX_JSON = (
 )
 FIX_THE_THUC = (
     f"Đọc các mục ✗ trong {REPORT_NAME}, sửa {SOURCE_NAME} cho đúng thể thức rồi chạy lại."
+)
+FIX_PROFILE = (
+    "Sửa trường profile: dùng profile administrative (hoặc bieu-mau-noi-bo, "
+    "minutes-administrative nếu đúng loại văn bản); không đổi profile để qua bộ kiểm."
 )
 FIX_WRITE = "Đóng file Word đang mở rồi chạy lại."
 FIX_INTERNAL = "Gửi nguyên dòng error.message cho người bảo trì."
@@ -218,7 +232,7 @@ def find_blanks(value, path: tuple = ()) -> list[tuple[str, str]]:
     """Mọi ô `[CẦN BỔ SUNG...]` và `???` trong JSON, theo thứ tự xuất hiện."""
     found: list[tuple[str, str]] = []
     if isinstance(value, str):
-        for match in BLANK_RE.finditer(value):
+        for match in BLANK_RE.finditer(unicodedata.normalize("NFC", value)):
             found.append((_place(path), match.group(0)))
     elif isinstance(value, dict):
         for key, child in value.items():
@@ -243,29 +257,71 @@ def load_nd30():
     return generate_docx, validate_docx
 
 
-def issue_date_missing(header: dict) -> bool:
-    return all(str(header.get(key, "")).strip() == "" for key in ("ngay", "thang", "nam"))
+def _empty(value) -> bool:
+    return str(value).strip() == ""
+
+
+def field_blanks(spec: dict) -> list[tuple[str, str]]:
+    """Trường trống mà bộ dựng vẫn in ra văn bản trông như đã xong: mỗi trường một ô.
+
+    Thiếu tháng hoặc năm thì bộ dựng tự in tháng, năm hiện tại, nên cũng là ô trống.
+    Người ký, chức vụ thiếu hẳn khoá thì bộ dựng tự chèn `[CẦN BỔ SUNG…]` (đếm từ file
+    Word), nên ở đây chỉ bắt khi khoá có mà rỗng, hoặc không có khối ký.
+    """
+    header = spec["header"]
+    found: list[tuple[str, str]] = []
+    if _empty(header.get("thang", "")) or _empty(header.get("nam", "")):
+        found.append(("phần đầu (ngày ban hành)",
+                      "chưa có ngày ban hành (thiếu tháng hoặc năm; bộ dựng sẽ tự in tháng, "
+                      "năm hiện tại)"))
+    for key, name in HEADER_BLANKS:
+        if _empty(header.get(key, "")):
+            found.append((f"phần đầu ({key})", f"chưa có {name} (header.{key} trống)"))
+    if header.get("is_cong_van") and _empty(spec.get("kinh_gui", "")):
+        found.append(("dòng Kính gửi", "chưa có nơi kính gửi (kinh_gui trống)"))
+    if not spec.get("body"):
+        found.append(("nội dung", "chưa có nội dung (body trống)"))
+    signature = spec.get("signature") or {}
+    for key, name in SIGNATURE_BLANKS:
+        if not signature or (key in signature and _empty(signature[key])):
+            found.append(("phần ký", f"chưa có {name} (signature.{key} trống)"))
+    return found
+
+
+def profile_error(spec: dict) -> str | None:
+    """Văn bản hành chính thật (công văn, có tên loại) không được hạ xuống bộ kiểm lỏng."""
+    profile = spec.get("profile", "administrative")
+    header = spec["header"]
+    if profile in LOW_PROFILES and (header.get("is_cong_van")
+                                    or not _empty(header.get("ten_loai_in_hoa", ""))):
+        kind = document_kind(header)
+        return (f"{SOURCE_NAME}: trường profile là {profile!r} nhưng văn bản là {kind}; "
+                f"bộ kiểm {profile} bỏ qua gần hết thể thức Nghị định 30")
+    return None
 
 
 def collect_blanks(vd, path: Path, json_blanks: list[tuple[str, str]],
-                   header: dict) -> list[tuple[str, str]]:
-    """Một danh sách ô cần bổ sung, đọc từ chính file Word vừa dựng.
+                   fields: list[tuple[str, str]]) -> tuple[list, list]:
+    """Ô cần bổ sung và chỗ nghi là ô trống, đọc từ chính file Word vừa dựng.
 
     Bắt cả ô bộ dựng tự chèn (thiếu người ký) và ô chỉ bộ kiểm nhận ra (`<Tên đơn vị>`).
-    Ô gộp của bảng lặp lại cùng một đoạn nên đếm theo đoạn, không theo ô.
+    Ô gộp của bảng lặp lại cùng một đoạn nên đếm theo đoạn, không theo ô. Chữ được
+    chuẩn hoá NFC trước khi dò, để dạng tổ hợp dấu vẫn khớp.
     """
     pattern = re.compile(f"(?:{BLANK_RE.pattern})|(?:{vd.placeholder_re().pattern})",
                          re.IGNORECASE)
     unused = list(json_blanks)
     seen: dict = {}
-    found: list[tuple[str, str]] = []
+    found: list[tuple[str, str]] = list(fields)
+    suspects: list[str] = []
     doc = vd.Document(str(path))
     for _, paragraph in vd._iter_all_paragraphs(doc):
         element = paragraph._p
         if element in seen:
             continue
         seen[element] = True
-        for match in pattern.finditer(paragraph.text):
+        text_nfc = unicodedata.normalize("NFC", paragraph.text)
+        for match in pattern.finditer(text_nfc):
             text = match.group(0)
             place = ""
             for index, (json_place, json_text) in enumerate(unused):
@@ -274,9 +330,37 @@ def collect_blanks(vd, path: Path, json_blanks: list[tuple[str, str]],
                     del unused[index]
                     break
             found.append((place, text))
-    if issue_date_missing(header):
-        found.insert(0, DATE_BLANK)
-    return found
+        suspects.extend(match.group(0) for match in SUSPECT_RE.finditer(text_nfc))
+    return found, suspects
+
+
+def check_values(spec: dict) -> list[tuple[str, str]]:
+    """Giá trị máy không kiểm được đúng sai, in nguyên văn để thầy cô đối chiếu."""
+    header = spec["header"]
+    signature = spec.get("signature") or {}
+
+    def shown(value) -> str:
+        return str(value).strip() or "(trống)"
+
+    so = str(header.get("so_vb", "")).strip() or "(trống, văn thư điền)"
+    ngay = " ".join(f"{word} {shown(header.get(key, ''))}"
+                    for word, key in (("ngày", "ngay"), ("tháng", "thang"), ("năm", "nam")))
+    signer = " / ".join(str(signature.get(key, "")).strip()
+                        for key in ("quyen_han", "chuc_vu_thay", "chuc_vu", "nguoi_ky")
+                        if str(signature.get(key, "")).strip()) or "(trống)"
+    rows = [
+        ("Số, ký hiệu", f"{so}/{shown(header.get('ky_hieu', ''))}"),
+        ("Ngày ban hành", ngay),
+        ("Người ký, chức vụ", signer),
+        ("Cơ quan chủ quản", shown(header.get("co_quan_chu_quan", ""))),
+        ("Cơ quan ban hành", shown(header.get("co_quan_ban_hanh", ""))),
+        ("Địa danh", shown(header.get("dia_danh", ""))),
+        ("Kính gửi", shown(spec.get("kinh_gui", ""))),
+    ]
+    for block in spec.get("body", []):
+        if block.get("type") == "can_cu":
+            rows.extend(("Căn cứ", shown(item)) for item in block.get("items", []))
+    return rows
 
 
 def run_validator(vd, path: Path, profile: str, allow_placeholder: bool) -> list:
@@ -320,7 +404,7 @@ def _cell(text: str) -> str:
 
 
 def build_report(*, kind: str, trich_yeu: str, profile: str, rows, blanks, verdict: str,
-                 vd) -> str:
+                 vd, values, suspects) -> str:
     marks = {vd.OK: "✓", vd.WARN: "⚠", vd.FAIL: "✗"}
     lines = [
         f"# Kiểm tra thể thức — {kind}",
@@ -349,6 +433,15 @@ def build_report(*, kind: str, trich_yeu: str, profile: str, rows, blanks, verdi
             lines.append(f"{number}. {place}: `{text}`" if place else f"{number}. `{text}`")
     else:
         lines.append("Không còn ô nào.")
+    if suspects:
+        lines += ["", "## Nghi còn chỗ trống", "",
+                  "Không tính là ô cần bổ sung; còn thiếu thì ghi `[CẦN BỔ SUNG: …]` rồi chạy lại.",
+                  ""]
+        lines += [f"- `{text}`" for text in suspects]
+    lines += ["", "## Thầy cô đối chiếu", "",
+              "Máy không kiểm được các giá trị dưới đây đúng hay sai; thầy cô đối chiếu với "
+              "thực tế trước khi trình ký.", ""]
+    lines += [f"- {name}: {value}" for name, value in values]
     lines += ["", REMINDER, ""]
     return "\n".join(lines)
 
@@ -398,9 +491,13 @@ def run(args) -> int:
     profile = spec.get("profile", "administrative")
     header = spec["header"]
     kind = document_kind(header)
+    message = profile_error(spec)
+    if message:
+        emit(failure("json", message, FIX_PROFILE, loai=kind, profile=profile))
+        return 1
     json_blanks = find_blanks(spec)
-    info = {"loai": kind, "profile": profile,
-            "blanks": len(json_blanks) + int(issue_date_missing(header))}
+    fields = field_blanks(spec)
+    info = {"loai": kind, "profile": profile, "blanks": len(json_blanks) + len(fields)}
 
     try:
         gd, vd = load_nd30()
@@ -415,10 +512,17 @@ def run(args) -> int:
 
     target = folder / DOCX_NAME
     report_path = folder / REPORT_NAME
-    fd, tmp_name = tempfile.mkstemp(prefix=".tmp-", suffix=".docx", dir=folder)
-    os.close(fd)
-    tmp = Path(tmp_name)
+    tmp: Path | None = None
     try:
+        try:
+            fd, tmp_name = tempfile.mkstemp(prefix=".tmp-", suffix=".docx", dir=folder)
+            os.close(fd)
+            tmp = Path(tmp_name)
+        except OSError as exc:
+            emit(failure("write", f"Không ghi được vào thư mục {folder}: {exc}",
+                         FIX_WRITE + " Kiểm tra thư mục không chỉ đọc và ổ đĩa còn trống.",
+                         **info))
+            return 1
         try:
             with contextlib.redirect_stdout(io.StringIO()):
                 gd.generate(spec).save(str(tmp))
@@ -435,7 +539,8 @@ def run(args) -> int:
         rows = classify(vd, strict, lenient)
         real = [(label, detail) for st, label, detail, blank in rows if st == vd.FAIL and not blank]
         blank_fail = [(label, detail) for st, label, detail, blank in rows if blank]
-        blanks = collect_blanks(vd, tmp, json_blanks, header)
+        blanks, suspects = collect_blanks(vd, tmp, json_blanks, fields)
+        values = check_values(spec)
         info["blanks"] = len(blanks)
         draft = bool(blanks or blank_fail)
         counts = {
@@ -459,9 +564,14 @@ def run(args) -> int:
             if not blanks:
                 for label, detail in blank_fail:
                     warnings.append(f"{label}: {detail}")
+        for text in suspects:
+            warnings.append(f"Nghi còn chỗ trống chưa đánh dấu: {text} — còn thiếu thì ghi "
+                            "[CẦN BỔ SUNG: …] rồi chạy lại.")
         for status, label, detail, _ in rows:
             if status == vd.WARN:
                 warnings.append(f"{label}: {detail}")
+        warnings.append(f"{CHECK_VALUES_PREFIX} (máy không kiểm được): "
+                        + "; ".join(f"{name}: {value}" for name, value in values))
 
         if real:
             verdict = "Có lỗi thể thức nặng — chưa xuất văn bản."
@@ -470,7 +580,8 @@ def run(args) -> int:
         else:
             verdict = "Đạt các mục bộ kiểm tra được."
         report = build_report(kind=kind, trich_yeu=str(header.get("trich_yeu", "")),
-                              profile=profile, rows=rows, blanks=blanks, verdict=verdict, vd=vd)
+                              profile=profile, rows=rows, blanks=blanks, verdict=verdict, vd=vd,
+                              values=values, suspects=suspects)
 
         try:
             if real:
@@ -489,7 +600,7 @@ def run(args) -> int:
             return 1
     finally:
         with contextlib.suppress(OSError):
-            if tmp.exists():
+            if tmp is not None and tmp.exists():
                 tmp.unlink()
 
     if real:

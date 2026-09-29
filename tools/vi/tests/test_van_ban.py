@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -198,7 +199,7 @@ class CleanAndDraftTest(CliCase):
                 self.assertEqual(data["profile"], spec.get("profile", "administrative"))
                 self.assertTrue((folder / "van-ban.docx").is_file())
 
-    def test_legal_documents_keep_profile_from_json(self):
+    def test_legal_documents_pass_the_given_profile_through(self):
         for name in ("nghi_quyet_hdnd.json", "quyet_dinh_ubnd_qppl.json"):
             with self.subTest(example=name):
                 folder = self.root / Path(name).stem
@@ -234,14 +235,16 @@ class SignerTitleTest(CliCase):
 
     def assert_no_b6_warning(self, data, report, title):
         self.assertFalse([w for w in data["warnings"] if w.startswith("B6")], data["warnings"])
-        self.assertIn(f"| ✓ | B6. Người ký | Chức vụ người ký: {title} |", report)
+        pattern = rf"^\| ✓ \| B6[^|]*\| Chức vụ người ký: {re.escape(title)} \|$"
+        self.assertRegex(report, re.compile(pattern, re.M))
 
     def test_principal_is_ok_and_only_b7_remains(self):
         data, report = self.run_signed(chuc_vu="HIỆU TRƯỞNG")
         self.assert_no_b6_warning(data, report, "HIỆU TRƯỞNG")
         self.assertEqual(data["kiem_tra"]["canh_bao"], 1, data["warnings"])
-        self.assertEqual(len(data["warnings"]), 1)
-        self.assertTrue(data["warnings"][0].startswith("B7"))
+        checks = [w for w in data["warnings"] if not w.startswith(van_ban.CHECK_VALUES_PREFIX)]
+        self.assertEqual(len(checks), 1, data["warnings"])
+        self.assertTrue(checks[0].startswith("B7"))
 
     def test_vice_principal_signing_for_the_principal_is_ok(self):
         data, report = self.run_signed(quyen_han="KT.", chuc_vu_thay="HIỆU TRƯỞNG",
@@ -260,6 +263,195 @@ class SignerTitleTest(CliCase):
     def test_lowercase_title_still_warns(self):
         data, _ = self.run_signed(chuc_vu="Hiệu trưởng")
         self.assertTrue([w for w in data["warnings"] if w.startswith("B6")], data["warnings"])
+
+
+def _set(path, value):
+    def apply(spec):
+        node = spec
+        for key in path[:-1]:
+            node = node[key]
+        node[path[-1]] = value
+    return apply
+
+
+def _drop(path):
+    def apply(spec):
+        node = spec
+        for key in path[:-1]:
+            node = node[key]
+        node.pop(path[-1], None)
+    return apply
+
+
+class EmptyFieldBlankTest(CliCase):
+    """Trường trống hay thiếu mà văn bản vẫn in ra được thì phải là ô cần bổ sung, không phải thành phẩm."""
+
+    CASES = (
+        ("nguoi_ky rỗng", _set(("signature", "nguoi_ky"), ""), "họ tên người ký"),
+        ("chuc_vu rỗng", _set(("signature", "chuc_vu"), " "), "chức vụ người ký"),
+        ("co_quan_ban_hanh rỗng", _set(("header", "co_quan_ban_hanh"), ""), "tên cơ quan ban hành"),
+        ("ky_hieu rỗng", _set(("header", "ky_hieu"), ""), "ký hiệu văn bản"),
+        ("trich_yeu rỗng", _set(("header", "trich_yeu"), ""), "trích yếu"),
+        ("dia_danh rỗng", _set(("header", "dia_danh"), ""), "địa danh"),
+        ("kinh_gui thiếu", _drop(("kinh_gui",)), "kính gửi"),
+        ("kinh_gui rỗng", _set(("kinh_gui",), ""), "kính gửi"),
+        ("body rỗng", _set(("body",), []), "nội dung"),
+        ("thiếu tháng", _set(("header", "thang"), ""), "ngày ban hành"),
+        ("thiếu năm", _set(("header", "nam"), ""), "ngày ban hành"),
+    )
+
+    def test_each_empty_field_is_a_named_blank(self):
+        for name, mutate, phrase in self.CASES:
+            with self.subTest(case=name):
+                folder = self.root / re.sub(r"\W+", "-", name)
+                folder.mkdir()
+                spec = filled_cong_van()
+                mutate(spec)
+                self.write_spec(spec, folder)
+                code, data, _ = self.run_cli(folder)
+                self.assertEqual(code, 0, data)
+                self.assertTrue(data["ban_nhap"], data)
+                self.assertEqual(data["so_o_can_bo_sung"], 1, data["warnings"])
+                blank_lines = [w for w in data["warnings"] if w.startswith("Ô cần bổ sung")]
+                self.assertEqual(len(blank_lines), 1, data["warnings"])
+                self.assertIn(phrase, blank_lines[0])
+                report = (folder / "kiem-tra.md").read_text(encoding="utf-8")
+                self.assertIn(phrase, section_of(report, "## Ô cần bổ sung"))
+
+    def test_missing_signature_block_names_signer_and_title(self):
+        spec = filled_cong_van()
+        del spec["signature"]
+        self.write_spec(spec)
+        _, data, _ = self.run_cli(self.folder)
+        self.assertTrue(data["ban_nhap"])
+        joined = "\n".join(w for w in data["warnings"] if w.startswith("Ô cần bổ sung"))
+        self.assertIn("họ tên người ký", joined)
+        self.assertIn("chức vụ người ký", joined)
+
+    def test_kinh_gui_is_optional_outside_cong_van(self):
+        spec = load_example("quyet_dinh.json")
+        spec["header"].update(ISSUE_DATE)
+        spec.pop("kinh_gui", None)
+        self.write_spec(spec)
+        _, data, _ = self.run_cli(self.folder)
+        self.assertNotIn("kính gửi", "\n".join(w for w in data["warnings"] if w.startswith("Ô cần")))
+
+    def test_blank_day_with_month_and_year_is_still_final(self):
+        spec = filled_cong_van()
+        spec["header"]["ngay"] = ""
+        self.write_spec(spec)
+        _, data, _ = self.run_cli(self.folder)
+        self.assertFalse(data["ban_nhap"], data["warnings"])
+        self.assertEqual(data["so_o_can_bo_sung"], 0)
+
+
+def section_of(text: str, heading: str) -> str:
+    start = text.index(heading) + len(heading)
+    end = text.find("\n## ", start)
+    return text[start:] if end == -1 else text[start:end]
+
+
+class ProfileGuardTest(CliCase):
+    def test_lower_profile_on_a_real_document_is_refused(self):
+        cases = (
+            ("cong-van-general", filled_cong_van(), "general"),
+            ("to-trinh-academic", load_example("input-sample.json"), "academic"),
+        )
+        for name, spec, profile in cases:
+            with self.subTest(case=name):
+                folder = self.root / name
+                folder.mkdir()
+                spec["profile"] = profile
+                self.write_spec(spec, folder)
+                code, data, _ = self.run_cli(folder)
+                self.assertEqual(code, 1)
+                self.assertEqual(data["error"]["step"], "json")
+                self.assertIn("profile", data["error"]["message"])
+                self.assertIn("dùng profile administrative", data["error"]["fix"])
+                self.assertFalse((folder / "van-ban.docx").exists())
+
+    def test_free_document_may_use_general(self):
+        spec = filled_cong_van()
+        spec["profile"] = "general"
+        spec["header"]["is_cong_van"] = False
+        spec["header"].pop("ten_loai_in_hoa", None)
+        self.write_spec(spec)
+        code, data, _ = self.run_cli(self.folder)
+        self.assertEqual(code, 0, data)
+        self.assertEqual(data["profile"], "general")
+
+
+class CheckValuesTest(CliCase):
+    """Giá trị máy không kiểm được đúng sai: in nguyên văn để thầy cô đối chiếu."""
+
+    def test_report_and_warning_echo_values_verbatim(self):
+        spec = load_example("quyet_dinh.json")
+        spec["header"].update(ISSUE_DATE)
+        spec["header"]["so_vb"] = "27"
+        spec["kinh_gui"] = "Tổ Toán – Tin"
+        spec["signature"].update({"nguoi_ky": "Trần Thị Bình", "chuc_vu": "HIỆU TRƯỞNG"})
+        self.write_spec(spec)
+        code, data, _ = self.run_cli(self.folder)
+        self.assertEqual(code, 0, data)
+        header = spec["header"]
+        can_cu = next(b for b in spec["body"] if b.get("type") == "can_cu")["items"]
+        expected = [f"27/{header['ky_hieu']}", "ngày 05 tháng 10 năm 2026", "Trần Thị Bình", "HIỆU TRƯỞNG",
+                    header["co_quan_chu_quan"], header["co_quan_ban_hanh"], header["dia_danh"],
+                    "Tổ Toán – Tin", *can_cu]
+        report = section_of((self.folder / "kiem-tra.md").read_text(encoding="utf-8"),
+                            "## Thầy cô đối chiếu")
+        line = next(w for w in data["warnings"] if w.startswith(van_ban.CHECK_VALUES_PREFIX))
+        for value in expected:
+            with self.subTest(value=value):
+                self.assertIn(value, report)
+                self.assertIn(value, line)
+
+
+class TextShapeTest(CliCase):
+    def test_decomposed_blank_is_counted(self):
+        import unicodedata
+        spec = filled_cong_van()
+        spec["body"][1]["text"] = unicodedata.normalize("NFD", "Thời gian: [CẦN BỔ SUNG: giờ họp]")
+        self.write_spec(spec)
+        _, data, _ = self.run_cli(self.folder)
+        self.assertTrue(data["ban_nhap"], data["warnings"])
+        self.assertEqual(data["so_o_can_bo_sung"], 1)
+
+    def test_suspicious_filler_warns_without_making_a_draft(self):
+        for text, shown in (("Thời gian: ........ ngày 15/10", "........"),
+                            ("Địa điểm: …… phòng họp", "……"),
+                            ("Theo Công văn số XX/XX của Sở", "XX/XX"),
+                            ("Người phụ trách: [CAN BO SUNG: ten]", "[CAN BO SUNG")):
+            with self.subTest(text=text):
+                folder = self.root / f"f{abs(hash(text))}"
+                folder.mkdir()
+                spec = filled_cong_van()
+                spec["body"][1]["text"] = text
+                self.write_spec(spec, folder)
+                code, data, _ = self.run_cli(folder)
+                self.assertEqual(code, 0, data)
+                self.assertFalse(data["ban_nhap"], data["warnings"])
+                self.assertTrue([w for w in data["warnings"] if w.startswith("Nghi còn chỗ trống")
+                                 and shown in w], data["warnings"])
+
+
+class NoYamlTest(CliCase):
+    def test_core_flow_runs_without_pyyaml(self):
+        self.write_spec(filled_cong_van())
+        code = (
+            "import sys; sys.modules['yaml'] = None; "
+            f"sys.path.insert(0, {str(SCRIPT.parent)!r}); import van_ban; "
+            f"sys.exit(van_ban.main([{str(self.folder)!r}]))"
+        )
+        proc = subprocess.run([sys.executable, "-c", code], capture_output=True, timeout=120)
+        lines = [l for l in proc.stdout.decode("utf-8").splitlines() if l.strip()]
+        self.assertEqual(len(lines), 1, proc.stdout + proc.stderr)
+        data = json.loads(lines[0])
+        self.assertEqual(proc.returncode, 0, data)
+        self.assertTrue(data["ready"])
+        self.assertFalse(data["ban_nhap"], data["warnings"])
+        self.assertEqual(data["kiem_tra"]["loi"], 0)
+        self.assertTrue((self.folder / "van-ban.docx").is_file())
 
 
 class SubprocessTest(CliCase):
@@ -342,6 +534,13 @@ class ErrorTest(CliCase):
         self.assertEqual(data["error"]["fix"], "Đóng file Word đang mở rồi chạy lại.")
         leftovers = [p.name for p in self.folder.iterdir() if p.name != "noi-dung.json"]
         self.assertEqual(leftovers, [])
+
+    def test_unwritable_folder_is_write(self):
+        self.write_spec(filled_cong_van())
+        with mock.patch.object(van_ban.tempfile, "mkstemp", side_effect=PermissionError("read-only")):
+            code, data, _ = self.run_cli(self.folder)
+        self.assertEqual(code, 1)
+        self.assertEqual(data["error"]["step"], "write")
 
     def test_real_format_error_is_the_thuc_and_removes_docx(self):
         (self.folder / "van-ban.docx").write_bytes(b"old")
