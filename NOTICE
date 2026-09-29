@@ -11,10 +11,18 @@ Bản Việt hoá và đóng gói / Vietnamese edition and packaging
 - https://github.com/luonghaianh1208/PPTmaster
 - Copyright (c) 2026 Lương Hải Anh
 - Phần bổ sung / Additions: bộ cài và kiểm tra môi trường cho Windows
-  (CAI-DAT.bat, KIEM-TRA.bat, CAP-NHAT.bat, tools/vi/), quy tắc cho AI editor
-  (AGENTS.vi.md, .cursor/rules/, .agents/rules/), tài liệu tiếng Việt
-  (README.md, docs/vi/). Phần bổ sung phát hành theo cùng giấy phép MIT.
-  Additions are released under the same MIT License.
+  (CAI-DAT.bat, KIEM-TRA.bat, CAP-NHAT.bat, tools/vi/ trừ tools/vi/nd30/),
+  quy tắc cho AI editor (AGENTS.vi.md, .cursor/rules/, .agents/rules/), tài
+  liệu tiếng Việt (README.md, docs/vi/). Phần bổ sung phát hành theo cùng giấy
+  phép MIT. Additions (excluding tools/vi/nd30/) are released under the same
+  MIT License.
+
+Mã bên thứ ba nhúng kèm / Bundled third-party code
+- tools/vi/nd30/ — ND30, bộ sinh và kiểm thể thức văn bản theo Nghị định 30
+  (https://github.com/kanazawahere/nd30)
+- Copyright (c) 2026 Nguyễn Minh Phát (ATP / Agent Do Agency)
+- Giấy phép MIT / MIT License — xem / see tools/vi/nd30/LICENSE;
+  nguồn và SHA-256 / provenance and SHA-256: tools/vi/nd30/NGUON.md
 
 Phụ thuộc bên thứ ba / Third-party dependencies
 - Thư viện Python do người dùng tự cài từ PyPI qua requirements.txt, không đóng

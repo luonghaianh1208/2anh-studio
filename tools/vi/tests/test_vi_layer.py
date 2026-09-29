@@ -59,6 +59,16 @@ class AttributionTest(unittest.TestCase):
         for expected in ("Hugo He", "https://github.com/hugohe3/ppt-master", "MIT", "Lương Hải Anh"):
             self.assertIn(expected, notice)
 
+    def test_notice_credits_the_bundled_nd30_code(self):
+        notice = read("NOTICE")
+        self.assertIn("Mã bên thứ ba nhúng kèm", notice)
+        bundled = notice[notice.index("Mã bên thứ ba nhúng kèm"):]
+        for expected in ("tools/vi/nd30", "Nguyễn Minh Phát", "MIT", "tools/vi/nd30/LICENSE"):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, bundled)
+        own = notice[notice.index("Bản Việt hoá và đóng gói"):notice.index("Mã bên thứ ba nhúng kèm")]
+        self.assertIn("trừ tools/vi/nd30/", own)
+
     def test_gitattributes_keeps_vietnamese_readme_on_merge(self):
         lines = [line.strip() for line in read(".gitattributes").splitlines()]
         self.assertIn("README.md merge=ours", lines)
