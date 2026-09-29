@@ -7,6 +7,9 @@
 - Không bịa: số, ký hiệu, ngày ban hành, người ký, căn cứ, số tiền chưa có thì để `[CẦN BỔ SUNG: …]`; còn ô nào thì file là bản nháp, được giao kèm danh sách từng ô cần điền. Lỗi thể thức nặng thì không giao file Word.
 - Bộ kiểm của ND30 chỉ nhận chức vụ người ký khối cơ quan (GIÁM ĐỐC, CHỦ TỊCH…), nên văn bản do HIỆU TRƯỞNG, PHÓ HIỆU TRƯỞNG, TỔ TRƯỞNG ký luôn bị cảnh báo B6 giả. `van_ban.py` nay coi B6 là đạt khi chức vụ trong `signature` viết in hoa và có trong văn bản; chức vụ trống hoặc chưa in hoa vẫn cảnh báo. Mã ND30 nhúng không bị sửa.
 - Câu lệnh chỉ có "báo cáo" hoặc "kế hoạch" (ví dụ "làm báo cáo tổng kết năm học") nay được hỏi thêm đúng một câu trước khi xếp loại: văn bản Word đúng thể thức Nghị định 30 hay slide trình chiếu. Trước đây câu này đi thẳng vào slide "Báo cáo – tổng kết". Hồ sơ đơn vị có thêm ba mục tuỳ chọn: cơ quan chủ quản, địa danh, ký hiệu viết tắt của đơn vị.
+- Văn bản để trống người ký, chức vụ, cơ quan ban hành, ký hiệu, trích yếu, địa danh, kính gửi, nội dung hay tháng/năm ban hành cũng là bản nháp, với từng ô được nêu tên; công văn không được đổi sang cách kiểm lỏng hơn để qua bộ kiểm. `kiem-tra.md` có mục "Thầy cô đối chiếu" in nguyên văn số, ngày, người ký, cơ quan, căn cứ để thầy cô soát lại những gì công cụ không tự kiểm được.
+- Luật ưu tiên khi xếp loại việc: tên loại văn bản đi với động từ soạn ("soạn công văn…", "ra quyết định…") thắng các từ chủ đề như tập huấn, cuộc thi; từ chỉ đầu ra ("poster", "slide", "video") thắng "thông báo". Dùng được cả ngoài trường học (UBND xã, phòng ban).
+- Mã ND30 (`kanazawahere/nd30`, © 2026 Nguyễn Minh Phát, giấy phép MIT) được nhúng nguyên bản gốc tại `tools/vi/nd30/`, ghi công trong README và NOTICE; có test báo khi mã nhúng bị sửa.
 - Hướng dẫn cho AI `docs/vi/tro-ly/van-ban-hanh-chinh.md`, mục 16 của `AGENTS.vi.md`, luật Antigravity, và tài liệu cho thầy cô `docs/vi/van-ban-hanh-chinh.md`.
 
 ## 6.3.2-vi.12 — 2026-09-29
