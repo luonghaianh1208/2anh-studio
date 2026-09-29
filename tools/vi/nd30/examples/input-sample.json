@@ -1,0 +1,36 @@
+{
+  "profile": "administrative",
+  "header": {
+    "co_quan_chu_quan": "UBND HUYỆN ...",
+    "co_quan_ban_hanh": "UBND XÃ ...",
+    "so_vb": "",
+    "ky_hieu": "TTr-UBND",
+    "trich_yeu": "Về việc xin chủ trương phê duyệt Kế hoạch triển khai mô hình \"Thôn thông minh\" năm 2026",
+    "dia_danh": "...",
+    "ngay": "",
+    "thang": "",
+    "nam": "",
+    "is_cong_van": false,
+    "ten_loai_in_hoa": "TỜ TRÌNH"
+  },
+  "kinh_gui": "UBND huyện ...",
+  "body": [
+    {"type": "heading", "text": "1. Sự cần thiết"},
+    {"type": "paragraph", "text": "Thực hiện chương trình chuyển đổi số cấp cơ sở, UBND xã xây dựng Kế hoạch triển khai mô hình Thôn thông minh năm 2026."},
+    {"type": "heading", "text": "2. Mục tiêu và nội dung"},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: mục tiêu cụ thể]"},
+    {"type": "heading", "text": "3. Kinh phí dự kiến"},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: số tiền dự kiến]"},
+    {"type": "heading", "text": "4. Kiến nghị"},
+    {"type": "paragraph", "text": "Kính đề nghị UBND huyện xem xét, phê duyệt chủ trương nêu trên."}
+  ],
+  "ket_thuc": "./.",
+  "signature": {
+    "noi_nhan_items": ["Như trên"],
+    "phong_viet_tat": "VT",
+    "chuc_vu": "CHỦ TỊCH",
+    "nguoi_ky": "[CẦN BỔ SUNG: họ tên Chủ tịch UBND xã]",
+    "quyen_han": "",
+    "chuc_vu_thay": ""
+  }
+}

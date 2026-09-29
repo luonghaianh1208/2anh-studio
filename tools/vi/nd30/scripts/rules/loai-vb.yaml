@@ -1,0 +1,65 @@
+# Danh mục loại VB + classifier patterns
+# File này được phục vụ tại /kb/rules/loai-vb.yaml và cache về ~/.vbhc/cache/rules/
+# Code trong mcp/server.py:vbhc_classify dùng để phân loại VB từ mô tả tự nhiên.
+#
+# Cách thêm loại VB mới: append vào `classify_rules`. Pattern là regex Python (re module),
+# match ngày tháng nào trên `description.lower()`.
+version: 1
+description: "Phân loại VB từ mô tả tự nhiên + phát hiện loại VB không rõ"
+
+# Mỗi rule: pattern (regex, case-insensitive vì input đã .lower()) → loại VB.
+# Thứ tự QUAN TRỌNG: rule khớp đầu tiên thắng. Đặt rule chi tiết trước rule chung chung.
+classify_rules:
+  - pattern: 'xin\s+ý\s+kiến|lấy\s+ý\s+kiến|tham\s+gia\s+ý\s+kiến'
+    type: "Công văn xin ý kiến"
+  - pattern: 'phiếu\s+(biểu\s+quyết|ghi\s+ý\s+kiến)'
+    type: "Phiếu biểu quyết / Phiếu ghi ý kiến"
+  - pattern: 'tờ\s+trình|kính\s+trình'
+    type: "Tờ trình"
+  - pattern: 'quyết\s+định.*(thành\s+lập|bổ\s+nhiệm|ban\s+hành)'
+    type: "Quyết định cá biệt"
+  - pattern: 'nghị\s+quyết.*hđnd'
+    type: "Nghị quyết HĐND (QPPL)"
+  - pattern: 'báo\s+cáo'
+    type: "Báo cáo"
+  - pattern: 'thông\s+báo|kết\s+luận\s+của'
+    type: "Thông báo / Kết luận"
+  - pattern: 'kế\s+hoạch.*thực\s+hiện'
+    type: "Kế hoạch"
+  - pattern: 'hướng\s+dẫn'
+    type: "Hướng dẫn"
+  - pattern: 'giấy\s+mời'
+    type: "Giấy mời"
+  - pattern: 'biên\s+bản'
+    type: "Biên bản"
+  - pattern: 'chỉ\s+thị'
+    type: "Chỉ thị"
+  - pattern: 'công\s+văn|công\s+điện'
+    type: "Công văn"
+
+# Phát hiện trường hợp NHIỀU LOẠI VB có thể đúng — AI cần hỏi user chốt dạng.
+# Vd: "Báo cáo góp ý dự thảo Thông tư X" vs "Công văn góp ý dự thảo Thông tư X".
+ambiguous_forms:
+  - pattern: 'góp\s+ý|tham\s+gia\s+ý\s+kiến|phản\s+hồi|trả\s+lời'
+    context_hint: "VB phản hồi/góp ý"
+    forms:
+      - type: "Báo cáo"
+        when: "VB nguồn yêu cầu BÁO CÁO, hoặc nội dung dài có cấu trúc đề mục"
+      - type: "Công văn"
+        when: "VB nguồn yêu cầu CÔNG VĂN, hoặc nội dung ngắn (1-2 trang)"
+  - pattern: 'phúc\s+đáp'
+    context_hint: "VB phúc đáp"
+    forms:
+      - type: "Công văn"
+        when: "Mặc định cho phúc đáp"
+      - type: "Báo cáo"
+        when: "Khi VB nguồn yêu cầu báo cáo phúc đáp"
+  - pattern: 'đề\s+xuất\s+(?!chương\s+trình)'
+    context_hint: "VB đề xuất (chưa rõ cấp ban hành)"
+    forms:
+      - type: "Tờ trình"
+        when: "Đề xuất lên cấp trên có thẩm quyền quyết định"
+      - type: "Công văn"
+        when: "Đề xuất ngang cấp / phối hợp"
+      - type: "Báo cáo"
+        when: "Đề xuất kèm tổng kết/đánh giá tình hình"

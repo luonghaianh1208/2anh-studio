@@ -1,0 +1,36 @@
+{
+  "profile": "administrative",
+  "header": {
+    "co_quan_chu_quan": "UBND HUYỆN ...",
+    "co_quan_ban_hanh": "PHÒNG GIÁO DỤC VÀ ĐÀO TẠO",
+    "so_vb": "",
+    "ky_hieu": "GDĐT",
+    "trich_yeu": "triển khai tập huấn ứng dụng AI cho cán bộ, công chức",
+    "dia_danh": "...",
+    "is_cong_van": true
+  },
+  "kinh_gui": "Các trường Tiểu học, THCS trên địa bàn huyện",
+  "body": [
+    {
+      "type": "paragraph",
+      "text": "Thực hiện kế hoạch chuyển đổi số năm 2026, Phòng Giáo dục và Đào tạo tổ chức lớp tập huấn ứng dụng AI cho cán bộ, công chức, viên chức."
+    },
+    {
+      "type": "paragraph",
+      "text": "[CẦN BỔ SUNG: thời gian, địa điểm tổ chức]"
+    },
+    {
+      "type": "paragraph",
+      "text": "Đề nghị các đơn vị cử cán bộ tham dự đầy đủ, đúng thành phần."
+    }
+  ],
+  "ket_thuc": "./.",
+  "signature": {
+    "noi_nhan_items": [
+      "Như trên"
+    ],
+    "phong_viet_tat": "GDĐT",
+    "chuc_vu": "TRƯỞNG PHÒNG",
+    "nguoi_ky": "[CẦN BỔ SUNG: họ tên Trưởng phòng]"
+  }
+}

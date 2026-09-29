@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/kanazawahere/nd30/main/schemas/nd30-input.schema.json",
+  "title": "nd30 generate_docx input",
+  "description": "Schema input cho scripts/generate_docx.py — xem examples/input-sample.json cho ví dụ đầy đủ.",
+  "type": "object",
+  "required": ["header"],
+  "properties": {
+    "profile": {
+      "type": "string",
+      "enum": ["administrative", "bieu-mau-noi-bo", "minutes-administrative", "academic", "general"],
+      "default": "administrative"
+    },
+    "header": {
+      "type": "object",
+      "required": ["co_quan_chu_quan", "co_quan_ban_hanh", "ky_hieu", "trich_yeu", "dia_danh"],
+      "properties": {
+        "co_quan_chu_quan": {"type": "string", "description": "Tên cơ quan chủ quản (dòng trên, không đậm)"},
+        "co_quan_ban_hanh": {"type": "string", "description": "Tên cơ quan ban hành (dòng dưới, IN HOA đậm)"},
+        "so_vb": {"type": "string", "description": "Số văn bản — để trống nếu chưa có, VPHC điền sau"},
+        "ky_hieu": {"type": "string", "description": "Ký hiệu văn bản, vd TTr-UBND, CV-VP"},
+        "trich_yeu": {"type": "string", "description": "Trích yếu / tiêu đề nội dung văn bản"},
+        "dia_danh": {"type": "string", "description": "Địa danh ban hành, vd Cần Thơ"},
+        "ngay": {"type": ["string", "integer"], "description": "Ngày ban hành — để trống nếu chưa có"},
+        "thang": {"type": ["string", "integer"], "description": "Tháng ban hành"},
+        "nam": {"type": ["string", "integer"], "description": "Năm ban hành"},
+        "is_cong_van": {"type": "boolean", "default": false, "description": "true nếu là Công văn (không có tên loại in hoa riêng)"},
+        "ten_loai_in_hoa": {"type": "string", "description": "Tên loại VB IN HOA, vd TỜ TRÌNH, QUYẾT ĐỊNH — bỏ trống nếu is_cong_van=true"}
+      }
+    },
+    "kinh_gui": {"type": "string", "description": "Nơi nhận chính (dòng Kính gửi ngay dưới tiêu đề)"},
+    "body": {
+      "type": "array",
+      "description": "Danh sách khối nội dung, xử lý tuần tự theo thứ tự trong mảng",
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "oneOf": [
+          {
+            "properties": {
+              "type": {"const": "heading"},
+              "text": {"type": "string"},
+              "level": {"type": "integer", "default": 1}
+            },
+            "required": ["text"]
+          },
+          {
+            "properties": {
+              "type": {"const": "paragraph"},
+              "text": {"type": "string", "description": "Dùng '[CẦN BỔ SUNG: mô tả]' cho phần chưa có dữ liệu"}
+            },
+            "required": ["text"]
+          },
+          {
+            "properties": {
+              "type": {"const": "bullet"},
+              "text": {"type": "string"},
+              "level": {"type": "integer", "default": 1}
+            },
+            "required": ["text"]
+          },
+          {
+            "properties": {
+              "type": {"const": "table"},
+              "headers": {"type": "array", "items": {"type": "string"}},
+              "rows": {"type": "array", "items": {"type": "array"}}
+            },
+            "required": ["headers", "rows"]
+          },
+          {
+            "properties": {
+              "type": {"const": "can_cu"},
+              "items": {"type": "array", "items": {"type": "string"}, "description": "Danh sách 'Căn cứ ...' — tự thêm dấu ; và . đúng vị trí"}
+            },
+            "required": ["items"]
+          },
+          {
+            "properties": {
+              "type": {"const": "centered"},
+              "text": {"type": "string"},
+              "bold": {"type": "boolean", "default": false}
+            },
+            "required": ["text"]
+          }
+        ]
+      }
+    },
+    "ket_thuc": {"type": "string", "default": "./.", "description": "Dòng kết thúc văn bản, thường './.' theo NĐ30"},
+    "signature": {
+      "type": "object",
+      "properties": {
+        "noi_nhan_items": {"type": "array", "items": {"type": "string"}, "default": ["Như trên"]},
+        "phong_viet_tat": {"type": "string", "description": "Viết tắt phòng/ban để tự thêm dòng 'Lưu: VT, <viết tắt>.'"},
+        "chuc_vu": {"type": "string", "description": "Chức vụ người ký, vd CHỦ TỊCH"},
+        "nguoi_ky": {"type": "string", "description": "Họ tên người ký — dùng '[CẦN BỔ SUNG: họ tên]' nếu chưa biết"},
+        "quyen_han": {"type": "string", "enum": ["", "KT.", "TL.", "TUQ.", "TM."], "default": ""},
+        "chuc_vu_thay": {"type": "string", "description": "Chức vụ bị ký thay, dùng cùng quyen_han='KT.'"}
+      }
+    }
+  }
+}

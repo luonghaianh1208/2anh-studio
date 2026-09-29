@@ -1,0 +1,113 @@
+# Rules cho 9 mục thể thức theo NĐ 30/2020/NĐ-CP
+# File này được phục vụ tại /kb/rules/the-thuc.yaml và cache về ~/.vbhc/cache/rules/
+# Code trong scripts/validate_thethuc.py load file này (fallback hardcode nếu thiếu).
+version: 1
+description: "Quy tắc kiểm tra 9 mục thể thức NĐ 30/2020/NĐ-CP"
+
+# Regex bắt placeholder chưa thay
+placeholder_pattern: '\?\?\?|<[^>]+>|\[placeholder\]'
+
+# Biểu mẫu nội bộ — Phiếu biểu quyết/ghi ý kiến/thẩm định/lấy ý kiến.
+# Loại này KHÔNG có Số VB, KHÔNG có Nơi nhận (skip mục 3 và 8).
+bieu_mau_noi_bo_pattern: 'PHIẾU\s+(GHI\s+Ý\s+KIẾN|BIỂU\s+QUYẾT|THẨM\s+ĐỊNH|LẤY\s+Ý\s+KIẾN)'
+
+# Lề chuẩn (cm) — NĐ30 quy định 3-2-2-2
+le_chuan:
+  left_cm: 3
+  right_cm: 2
+  top_cm: 2
+  bottom_cm: 2
+  ok_msg: "Lề 3-2-2-2 khớp NĐ30"
+  fail_template: "Lề hiện tại {actual} — NĐ30 quy định trái 3, phải 2, trên 2, dưới 2 cm"
+
+checks:
+
+  # Mục 1 — Quốc hiệu + Tiêu ngữ
+  quoc_hieu:
+    must_contain:
+      - "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM"
+      - "Độc lập"
+      - "Tự do"
+      - "Hạnh phúc"
+    ok_msg: "Quốc hiệu + Tiêu ngữ"
+    fail_msg: "Quốc hiệu + Tiêu ngữ — thiếu hoặc sai"
+
+  # Mục 2 — Tên cơ quan ban hành (dòng in hoa có keyword loại cơ quan)
+  co_quan:
+    upper_line_keywords_regex: '(UBND|ỦY BAN|BỘ|SỞ|HĐND|VĂN PHÒNG|TỔNG CỤC|CỤC|CHI CỤC|VIỆN|BAN)'
+    min_line_len: 4
+    ok_msg: "Tên cơ quan ban hành"
+    warn_msg: "Tên cơ quan — không phát hiện được dòng tên cơ quan in hoa"
+
+  # Mục 3 — Số/ký hiệu (skip nếu biểu mẫu nội bộ)
+  so_van_ban:
+    skip_if_bieu_mau_noi_bo: true
+    pattern: 'Số:\s*([0-9]*\s*/[A-ZĐa-z&\-_]+)'
+    has_so_marker: "Số:"
+    bieu_mau_msg: "Số VB — không cần (biểu mẫu nội bộ)"
+    ok_template: "Số văn bản: {match}"
+    empty_warn_template: "Số văn bản — đang trống ({match}) — VPHC sẽ điền sau"
+    no_format_warn: "Có dòng 'Số:' nhưng không match format chuẩn"
+    fail_msg: "Không tìm thấy 'Số:' — kiểm tra lại"
+
+  # Mục 4 — Tên loại + Trích yếu
+  ten_loai:
+    keywords:
+      - "QUYẾT ĐỊNH"
+      - "NGHỊ QUYẾT"
+      - "BÁO CÁO"
+      - "TỜ TRÌNH"
+      - "THÔNG BÁO"
+      - "KẾ HOẠCH"
+      - "CHỈ THỊ"
+      - "BIÊN BẢN"
+      - "GIẤY MỜI"
+      - "PHIẾU GHI Ý KIẾN"
+      - "PHIẾU BIỂU QUYẾT"
+      - "HƯỚNG DẪN"
+      - "KẾT LUẬN"
+    cong_van_markers:
+      - "V/v"
+      - "V/V"
+    ok_template: "Tên loại: {match}"
+    cong_van_msg: "Tên loại: Công văn (có trích yếu V/v...)"
+    warn_msg: "Không xác định được loại VB"
+
+  # Mục 5 — Nội dung không còn placeholder
+  noi_dung:
+    use_placeholder_pattern: true
+    ok_msg: "Nội dung — không còn placeholder"
+    fail_template: "Còn placeholder: {matches}"
+
+  # Mục 6 — Người ký (chức vụ in hoa)
+  nguoi_ky:
+    pattern: '(KT\.|TL\.|TUQ\.)?\s*(GIÁM ĐỐC|CHỦ TỊCH|PHÓ CHỦ TỊCH|CHÁNH VĂN PHÒNG|PHÓ CHÁNH VĂN PHÒNG|TRƯỞNG PHÒNG|PHÓ GIÁM ĐỐC|BỘ TRƯỞNG|THỨ TRƯỞNG|VỤ TRƯỞNG|CỤC TRƯỞNG|VIỆN TRƯỞNG)'
+    ok_template: "Chức vụ người ký: {match}"
+    warn_msg: "Không phát hiện được chức vụ người ký in hoa"
+
+  # Mục 7 — Dấu / chữ ký số (không tự động check được)
+  dau:
+    msg: "Dấu / chữ ký số — KHÔNG kiểm tra tự động được, kiểm tra thủ công"
+    status: warn
+
+  # Mục 8 — Nơi nhận + Lưu (skip nếu biểu mẫu nội bộ)
+  noi_nhan:
+    skip_if_bieu_mau_noi_bo: true
+    noi_nhan_markers:
+      - "Nơi nhận:"
+      - "Nơi nhận :"
+    luu_markers:
+      - "Lưu:"
+      - "Lưu :"
+    bieu_mau_msg: "Nơi nhận — không cần (biểu mẫu nội bộ)"
+    ok_msg: "Nơi nhận + Lưu"
+    missing_luu_warn: "Có 'Nơi nhận' nhưng thiếu 'Lưu:'"
+    fail_msg: "Thiếu 'Nơi nhận:'"
+
+  # Mục 9 — Phụ lục (cảnh báo nếu có "kèm theo" mà không có "PHỤ LỤC ...")
+  phu_luc:
+    kem_pattern: 'kèm theo|đính kèm'
+    phu_luc_pattern: 'PHỤ LỤC\s+[IVX]+'
+    has_kem_no_pl_warn: "VB nhắc 'kèm theo' nhưng không tìm thấy PHỤ LỤC trong file"
+    has_pl_ok: "Có Phụ lục"
+    no_kem_no_pl_ok: "Không có phụ lục (không bắt buộc)"

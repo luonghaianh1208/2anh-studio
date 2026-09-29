@@ -1,0 +1,36 @@
+{
+  "profile": "administrative",
+  "header": {
+    "co_quan_chu_quan": "",
+    "co_quan_ban_hanh": "ỦY BAN NHÂN DÂN TỈNH ...",
+    "so_vb": "",
+    "ky_hieu": "QĐ-UBND",
+    "trich_yeu": "Ban hành Quy định về trình tự, thủ tục triển khai mô hình \"Thôn thông minh\" trên địa bàn tỉnh",
+    "dia_danh": "...",
+    "is_cong_van": false,
+    "ten_loai_in_hoa": "QUYẾT ĐỊNH"
+  },
+  "body": [
+    {"type": "can_cu", "items": [
+      "Căn cứ Luật Tổ chức chính quyền địa phương ngày ... tháng ... năm ...",
+      "Căn cứ Nghị quyết số [CẦN BỔ SUNG] của Hội đồng nhân dân tỉnh",
+      "Theo đề nghị của Giám đốc Sở Khoa học và Công nghệ"
+    ]},
+    {"type": "paragraph", "text": "Ủy ban nhân dân tỉnh ban hành Quyết định về việc ban hành Quy định về trình tự, thủ tục triển khai mô hình \"Thôn thông minh\" trên địa bàn tỉnh."},
+    {"type": "heading", "text": "Điều 1. Ban hành kèm theo Quyết định này"},
+    {"type": "paragraph", "text": "Quy định về trình tự, thủ tục triển khai mô hình \"Thôn thông minh\" trên địa bàn tỉnh."},
+    {"type": "heading", "text": "Điều 2. Hiệu lực thi hành"},
+    {"type": "paragraph", "text": "Quyết định này có hiệu lực kể từ ngày ký."},
+    {"type": "heading", "text": "Điều 3. Tổ chức thực hiện"},
+    {"type": "paragraph", "text": "Chánh Văn phòng UBND tỉnh, Giám đốc Sở Khoa học và Công nghệ và Thủ trưởng các cơ quan, đơn vị liên quan chịu trách nhiệm thi hành Quyết định này."}
+  ],
+  "ket_thuc": "",
+  "signature": {
+    "noi_nhan_items": ["Như Điều 3", "Lưu: VT"],
+    "phong_viet_tat": "",
+    "chuc_vu": "CHỦ TỊCH",
+    "quyen_han": "TM.",
+    "chuc_vu_thay": "ỦY BAN NHÂN DÂN",
+    "nguoi_ky": "[CẦN BỔ SUNG: họ tên Chủ tịch UBND tỉnh]"
+  }
+}

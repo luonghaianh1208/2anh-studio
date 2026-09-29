@@ -1,0 +1,37 @@
+{
+  "profile": "administrative",
+  "header": {
+    "co_quan_chu_quan": "",
+    "co_quan_ban_hanh": "HỘI ĐỒNG NHÂN DÂN TỈNH ...",
+    "so_vb": "",
+    "ky_hieu": "NQ-HĐND",
+    "trich_yeu": "Về việc thông qua Kế hoạch triển khai mô hình \"Thôn thông minh\" giai đoạn 2026-2030",
+    "dia_danh": "...",
+    "is_cong_van": false,
+    "ten_loai_in_hoa": "NGHỊ QUYẾT"
+  },
+  "body": [
+    {"type": "can_cu", "items": [
+      "Căn cứ Luật Tổ chức chính quyền địa phương ngày ... tháng ... năm ...",
+      "Căn cứ Luật Ban hành văn bản quy phạm pháp luật ngày ... tháng ... năm ...",
+      "Xét Tờ trình [CẦN BỔ SUNG: số tờ trình] của UBND tỉnh; Báo cáo thẩm tra của Ban ... của HĐND tỉnh; ý kiến thảo luận của đại biểu Hội đồng nhân dân tại kỳ họp"
+    ]},
+    {"type": "paragraph", "text": "Hội đồng nhân dân tỉnh ban hành Nghị quyết về việc thông qua Kế hoạch triển khai mô hình \"Thôn thông minh\" giai đoạn 2026-2030."},
+    {"type": "heading", "text": "Điều 1. Phạm vi và mục tiêu"},
+    {"type": "paragraph", "text": "Thông qua Kế hoạch triển khai mô hình \"Thôn thông minh\" trên địa bàn tỉnh giai đoạn 2026-2030 với nội dung chủ yếu sau:"},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: mục tiêu cụ thể từng giai đoạn]"},
+    {"type": "heading", "text": "Điều 2. Kinh phí thực hiện"},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: tổng kinh phí và nguồn vốn]"},
+    {"type": "heading", "text": "Điều 3. Tổ chức thực hiện"},
+    {"type": "paragraph", "text": "Giao UBND tỉnh tổ chức triển khai thực hiện Nghị quyết này."},
+    {"type": "paragraph", "text": "Nghị quyết này có hiệu lực kể từ ngày ký ban hành."},
+    {"type": "italic_paragraph", "text": "Nghị quyết này đã được Hội đồng nhân dân tỉnh ... Khóa [CẦN BỔ SUNG] Kỳ họp thứ [CẦN BỔ SUNG] thông qua ngày [CẦN BỔ SUNG] tháng [CẦN BỔ SUNG] năm [CẦN BỔ SUNG]."}
+  ],
+  "ket_thuc": "",
+  "signature": {
+    "noi_nhan_items": ["Như Điều 3", "UBND tỉnh"],
+    "phong_viet_tat": "VT",
+    "chuc_vu": "CHỦ TỊCH",
+    "nguoi_ky": "[CẦN BỔ SUNG: họ tên Chủ tịch HĐND tỉnh]"
+  }
+}

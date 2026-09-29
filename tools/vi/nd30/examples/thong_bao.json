@@ -1,0 +1,30 @@
+{
+  "profile": "administrative",
+  "header": {
+    "co_quan_chu_quan": "UBND HUYỆN ...",
+    "co_quan_ban_hanh": "UBND XÃ ...",
+    "so_vb": "",
+    "ky_hieu": "TB-UBND",
+    "trich_yeu": "Về việc triệu tập họp triển khai mô hình Thôn thông minh năm 2026",
+    "dia_danh": "...",
+    "is_cong_van": false,
+    "ten_loai_in_hoa": "THÔNG BÁO"
+  },
+  "body": [
+    {"type": "paragraph", "text": "UBND xã ... thông báo triệu tập cuộc họp với nội dung như sau:"},
+    {"type": "heading", "text": "1. Thời gian, địa điểm"},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: thời gian, địa điểm cụ thể]"},
+    {"type": "heading", "text": "2. Thành phần tham dự"},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: danh sách thành phần tham dự]"},
+    {"type": "heading", "text": "3. Nội dung"},
+    {"type": "paragraph", "text": "Triển khai mô hình Thôn thông minh trên địa bàn xã năm 2026."},
+    {"type": "paragraph", "text": "Đề nghị các thành phần liên quan tham dự đầy đủ, đúng giờ."}
+  ],
+  "ket_thuc": "./.",
+  "signature": {
+    "noi_nhan_items": ["Như trên"],
+    "phong_viet_tat": "VT",
+    "chuc_vu": "CHỦ TỊCH",
+    "nguoi_ky": "[CẦN BỔ SUNG: họ tên Chủ tịch UBND xã]"
+  }
+}

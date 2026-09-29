@@ -6,3 +6,6 @@ README.md merge=ours
 *.bat text eol=crlf
 tools/vi/*.ps1 text eol=crlf
 tools/vi/*.sh text eol=lf
+
+# Mã ND30 nhúng nguyên trạng: giữ đúng byte gốc, không đổi CRLF/LF
+tools/vi/nd30/** -text

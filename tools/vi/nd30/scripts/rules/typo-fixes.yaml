@@ -1,0 +1,25 @@
+# Danh sách lỗi chính tả + sai encoding hay gặp trong VB tiếng Việt.
+# File này được phục vụ tại /kb/rules/typo-fixes.yaml và cache về ~/.vbhc/cache/rules/
+# Code trong scripts/learn_template.py:assess_against_nd30 dùng để flag issue cho user.
+#
+# Cách thêm 1 lỗi mới: append vào `typo_fixes` hoặc `encoding_fixes`.
+# Admin push lên cloud → tất cả máy cán bộ sẽ phát hiện được lỗi mới ở lần sync tiếp theo.
+version: 1
+description: "Lỗi chính tả + sai encoding hay gặp trong VBHC"
+
+# Encoding fix: ký tự nhìn giống nhau nhưng code-point khác.
+# Word vẫn render giống nhưng search-and-replace MISS nếu code tìm ký tự đúng.
+encoding_fixes:
+  - find: "Ð"               # U+00D0 (LATIN CAPITAL LETTER ETH)
+    replace: "Đ"            # U+0110 (LATIN CAPITAL LETTER D WITH STROKE)
+    topic: "Ký tự Đ sai encoding"
+    message: "Phát hiện 'Ð' (U+00D0) — phải đổi sang 'Đ' (U+0110) khi chuẩn hóa"
+    level: fix
+
+# Lỗi chính tả phổ biến: đối chiếu trực tiếp string.
+typo_fixes:
+  - find: "kính giửi"
+    replace: "kính gửi"
+    topic: "Lỗi chính tả"
+    message: "'kính giửi' → đúng là 'kính gửi'"
+    level: fix

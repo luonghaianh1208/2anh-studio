@@ -1,0 +1,32 @@
+{
+  "profile": "administrative",
+  "header": {
+    "co_quan_chu_quan": "",
+    "co_quan_ban_hanh": "HỘI ĐỒNG NHÂN DÂN TỈNH ...",
+    "so_vb": "",
+    "ky_hieu": "NQ-HĐND",
+    "trich_yeu": "Ban hành Quy định về trình tự, thủ tục triển khai mô hình \"Thôn thông minh\" trên địa bàn tỉnh",
+    "dia_danh": "...",
+    "is_cong_van": false,
+    "ten_loai_in_hoa": "NGHỊ QUYẾT"
+  },
+  "body": [
+    {"type": "can_cu", "items": [
+      "Căn cứ Luật Tổ chức chính quyền địa phương ngày ... tháng ... năm ...",
+      "Xét Tờ trình [CẦN BỔ SUNG: số tờ trình] của UBND tỉnh; Báo cáo thẩm tra của Ban ... của HĐND tỉnh; ý kiến thảo luận của đại biểu Hội đồng nhân dân tại kỳ họp"
+    ]},
+    {"type": "paragraph", "text": "Hội đồng nhân dân tỉnh ban hành Nghị quyết ban hành Quy định về trình tự, thủ tục triển khai mô hình \"Thôn thông minh\" trên địa bàn tỉnh."},
+    {"type": "heading", "text": "Điều 1. Ban hành kèm theo Nghị quyết này"},
+    {"type": "paragraph", "text": "Quy định về trình tự, thủ tục triển khai mô hình \"Thôn thông minh\" trên địa bàn tỉnh (văn bản đính kèm)."},
+    {"type": "heading", "text": "Điều 2. Hiệu lực thi hành"},
+    {"type": "paragraph", "text": "Nghị quyết này có hiệu lực kể từ ngày [CẦN BỔ SUNG] và giao UBND tỉnh tổ chức thực hiện."},
+    {"type": "italic_paragraph", "text": "Nghị quyết này đã được Hội đồng nhân dân tỉnh ... Khóa [CẦN BỔ SUNG] Kỳ họp thứ [CẦN BỔ SUNG] thông qua ngày [CẦN BỔ SUNG] tháng [CẦN BỔ SUNG] năm [CẦN BỔ SUNG]."}
+  ],
+  "ket_thuc": "",
+  "signature": {
+    "noi_nhan_items": ["Như Điều 2", "Lưu: VT"],
+    "phong_viet_tat": "",
+    "chuc_vu": "CHỦ TỊCH",
+    "nguoi_ky": "[CẦN BỔ SUNG: họ tên Chủ tịch HĐND tỉnh]"
+  }
+}

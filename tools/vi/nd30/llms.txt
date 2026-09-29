@@ -1,0 +1,85 @@
+<!-- nha-van:exempt — chỉ mục kỹ thuật cho AI agent, không phải văn bản gửi ra ngoài -->
+# nd30
+
+> Engine và quy chuẩn thể thức văn bản hành chính Việt Nam theo Nghị định 30/2020/NĐ-CP.
+> Phân loại 27+ loại văn bản, phỏng vấn lấy dữ liệu (không bịa), sinh file .docx đúng thể thức
+> (font/lề/cỡ chữ/vị trí thật), rồi validate bằng script.
+
+Đọc `SKILL.md` trước — đó là entry point đầy đủ (3 luật cứng, quy trình 5 pha, cheat-sheet
+thể thức tự chứa). Các file dưới đây chỉ cần đọc khi case cụ thể yêu cầu.
+
+## ⚠️ TRƯỚC KHI ĐỀ XUẤT CẢI TIẾN — kiểm mục này, đừng đoán từ trang chủ
+
+Đã nhiều lần một AI agent đọc lướt README/trang chủ rồi đề xuất lại tính năng **ĐÃ CÓ SẴN** trong
+code, vì chưa mở đúng file. Trước khi góp ý "nên thêm...", đối chiếu bảng dưới:
+
+| Ý tưởng hay bị đề xuất lại | Đã có ở đâu |
+|---|---|
+| JSON Schema cho input | `schemas/nd30-input.schema.json` |
+| Ví dụ input theo từng loại VB | `examples/*.json` (tờ trình, công văn, quyết định, biên bản...) |
+| Zero-dependency cho input JSON | `generate_docx.py` chỉ cần `json` stdlib, `pyyaml` optional |
+| Sinh + validate 1 lệnh | `generate_docx.py --validate` |
+| Kết quả validate dạng JSON (self-healing) | `--json` (validate_docx.py) / `--validate-json` (generate_docx.py) |
+| Input qua stdin / chuỗi trực tiếp | cờ `-` (stdin) và `--json-string` |
+| Output luôn ép `.docx` | tự động, sai đuôi sẽ báo lỗi |
+| Căn cứ pháp lý in nghiêng + `;`/`.` đúng vị trí | `build_docx.py:add_can_cu()` |
+| "Kính gửi" định dạng riêng | field `kinh_gui` top-level trong schema |
+| "Điều 1." in đậm | body item `{"type": "heading", ...}` |
+| Bảng Markdown xem trước khi chưa xuất được file | `references/hien-thi-markdown-fallback.md` |
+| Cheat-sheet tra nhanh cỡ chữ/lề | đã tự chứa ngay trong `SKILL.md`, không tách file riêng |
+| i18n README | `README.md` (VN) + `README.en.md` + `README.zh.md` + `README.ja.md` |
+| MVP VBQPPL: NQ HĐND Mẫu 17+18 | `references/the-thuc-qppl-nq-hdnd.md` + `examples/nghi_quyet_hdnd.json`, `nghi_quyet_hdnd_kem_quy_dinh.json` |
+| MVP VBQPPL: QĐ UBND tỉnh Mẫu 19+20 | `references/the-thuc-qppl-qd-ubnd.md` + `examples/quyet_dinh_ubnd_qppl.json` |
+
+**Trước khi đề xuất bất kỳ tính năng nào, hãy grep/đọc thật các file này** — không chỉ đọc mô tả
+trang chủ GitHub. Nếu đề xuất một pattern KHÁC (đổi tên field, thêm field song song với field đã
+có) — nói rõ vì sao pattern hiện tại chưa đủ, đừng chỉ đề xuất một cách viết khác cho cùng 1 việc.
+
+## Bắt buộc đọc trước khi làm bất kỳ việc gì
+
+- [SKILL.md](https://raw.githubusercontent.com/kanazawahere/nd30/main/SKILL.md): entry point,
+  3 luật cứng, quy trình 5 pha, cheat-sheet thể thức, cách chạy trong sandbox (Gemini Spark) vs
+  máy có filesystem (Claude Code).
+
+## Scripts (dùng, đừng transcribe lại logic bên trong)
+
+- [scripts/generate_docx.py](https://raw.githubusercontent.com/kanazawahere/nd30/main/scripts/generate_docx.py):
+  **DÙNG CÁI NÀY khi chạy trong sandbox không có filesystem riêng** (Gemini Spark, ChatGPT
+  Code Interpreter...). Nhận 1 file JSON mô tả nội dung → xuất `.docx` đúng thể thức. Schema đầy
+  đủ nằm trong docstring đầu file — đọc docstring là đủ, KHÔNG cần đọc `build_docx.py`. Có cờ
+  `--validate` để sinh file + validate trong 1 lệnh duy nhất.
+- `examples/*.json`: ví dụ JSON đầy đủ đúng schema, 1 file/loại văn bản —
+  [input-sample.json](https://raw.githubusercontent.com/kanazawahere/nd30/main/examples/input-sample.json) (Tờ trình),
+  [cong_van.json](https://raw.githubusercontent.com/kanazawahere/nd30/main/examples/cong_van.json),
+  [quyet_dinh.json](https://raw.githubusercontent.com/kanazawahere/nd30/main/examples/quyet_dinh.json),
+  [bien_ban.json](https://raw.githubusercontent.com/kanazawahere/nd30/main/examples/bien_ban.json),
+  [thong_bao.json](https://raw.githubusercontent.com/kanazawahere/nd30/main/examples/thong_bao.json),
+  [giay_moi.json](https://raw.githubusercontent.com/kanazawahere/nd30/main/examples/giay_moi.json).
+  Đọc đúng file theo loại văn bản đang soạn trước khi tự đoán tên field cho `generate_docx.py`.
+- [scripts/validate_docx.py](https://raw.githubusercontent.com/kanazawahere/nd30/main/scripts/validate_docx.py):
+  chấm điểm thể thức file `.docx` đã tạo — BẮT BUỘC chạy sau khi xuất file, trước khi báo "xong".
+- [scripts/build_docx.py](https://raw.githubusercontent.com/kanazawahere/nd30/main/scripts/build_docx.py):
+  helper python-docx cấp thấp (1165 dòng) — chỉ cần đọc khi có filesystem thật (Claude Code) và
+  case phức tạp mà `generate_docx.py` chưa cover.
+
+## References (đọc khi case không nằm trong cheat-sheet của SKILL.md)
+
+- [references/danh-muc-loai-vb.md](https://raw.githubusercontent.com/kanazawahere/nd30/main/references/danh-muc-loai-vb.md):
+  27+ loại văn bản + bảng nhận diện theo keyword.
+- [references/interview-questions.md](https://raw.githubusercontent.com/kanazawahere/nd30/main/references/interview-questions.md):
+  bộ câu hỏi phỏng vấn theo từng loại văn bản.
+- [references/the-thuc-nd30.md](https://raw.githubusercontent.com/kanazawahere/nd30/main/references/the-thuc-nd30.md):
+  thông số thể thức đầy đủ (cheat-sheet trong SKILL.md là bản rút gọn của file này).
+- [references/validation-checklist.md](https://raw.githubusercontent.com/kanazawahere/nd30/main/references/validation-checklist.md):
+  checklist thủ công bổ sung cho `validate_docx.py`.
+- [references/hien-thi-markdown-fallback.md](https://raw.githubusercontent.com/kanazawahere/nd30/main/references/hien-thi-markdown-fallback.md):
+  cách hiển thị bố cục 2 cột bằng bảng Markdown khi môi trường chưa cho xuất file.
+- [references/the-thuc-qppl-nq-hdnd.md](https://raw.githubusercontent.com/kanazawahere/nd30/main/references/the-thuc-qppl-nq-hdnd.md):
+  thể thức Nghị quyết HĐND cấp tỉnh (Mẫu 17, NĐ 78/2025) — **CHỈ MVP 1 loại VBQPPL**, các loại
+  QPPL khác chưa phủ, xem cảnh báo trong file trước khi dùng cho loại VB khác.
+
+## Optional
+
+- [README.md](https://raw.githubusercontent.com/kanazawahere/nd30/main/README.md): giới thiệu
+  ngắn cho người đọc (không phải agent).
+- [templates/](https://github.com/kanazawahere/nd30/tree/main/templates): 5 mẫu `.docx` rỗng.

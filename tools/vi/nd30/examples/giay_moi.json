@@ -1,0 +1,31 @@
+{
+  "profile": "administrative",
+  "header": {
+    "co_quan_chu_quan": "UBND HUYỆN ...",
+    "co_quan_ban_hanh": "UBND XÃ ...",
+    "so_vb": "",
+    "ky_hieu": "GM-UBND",
+    "trich_yeu": "Về việc mời họp triển khai mô hình Thôn thông minh năm 2026",
+    "dia_danh": "...",
+    "is_cong_van": false,
+    "ten_loai_in_hoa": "GIẤY MỜI"
+  },
+  "kinh_gui": "[CẦN BỔ SUNG: người/đơn vị được mời]",
+  "body": [
+    {"type": "paragraph", "text": "UBND xã ... trân trọng kính mời quý đại biểu tham dự cuộc họp với nội dung như sau:"},
+    {"type": "heading", "text": "1. Thời gian"},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: giờ, ngày tháng năm]"},
+    {"type": "heading", "text": "2. Địa điểm"},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: địa điểm cụ thể]"},
+    {"type": "heading", "text": "3. Nội dung"},
+    {"type": "paragraph", "text": "Triển khai mô hình Thôn thông minh trên địa bàn xã năm 2026."},
+    {"type": "paragraph", "text": "Kính mong quý đại biểu sắp xếp thời gian tham dự đầy đủ, đúng giờ."}
+  ],
+  "ket_thuc": "./.",
+  "signature": {
+    "noi_nhan_items": ["Như trên"],
+    "phong_viet_tat": "VT",
+    "chuc_vu": "CHỦ TỊCH",
+    "nguoi_ky": "[CẦN BỔ SUNG: họ tên Chủ tịch UBND xã]"
+  }
+}

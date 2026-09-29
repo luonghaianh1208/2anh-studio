@@ -1,0 +1,31 @@
+{
+  "profile": "minutes-administrative",
+  "header": {
+    "co_quan_chu_quan": "UBND HUYỆN ...",
+    "co_quan_ban_hanh": "UBND XÃ ...",
+    "so_vb": "",
+    "ky_hieu": "BB-UBND",
+    "trich_yeu": "Về việc họp triển khai mô hình Thôn thông minh năm 2026",
+    "dia_danh": "...",
+    "is_cong_van": false,
+    "ten_loai_in_hoa": "BIÊN BẢN"
+  },
+  "body": [
+    {"type": "paragraph", "text": "Hôm nay, vào lúc [CẦN BỔ SUNG: giờ], ngày [CẦN BỔ SUNG: ngày tháng năm], tại UBND xã ... đã tiến hành cuộc họp với nội dung như sau:"},
+    {"type": "heading", "text": "I. Thành phần tham dự"},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: danh sách thành phần tham dự]"},
+    {"type": "heading", "text": "II. Nội dung cuộc họp"},
+    {"type": "paragraph", "text": "Cuộc họp thống nhất triển khai mô hình Thôn thông minh trên địa bàn xã trong năm 2026."},
+    {"type": "table", "headers": ["STT", "Nội dung", "Người phụ trách", "Thời hạn"], "rows": [
+      ["1", "[CẦN BỔ SUNG]", "[CẦN BỔ SUNG]", "[CẦN BỔ SUNG]"]
+    ]},
+    {"type": "paragraph", "text": "Cuộc họp kết thúc vào lúc [CẦN BỔ SUNG: giờ] cùng ngày."}
+  ],
+  "ket_thuc": "./.",
+  "signature": {
+    "noi_nhan_items": ["Như trên"],
+    "phong_viet_tat": "VT",
+    "chuc_vu": "CHỦ TỌA",
+    "nguoi_ky": "[CẦN BỔ SUNG: họ tên chủ tọa]"
+  }
+}

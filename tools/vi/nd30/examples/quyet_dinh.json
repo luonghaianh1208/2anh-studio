@@ -1,0 +1,33 @@
+{
+  "profile": "administrative",
+  "header": {
+    "co_quan_chu_quan": "UBND HUYỆN ...",
+    "co_quan_ban_hanh": "UBND XÃ ...",
+    "so_vb": "",
+    "ky_hieu": "QĐ-UBND",
+    "trich_yeu": "Về việc khen thưởng tập thể, cá nhân có thành tích xuất sắc năm 2026",
+    "dia_danh": "...",
+    "is_cong_van": false,
+    "ten_loai_in_hoa": "QUYẾT ĐỊNH"
+  },
+  "body": [
+    {"type": "can_cu", "items": [
+      "Căn cứ Luật Tổ chức chính quyền địa phương",
+      "Căn cứ đề nghị của Hội đồng Thi đua - Khen thưởng xã"
+    ]},
+    {"type": "centered", "text": "QUYẾT ĐỊNH:", "bold": true},
+    {"type": "heading", "text": "Điều 1."},
+    {"type": "paragraph", "text": "Khen thưởng cho các tập thể, cá nhân có tên tại Phụ lục kèm theo Quyết định này."},
+    {"type": "heading", "text": "Điều 2."},
+    {"type": "paragraph", "text": "[CẦN BỔ SUNG: mức thưởng cụ thể]"},
+    {"type": "heading", "text": "Điều 3."},
+    {"type": "paragraph", "text": "Quyết định này có hiệu lực kể từ ngày ký."}
+  ],
+  "ket_thuc": "./.",
+  "signature": {
+    "noi_nhan_items": ["Như Điều 1", "Như Điều 3"],
+    "phong_viet_tat": "VT",
+    "chuc_vu": "CHỦ TỊCH",
+    "nguoi_ky": "[CẦN BỔ SUNG: họ tên Chủ tịch]"
+  }
+}
