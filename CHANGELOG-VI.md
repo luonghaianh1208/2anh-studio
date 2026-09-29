@@ -1,6 +1,8 @@
 # Nhật ký thay đổi — Bản Việt
 
-## Chưa phát hành
+## 6.3.2-vi.13 — 2026-09-30
+
+Soạn văn bản hành chính đúng thể thức Nghị định 30/2020/NĐ-CP: loại việc thứ 11, dựa trên bộ công cụ ND30 mã nguồn mở của Nguyễn Minh Phát (giấy phép MIT), bỏ phần văn bản Đoàn. AI hỏi một lượt, sinh file Word sửa được, tự kiểm thể thức, và không bao giờ tự bịa số, ngày, người ký hay căn cứ.
 
 ### Thêm
 - Loại việc thứ 11 "Soạn văn bản hành chính (Nghị định 30)": AI hỏi một lượt 7 câu, viết `noi-dung.json`, rồi `tools/vi/van_ban.py` dựng `van-ban.docx` đúng thể thức Nghị định 30/2020/NĐ-CP và chạy bộ kiểm thể thức, ghi `kiem-tra.md`. Bộ sinh và bộ kiểm là ND30 (© 2026 Nguyễn Minh Phát, MIT) nhúng nguyên trạng ở `tools/vi/nd30/`, có kiểm SHA-256. Làm được cả văn bản quy phạm của HĐND, UBND; văn bản Đảng và văn bản Đoàn không hỗ trợ.
@@ -11,6 +13,11 @@
 - Luật ưu tiên khi xếp loại việc: tên loại văn bản đi với động từ soạn ("soạn công văn…", "ra quyết định…") thắng các từ chủ đề như tập huấn, cuộc thi; từ chỉ đầu ra ("poster", "slide", "video") thắng "thông báo". Dùng được cả ngoài trường học (UBND xã, phòng ban).
 - Mã ND30 (`kanazawahere/nd30`, © 2026 Nguyễn Minh Phát, giấy phép MIT) được nhúng nguyên bản gốc tại `tools/vi/nd30/`, ghi công trong README và NOTICE; có test báo khi mã nhúng bị sửa.
 - Hướng dẫn cho AI `docs/vi/tro-ly/van-ban-hanh-chinh.md`, mục 16 của `AGENTS.vi.md`, luật Antigravity, và tài liệu cho thầy cô `docs/vi/van-ban-hanh-chinh.md`.
+
+### Rủi ro
+- Công văn đặt `profile: bieu-mau-noi-bo` thì bộ kiểm bỏ qua số văn bản và nơi nhận. Hướng dẫn cấm đổi profile để qua bộ kiểm, nhưng công cụ chưa chặn; sẽ sửa ở bản sau.
+- Bộ kiểm không xác minh được nội dung pháp lý (căn cứ, thẩm quyền ký): thầy cô soát mục "Thầy cô đối chiếu" trong `kiem-tra.md` trước khi trình ký. Dấu và chữ ký số phải kiểm bằng mắt.
+- Văn bản Đảng và văn bản Đoàn chưa hỗ trợ.
 
 ## 6.3.2-vi.12 — 2026-09-29
 

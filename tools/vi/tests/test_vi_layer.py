@@ -2373,7 +2373,7 @@ class AdminDocWiringTest(unittest.TestCase):
                 self.assertIn(phrase, line)
 
     def test_changelog_has_an_unreleased_entry(self):
-        body = section(read("CHANGELOG-VI.md"), "## Chưa phát hành")
+        body = section(read("CHANGELOG-VI.md"), "## 6.3.2-vi.13 — 2026-09-30")
         for phrase in ("van_ban.py", "Nghị định 30", "Nguyễn Minh Phát", "bản nháp", "báo cáo tổng kết năm học",
                        "HIỆU TRƯỞNG"):
             with self.subTest(phrase=phrase):
