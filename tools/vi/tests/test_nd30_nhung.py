@@ -98,6 +98,25 @@ class Nd30EmbedIntegrityTest(unittest.TestCase):
         for path in paths:
             self.assertNotIn("\\", path)
 
+    def test_files_match_upstream_git_blobs(self):
+        """SHA-256 của blob ở commit b683ff9a (LF, `git show`): bản nhúng phải giống từng byte."""
+        upstream = {
+            "LICENSE": "8c618bd499a693bbbf905a4dc4c276db6a09a9abb190e05a2e2b2b978fb6cc3a",
+            "scripts/_common.py":
+                "baecd402e84f9dd992d5a3aa7b610cb2871b54f440d1eec8283db995bc972c16",
+            "scripts/validate_docx.py":
+                "b5fb9bc5054a540c1dee1709a2cde2615dfe78a105f0b40d36c29310e0fc9976",
+            "examples/cong_van.json":
+                "97dac5c34dea0796016c9084b06814ec1a1b6ccfe5077d357056b9bc3d967864",
+            "templates/cong-van.docx":
+                "5816ead12bd2cfd889163cf8cd209e2f1c478b26affc799f3f24a7bea1e44863",
+        }
+        for rel, expected in upstream.items():
+            with self.subTest(path=rel):
+                self.assertEqual(sha256_of(ND30_DIR / rel), expected)
+                self.assertNotIn(b"\r\n", (ND30_DIR / rel).read_bytes()[:4096]
+                                 if rel.endswith((".py", ".json")) or rel == "LICENSE" else b"")
+
     def test_license_is_mit_and_credits_the_author(self):
         license_text = (ND30_DIR / "LICENSE").read_text(encoding="utf-8")
         self.assertIn("MIT License", license_text)
