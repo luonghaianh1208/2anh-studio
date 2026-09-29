@@ -219,6 +219,49 @@ class CleanAndDraftTest(CliCase):
         self.assertNotIn("===", text)
 
 
+class SignerTitleTest(CliCase):
+    """B6: chức vụ ngoài danh sách của bộ kiểm ND30 (HIỆU TRƯỞNG…) không còn là cảnh báo giả."""
+
+    def run_signed(self, **signature):
+        spec = filled_cong_van()
+        spec["header"]["so_vb"] = "12"
+        spec["signature"].update(signature)
+        self.write_spec(spec)
+        code, data, _ = self.run_cli(self.folder)
+        self.assertEqual(code, 0, data)
+        report = (self.folder / "kiem-tra.md").read_text(encoding="utf-8")
+        return data, report
+
+    def assert_no_b6_warning(self, data, report, title):
+        self.assertFalse([w for w in data["warnings"] if w.startswith("B6")], data["warnings"])
+        self.assertIn(f"| ✓ | B6. Người ký | Chức vụ người ký: {title} |", report)
+
+    def test_principal_is_ok_and_only_b7_remains(self):
+        data, report = self.run_signed(chuc_vu="HIỆU TRƯỞNG")
+        self.assert_no_b6_warning(data, report, "HIỆU TRƯỞNG")
+        self.assertEqual(data["kiem_tra"]["canh_bao"], 1, data["warnings"])
+        self.assertEqual(len(data["warnings"]), 1)
+        self.assertTrue(data["warnings"][0].startswith("B7"))
+
+    def test_vice_principal_signing_for_the_principal_is_ok(self):
+        data, report = self.run_signed(quyen_han="KT.", chuc_vu_thay="HIỆU TRƯỞNG",
+                                       chuc_vu="PHÓ HIỆU TRƯỞNG")
+        self.assert_no_b6_warning(data, report, "PHÓ HIỆU TRƯỞNG")
+
+    def test_head_of_department_is_ok(self):
+        data, report = self.run_signed(chuc_vu="TỔ TRƯỞNG")
+        self.assert_no_b6_warning(data, report, "TỔ TRƯỞNG")
+
+    def test_empty_title_still_warns(self):
+        data, report = self.run_signed(chuc_vu="")
+        self.assertTrue([w for w in data["warnings"] if w.startswith("B6")], data["warnings"])
+        self.assertIn("| ⚠ | B6. Người ký |", report)
+
+    def test_lowercase_title_still_warns(self):
+        data, _ = self.run_signed(chuc_vu="Hiệu trưởng")
+        self.assertTrue([w for w in data["warnings"] if w.startswith("B6")], data["warnings"])
+
+
 class SubprocessTest(CliCase):
     def test_vietnamese_folder_with_spaces(self):
         folder = self.root / "_van-ban" / "Công văn tập huấn AI"

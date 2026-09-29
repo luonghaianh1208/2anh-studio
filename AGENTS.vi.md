@@ -246,11 +246,11 @@ Khi người dùng cần công văn, tờ trình, quyết định, thông báo, 
 Câu lệnh chỉ có "báo cáo" hoặc "kế hoạch" thì hỏi đúng một câu trước: "Thầy cô cần văn bản Word đúng thể thức Nghị định 30, hay slide trình chiếu?". Trả lời Word thì theo mục này; trả lời slide thì theo mục 10. Văn bản Đảng và văn bản Đoàn không hỗ trợ: nói rõ với thầy cô, không dựng bằng thể thức Nghị định 30.
 
 1. Thầy cô gửi tài liệu Word hoặc PDF thì đọc bằng `python skills/ppt-master/scripts/source_to_md.py <file> -o <thư_mục_tạm>` trước; ảnh chụp thì nói rõ không đọc được, xin PDF hoặc Word.
-2. Sau bước 1, hỏi một lượt đúng 7 câu theo file hướng dẫn (cơ quan chủ quản, địa danh, ký hiệu viết tắt lấy từ hồ sơ đơn vị; chưa có thì hỏi trong câu 1), chờ trả lời.
+2. Sau bước 1, hỏi một lượt tối đa 7 câu theo file hướng dẫn (cơ quan chủ quản, địa danh, ký hiệu viết tắt lấy từ hồ sơ đơn vị; chưa có thì hỏi trong câu 1), chờ trả lời.
 3. Chọn loại văn bản theo `tools/vi/nd30/references/danh-muc-loai-vb.md`; văn bản quy phạm của HĐND, UBND đọc thêm `tools/vi/nd30/references/the-thuc-qppl-*.md`.
 4. Tạo `projects/_van-ban/<tên_văn_bản>/` và viết `noi-dung.json` sau khi đọc ví dụ đúng loại trong `tools/vi/nd30/examples/` và schema `tools/vi/nd30/schemas/nd30-input.schema.json`. Mọi thông tin thầy cô chưa nêu ghi `[CẦN BỔ SUNG: …]`.
 5. Chạy `python tools\vi\van_ban.py projects\_van-ban\<tên_văn_bản>`; thêm `--nhap` khi thầy cô chủ động muốn bản nháp.
-6. Đọc dòng JSON. `ready` là `true` thì báo thầy cô đường dẫn `van-ban.docx` và `kiem-tra.md`, loại văn bản, số mục đạt và cảnh báo; `ban_nhap` là `true` thì nói rõ đây là bản nháp và đọc nguyên văn từng ô cần bổ sung trong `warnings`. Cảnh báo B7 (dấu, chữ ký số) lần nào cũng có, B3 có khi số văn bản để trống cho văn thư, B6 có khi chức vụ người ký nằm ngoài danh sách của bộ kiểm (ví dụ HIỆU TRƯỞNG): đều bình thường, nhắc thầy cô soát tay. Luôn nhắc văn bản chưa đóng dấu, chưa ký.
+6. Đọc dòng JSON. `ready` là `true` thì báo thầy cô đường dẫn `van-ban.docx` và `kiem-tra.md`, loại văn bản, số mục đạt và cảnh báo; `ban_nhap` là `true` thì nói rõ đây là bản nháp và đọc nguyên văn từng ô cần bổ sung trong `warnings`. Cảnh báo B7 (dấu, chữ ký số) lần nào cũng có, B3 có khi số văn bản để trống cho văn thư: đều bình thường, nhắc thầy cô soát tay. Luôn nhắc văn bản chưa đóng dấu, chưa ký.
 
 | `error.step` | Xử lý |
 |---|---|

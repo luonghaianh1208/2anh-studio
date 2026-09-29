@@ -2282,9 +2282,24 @@ class AdminDocWiringTest(unittest.TestCase):
         self.assertNotIn("10 loại", quick)
         self.assertIn("(van-ban-hanh-chinh.md)", quick)
 
+    def test_b6_is_fixed_in_the_tool_not_explained_away(self):
+        self.assertNotIn("B6", read(ADMIN_GUIDE))
+        body = section(read("AGENTS.vi.md"), AGENTS_VI_ADMIN_HEADING)
+        self.assertNotIn("B6", body)
+        self.assertIn("tối đa 7 câu", body)
+        self.assertNotIn("đúng 7 câu", body)
+
+    def test_quick_start_says_no_questions_still_never_invents(self):
+        text = read("docs/vi/bat-dau-nhanh.md")
+        line = next(l for l in text.splitlines() if l.startswith("Với 11 loại việc trên"))
+        for phrase in ("văn bản hành chính", "[CẦN BỔ SUNG", "bản nháp"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, line)
+
     def test_changelog_has_an_unreleased_entry(self):
         body = section(read("CHANGELOG-VI.md"), "## Chưa phát hành")
-        for phrase in ("van_ban.py", "Nghị định 30", "Nguyễn Minh Phát", "bản nháp"):
+        for phrase in ("van_ban.py", "Nghị định 30", "Nguyễn Minh Phát", "bản nháp", "báo cáo tổng kết năm học",
+                       "HIỆU TRƯỞNG"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
 

@@ -137,7 +137,6 @@ Lệnh in đúng một dòng JSON ở stdout: `ready`, `files`, `loai_van_ban`, 
 - các cảnh báo còn lại trong `warnings`, kèm cách hiểu:
   - B7 (dấu, chữ ký số) lần nào cũng có vì máy không kiểm được: bình thường, nhắc thầy cô soát tay;
   - B3 (số văn bản đang trống) là bình thường: văn thư điền khi vào sổ;
-  - B6 "Không phát hiện được chức vụ người ký in hoa" khi chức vụ nằm ngoài danh sách của bộ kiểm (ví dụ HIỆU TRƯỞNG): bình thường nếu `signature.chuc_vu` đã đúng, nhắc thầy cô soát tay;
 - câu nhắc cuối: văn bản chưa đóng dấu, chưa ký; soát, điền đủ rồi trình ký và đóng dấu theo quy trình văn thư của đơn vị.
 
 `error` khác `null`: xử lý theo `error.step`:

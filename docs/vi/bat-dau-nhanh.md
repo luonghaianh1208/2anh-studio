@@ -44,7 +44,7 @@ Với bài giảng, báo cáo – tổng kết, hoạt động Đoàn – sự k
 - **Sau đó**, AI tóm tắt đề xuất trong khung chat để thầy cô duyệt lần cuối, rồi mới dựng slide.
 - **Việc khác** (ví dụ giới thiệu sản phẩm), AI xác nhận lại đối tượng người xem, số trang, phong cách và mẫu thiết kế như trước.
 
-Với 11 loại việc trên, muốn AI làm luôn, thêm chữ "tạo nhanh" vào câu lệnh: AI chỉ hỏi 2–3 câu thật cần thiết. Không muốn trả lời câu nào, thêm "không cần hỏi lại": AI không hỏi gì, tự đề xuất các phần còn thiếu rồi làm luôn.
+Với 11 loại việc trên, muốn AI làm luôn, thêm chữ "tạo nhanh" vào câu lệnh: AI chỉ hỏi 2–3 câu thật cần thiết. Không muốn trả lời câu nào, thêm "không cần hỏi lại": AI không hỏi gì, tự đề xuất các phần còn thiếu rồi làm luôn. Riêng văn bản hành chính, "không cần hỏi lại" vẫn không bao giờ tự bịa: thông tin còn thiếu (số, ngày, người ký, số tiền…) để ô `[CẦN BỔ SUNG: …]` và file ra là bản nháp.
 
 ## Làm video bài giảng
 

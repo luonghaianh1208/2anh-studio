@@ -284,6 +284,27 @@ def run_validator(vd, path: Path, profile: str, allow_placeholder: bool) -> list
         return list(vd.run_checks(path, profile, allow_placeholder))
 
 
+def confirm_signer_title(vd, rows: list, path: Path, signature: dict) -> list:
+    """Bỏ cảnh báo B6 khi chức vụ in hoa có thật trong văn bản.
+
+    Mẫu B6 của ND30 chỉ biết chức vụ khối cơ quan (GIÁM ĐỐC, CHỦ TỊCH…), nên
+    HIỆU TRƯỞNG, TỔ TRƯỞNG luôn bị cảnh báo giả. Chức vụ trống hoặc chưa in hoa
+    thì giữ nguyên cảnh báo.
+    """
+    titles = [str(signature.get(key, "")).strip() for key in ("chuc_vu", "chuc_vu_thay")]
+    titles = [t for t in titles if t and t == t.upper() and t != t.lower()]
+    if not titles or not any(st == vd.WARN and label.startswith("B6.") for st, label, _ in rows):
+        return rows
+    doc = vd.Document(str(path))
+    text = "\n".join(p.text for _, p in vd._iter_all_paragraphs(doc))
+    found = next((t for t in titles if t in text), None)
+    if found is None:
+        return rows
+    return [(vd.OK, label, f"Chức vụ người ký: {found}")
+            if st == vd.WARN and label.startswith("B6.") else (st, label, detail)
+            for st, label, detail in rows]
+
+
 def classify(vd, strict: list, lenient: list) -> list[tuple[str, str, str, bool]]:
     """Gắn cờ mục lỗi nặng chỉ vì ô cần bổ sung (hết lỗi khi cho phép placeholder)."""
     lenient_fail = {(label, i) for i, (st, label, _) in enumerate(lenient) if st == vd.FAIL}
@@ -408,8 +429,9 @@ def run(args) -> int:
             emit(failure("internal", f"Lỗi khi dựng file Word: {exc}", FIX_INTERNAL, **info))
             return 1
 
-        strict = run_validator(vd, tmp, profile, False)
-        lenient = run_validator(vd, tmp, profile, True)
+        signature = spec.get("signature") or {}
+        strict = confirm_signer_title(vd, run_validator(vd, tmp, profile, False), tmp, signature)
+        lenient = confirm_signer_title(vd, run_validator(vd, tmp, profile, True), tmp, signature)
         rows = classify(vd, strict, lenient)
         real = [(label, detail) for st, label, detail, blank in rows if st == vd.FAIL and not blank]
         blank_fail = [(label, detail) for st, label, detail, blank in rows if blank]

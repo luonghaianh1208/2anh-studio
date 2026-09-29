@@ -5,7 +5,8 @@
 ### Thêm
 - Loại việc thứ 11 "Soạn văn bản hành chính (Nghị định 30)": AI hỏi một lượt 7 câu, viết `noi-dung.json`, rồi `tools/vi/van_ban.py` dựng `van-ban.docx` đúng thể thức Nghị định 30/2020/NĐ-CP và chạy bộ kiểm thể thức, ghi `kiem-tra.md`. Bộ sinh và bộ kiểm là ND30 (© 2026 Nguyễn Minh Phát, MIT) nhúng nguyên trạng ở `tools/vi/nd30/`, có kiểm SHA-256. Làm được cả văn bản quy phạm của HĐND, UBND; văn bản Đảng và văn bản Đoàn không hỗ trợ.
 - Không bịa: số, ký hiệu, ngày ban hành, người ký, căn cứ, số tiền chưa có thì để `[CẦN BỔ SUNG: …]`; còn ô nào thì file là bản nháp, được giao kèm danh sách từng ô cần điền. Lỗi thể thức nặng thì không giao file Word.
-- Chữ "báo cáo" hoặc "kế hoạch" một mình: AI hỏi một câu Word đúng thể thức hay slide. Hồ sơ đơn vị có thêm ba mục tuỳ chọn: cơ quan chủ quản, địa danh, ký hiệu viết tắt của đơn vị.
+- Bộ kiểm của ND30 chỉ nhận chức vụ người ký khối cơ quan (GIÁM ĐỐC, CHỦ TỊCH…), nên văn bản do HIỆU TRƯỞNG, PHÓ HIỆU TRƯỞNG, TỔ TRƯỞNG ký luôn bị cảnh báo B6 giả. `van_ban.py` nay coi B6 là đạt khi chức vụ trong `signature` viết in hoa và có trong văn bản; chức vụ trống hoặc chưa in hoa vẫn cảnh báo. Mã ND30 nhúng không bị sửa.
+- Câu lệnh chỉ có "báo cáo" hoặc "kế hoạch" (ví dụ "làm báo cáo tổng kết năm học") nay được hỏi thêm đúng một câu trước khi xếp loại: văn bản Word đúng thể thức Nghị định 30 hay slide trình chiếu. Trước đây câu này đi thẳng vào slide "Báo cáo – tổng kết". Hồ sơ đơn vị có thêm ba mục tuỳ chọn: cơ quan chủ quản, địa danh, ký hiệu viết tắt của đơn vị.
 - Hướng dẫn cho AI `docs/vi/tro-ly/van-ban-hanh-chinh.md`, mục 16 của `AGENTS.vi.md`, luật Antigravity, và tài liệu cho thầy cô `docs/vi/van-ban-hanh-chinh.md`.
 
 ## 6.3.2-vi.12 — 2026-09-29
