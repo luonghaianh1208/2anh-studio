@@ -35,6 +35,7 @@ macOS/Linux: chạy `sh tools/vi/setup.sh`.
 - Soạn **giáo án** kế hoạch bài dạy theo Công văn 5512, tích hợp năng lực số và năng lực AI, xuất ra file Word.
 - Tạo **thí nghiệm ảo** Toán, Vật lí, Hoá học: một file HTML chạy không cần mạng, có bảng số liệu, đồ thị và phiếu học tập Word; 8 mô hình đã kiểm bằng số.
 - Dựng **video giải thích** kiểu viết tay từ nội dung bài: chữ, công thức, đồ thị và thí nghiệm ảo được viết dần ra theo giọng đọc tiếng Việt, có phụ đề.
+- Soạn **văn bản hành chính** (công văn, tờ trình, quyết định, thông báo, giấy mời, biên bản…) ra file Word đúng thể thức Nghị định 30, có bộ kiểm thể thức; thông tin chưa có để ô cần bổ sung, không tự bịa.
 
 ## Ba file bấm đúp
 
@@ -57,6 +58,7 @@ macOS/Linux: chạy `sh tools/vi/setup.sh`.
 | [Soạn giáo án](docs/vi/soan-giao-an.md) | Kế hoạch bài dạy 5512 tích hợp năng lực số và AI |
 | [Làm thí nghiệm ảo](docs/vi/thi-nghiem-ao.md) | File HTML tương tác chạy không cần mạng, kèm phiếu học tập |
 | [Làm video giải thích](docs/vi/video-giai-thich.md) | Video viết tay có giọng đọc và phụ đề, dựng từ nội dung bài |
+| [Soạn văn bản hành chính](docs/vi/van-ban-hanh-chinh.md) | Công văn, tờ trình, quyết định… ra Word đúng thể thức Nghị định 30 |
 
 Tài liệu gốc (tiếng Anh) của dự án nằm trong [docs/](docs/).
 
@@ -70,4 +72,5 @@ Tài liệu gốc (tiếng Anh) của dự án nằm trong [docs/](docs/).
 
 - Lõi PPT Master: © 2025-2026 Hugo He, giấy phép MIT — [LICENSE](LICENSE). Nhà tài trợ của dự án gốc: [SPONSORS.md](skills/ppt-master/SPONSORS.md).
 - Phần Việt hoá và đóng gói: Lương Hải Anh — 2Anh AI Education, giấy phép MIT. Chi tiết: [NOTICE](NOTICE).
+- ND30 — © 2026 Nguyễn Minh Phát, MIT (tools/vi/nd30): bộ sinh và bộ kiểm văn bản hành chính theo Nghị định 30, nhúng nguyên trạng từ https://github.com/kanazawahere/nd30. Giấy phép: [tools/vi/nd30/LICENSE](tools/vi/nd30/LICENSE); nguồn và SHA-256: [tools/vi/nd30/NGUON.md](tools/vi/nd30/NGUON.md).
 - Bộ ví dụ của dự án gốc: https://github.com/hugohe3/ppt-master-examples

@@ -173,7 +173,7 @@ class EditorWiringTest(unittest.TestCase):
 
     def test_antigravity_rule_task_table_matches_common_rules(self):
         common = task_table_rows(read("docs/vi/tro-ly/quy-trinh-hoi.md"))
-        self.assertEqual(len(common), 10)
+        self.assertEqual(len(common), 11)
         self.assertEqual(task_table_rows(read(".agents/rules/ppt-master-vi.md")), common)
 
     def test_rule_files_tracked_by_git(self):
@@ -210,6 +210,7 @@ REQUIRED_DOCS = (
     "soan-de-tieng-anh.md",
     "soan-giao-an.md",
     "thi-nghiem-ao.md",
+    "van-ban-hanh-chinh.md",
 )
 
 
@@ -498,14 +499,15 @@ AGENTS_VI_ASSISTANT_HEADING = "## 10. Hỗ trợ thầy cô trước khi làm b�
 
 
 class TeacherAssistantWiringTest(unittest.TestCase):
-    def test_agents_vi_keeps_the_six_task_sections_last_in_order(self):
+    def test_agents_vi_keeps_the_seven_task_sections_last_in_order(self):
         headings = h2_headings(read("AGENTS.vi.md"))
-        self.assertEqual(headings[-6], AGENTS_VI_ASSISTANT_HEADING)
-        self.assertEqual(headings[-5], AGENTS_VI_VIDEO_HEADING)
-        self.assertEqual(headings[-4], AGENTS_VI_EXAM_HEADING)
-        self.assertEqual(headings[-3], AGENTS_VI_LESSON_HEADING)
-        self.assertEqual(headings[-2], AGENTS_VI_EXPERIMENT_HEADING)
-        self.assertEqual(headings[-1], AGENTS_VI_EXPLAINER_HEADING)
+        self.assertEqual(headings[-7], AGENTS_VI_ASSISTANT_HEADING)
+        self.assertEqual(headings[-6], AGENTS_VI_VIDEO_HEADING)
+        self.assertEqual(headings[-5], AGENTS_VI_EXAM_HEADING)
+        self.assertEqual(headings[-4], AGENTS_VI_LESSON_HEADING)
+        self.assertEqual(headings[-3], AGENTS_VI_EXPERIMENT_HEADING)
+        self.assertEqual(headings[-2], AGENTS_VI_EXPLAINER_HEADING)
+        self.assertEqual(headings[-1], AGENTS_VI_ADMIN_HEADING)
 
     def test_assistant_section_links_common_rules_and_all_guides(self):
         body = section(read("AGENTS.vi.md"), AGENTS_VI_ASSISTANT_HEADING)
@@ -654,7 +656,7 @@ class SelfInstallGuideTest(unittest.TestCase):
         body = section(text, AGENTS_VI_ENV_HEADING)
         for phrase in ("(docs/vi/cai-dat-bang-ai.md)", "doctor.py --no-smoke --json", "trước lệnh Python đầu tiên của repo", "KIEM-TRA.bat", "Công cụ tuỳ chọn"):
             self.assertIn(phrase, body)
-        self.assertEqual(h2_headings(text)[-6], AGENTS_VI_ASSISTANT_HEADING)
+        self.assertEqual(h2_headings(text)[-7], AGENTS_VI_ASSISTANT_HEADING)
 
     def test_agents_vi_environment_section_checks_before_intake_and_has_safety_net(self):
         body = section(read("AGENTS.vi.md"), AGENTS_VI_ENV_HEADING)
@@ -775,12 +777,12 @@ class VideoGuideTest(unittest.TestCase):
 
     def test_task_type_count_matches_the_table(self):
         agents_vi_body = section(read("AGENTS.vi.md"), AGENTS_VI_ASSISTANT_HEADING)
-        self.assertIn("10 loại", agents_vi_body)
-        for stale in ("5 loại", "6 loại", "7 loại", "8 loại", "9 loại"):
+        self.assertIn("11 loại", agents_vi_body)
+        for stale in ("5 loại", "6 loại", "7 loại", "8 loại", "9 loại", "10 loại"):
             self.assertNotIn(stale, agents_vi_body)
         quy_trinh_body = section(read("docs/vi/tro-ly/quy-trinh-hoi.md"), "## Khi nào áp dụng")
-        self.assertIn("10 loại", quy_trinh_body)
-        for stale in ("5 loại", "6 loại", "7 loại", "8 loại", "9 loại"):
+        self.assertIn("11 loại", quy_trinh_body)
+        for stale in ("5 loại", "6 loại", "7 loại", "8 loại", "9 loại", "10 loại"):
             self.assertNotIn(stale, quy_trinh_body)
 
 
@@ -1510,7 +1512,7 @@ class ExperimentWiringTest(unittest.TestCase):
 
     def test_antigravity_rule_carries_the_experiment_rules(self):
         rule = read(".agents/rules/ppt-master-vi.md")
-        for phrase in ("## Thí nghiệm ảo", "docs/vi/tro-ly/thi-nghiem-ao.md", r"tools\vi\thi_nghiem.py", "10 loại việc",
+        for phrase in ("## Thí nghiệm ảo", "docs/vi/tro-ly/thi-nghiem-ao.md", r"tools\vi\thi_nghiem.py", "11 loại việc",
                        "Không viết file HTML bằng tay", "can-soat.md"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, rule)
@@ -1742,9 +1744,9 @@ class ExplainerVideoGuideTest(unittest.TestCase):
         for name in (EXPLAINER_GUIDE, SCENE_GUIDE):
             self.assertEqual(LINK_RE.findall(read(name)), [], name)
 
-    def test_agents_vi_section_15_is_last_and_routes_the_word_video(self):
+    def test_agents_vi_section_15_comes_before_16_and_routes_the_word_video(self):
         headings = h2_headings(read("AGENTS.vi.md"))
-        self.assertEqual(headings[-1], AGENTS_VI_EXPLAINER_HEADING)
+        self.assertEqual(headings[-2], AGENTS_VI_EXPLAINER_HEADING)
         body = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
         for phrase in (f"({EXPLAINER_GUIDE})", f"({SCENE_GUIDE})", EXPLAINER_COMMAND, "--plan-only", "--xem-truoc",
                        "`ready`", "error.step", "Không chạy `project_manager.py init`", "không tạo SVG", "không chạm `skills/`",
@@ -1760,7 +1762,7 @@ class ExplainerVideoGuideTest(unittest.TestCase):
     def test_rule_file_carries_the_gate_inline_and_stays_under_the_cap(self):
         rule = read(".agents/rules/ppt-master-vi.md")
         self.assertLess(len(rule), 12000)
-        for phrase in ("10 loại", "Video giải thích", "video_ma.py", "Thầy cô muốn làm video từ bài giảng slide đã có"):
+        for phrase in ("11 loại", "Video giải thích", "video_ma.py", "Thầy cô muốn làm video từ bài giảng slide đã có"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, rule)
 
@@ -2067,6 +2069,224 @@ class ExplainerVi12DocsTest(unittest.TestCase):
         for phrase in ("Be Vietnam Pro", "Itim", "OFL", "cmap", "SHA-256"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, bao_tri)
+
+
+AGENTS_VI_ADMIN_HEADING = "## 16. Soạn văn bản hành chính theo Nghị định 30"
+ADMIN_GUIDE = "docs/vi/tro-ly/van-ban-hanh-chinh.md"
+ADMIN_TEACHER_DOC = "docs/vi/van-ban-hanh-chinh.md"
+ADMIN_COMMAND = r"python tools\vi\van_ban.py"
+ADMIN_TASK = "Soạn văn bản hành chính (Nghị định 30)"
+ADMIN_ROUTING_QUESTION = "Thầy cô cần văn bản Word đúng thể thức Nghị định 30, hay slide trình chiếu?"
+ADMIN_TRIGGERS = ("công văn", "tờ trình", "quyết định", "thông báo", "giấy mời", "biên bản",
+                  "văn bản hành chính", "Nghị định 30", "ND30", "đúng thể thức")
+ADMIN_GUIDE_HEADINGS = (
+    "## Khi nào dùng",
+    "## Câu hỏi bắt buộc",
+    "## Luật không bịa",
+    "## Chọn loại văn bản",
+    "## Viết noi-dung.json",
+    "## Chạy lệnh và đọc kết quả",
+    "## Điều cấm",
+    "## Ghi vào brief",
+)
+
+
+def _van_ban_steps() -> set:
+    """Tập `error.step` của van_ban.py, đọc thẳng từ hằng ERROR_STEPS trong mã."""
+    source = (REPO_ROOT / "tools" / "vi" / "van_ban.py").read_text(encoding="utf-8")
+    block = re.search(r"^ERROR_STEPS = \(([^)]*)\)", source, re.M)
+    if block is None:
+        raise AssertionError("van_ban.py thiếu hằng ERROR_STEPS")
+    return set(re.findall(r'"([a-z-]+)"', block.group(1)))
+
+
+def _step_rows(body: str) -> set:
+    return set(re.findall(r"^\| `([a-z-]+)` \|", body, re.M))
+
+
+class AdminDocGuideTest(unittest.TestCase):
+    def test_guide_has_its_own_sections_in_order(self):
+        self.assertEqual(h2_headings(read(ADMIN_GUIDE)), list(ADMIN_GUIDE_HEADINGS))
+
+    def test_guide_is_not_treated_as_a_slide_guide(self):
+        self.assertNotIn("van-ban-hanh-chinh.md", GUIDE_FILES)
+
+    def test_guide_asks_exactly_seven_questions_with_suggestions(self):
+        items = numbered_items(section(read(ADMIN_GUIDE), "## Câu hỏi bắt buộc"))
+        self.assertEqual(len(items), 7)
+        for item in items:
+            self.assertIn("Gợi ý:", item)
+        joined = "\n".join(items)
+        for phrase in ("Loại văn bản", "Gửi ai", "nơi nhận", "Nội dung chính", "số liệu", "Người ký",
+                       "chức vụ", "Số và ký hiệu", "Ngày ban hành", "Căn cứ pháp lý", "Cơ quan chủ quản"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, joined)
+
+    def test_guide_states_the_no_invention_rule(self):
+        body = section(read(ADMIN_GUIDE), "## Luật không bịa")
+        for phrase in ("[CẦN BỔ SUNG:", "???", "`ban_nhap`", "bản nháp", "số tiền", "người ký", "căn cứ",
+                       "không tự điền", "ngay", "thang", "nam", "văn thư"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_guide_routes_document_types_and_limits_scope(self):
+        body = section(read(ADMIN_GUIDE), "## Chọn loại văn bản")
+        for phrase in ("tools/vi/nd30/references/danh-muc-loai-vb.md", "the-thuc-qppl-nq-hdnd.md",
+                       "the-thuc-qppl-qd-ubnd.md", "HĐND", "UBND", "Đảng", "Đoàn", "không hỗ trợ",
+                       "tools/vi/nd30/examples/"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+        self.assertIn(ADMIN_ROUTING_QUESTION, read(ADMIN_GUIDE))
+
+    def test_guide_explains_how_to_write_the_source(self):
+        body = section(read(ADMIN_GUIDE), "## Viết noi-dung.json")
+        for phrase in ("tools/vi/nd30/schemas/nd30-input.schema.json", "tools/vi/nd30/examples/",
+                       "tools/vi/nd30/references/interview-questions.md", "italic_paragraph", "projects/_van-ban/",
+                       "is_cong_van", "ten_loai_in_hoa", "kinh_gui", "noi_nhan_items", "quyen_han", "can_cu"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_guide_example_passes_the_real_tool_as_a_draft(self):
+        """Ví dụ trong hướng dẫn phải chạy được bằng chính van_ban.py và ra bản nháp đúng số ô."""
+        import van_ban
+
+        body = section(read(ADMIN_GUIDE), "## Viết noi-dung.json")
+        blocks = re.findall(r"```json\n(.*?)```", body, re.S)
+        self.assertEqual(len(blocks), 1)
+        spec = json.loads(blocks[0])
+        van_ban.check_spec(spec)
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp) / "Công văn mẫu"
+            folder.mkdir()
+            (folder / "noi-dung.json").write_text(blocks[0], encoding="utf-8")
+            from contextlib import redirect_stdout, redirect_stderr
+            import io
+            out = io.StringIO()
+            with redirect_stdout(out), redirect_stderr(io.StringIO()):
+                code = van_ban.main([str(folder)])
+            payload = json.loads(out.getvalue())
+        self.assertEqual(code, 0, payload)
+        self.assertTrue(payload["ready"])
+        self.assertTrue(payload["ban_nhap"])
+        self.assertEqual(payload["so_o_can_bo_sung"], blocks[0].count("[CẦN BỔ SUNG"))
+        self.assertEqual(payload["loai_van_ban"], "Công văn")
+
+    def test_guide_error_table_matches_the_tool(self):
+        steps = _van_ban_steps()
+        self.assertEqual(steps, {"input", "json", "the-thuc", "docx", "write", "internal"})
+        body = section(read(ADMIN_GUIDE), "## Chạy lệnh và đọc kết quả")
+        self.assertEqual(_step_rows(body), steps)
+        for phrase in (ADMIN_COMMAND, "--nhap", "`ready`", "`ban_nhap`", "`so_o_can_bo_sung`", "`warnings`",
+                       "`kiem_tra`", "van-ban.docx", "kiem-tra.md", "B7", "B3", "bình thường", "requirements-vi.txt",
+                       "đóng dấu"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_guide_bans(self):
+        body = section(read(ADMIN_GUIDE), "## Điều cấm")
+        for phrase in ("project_manager.py init", "SVG", "`skills/`", "`tools/vi/nd30/`",
+                       "không commit gì trong `projects/`", "số tiền"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_guide_skips_the_pptx_only_steps(self):
+        body = section(read(ADMIN_GUIDE), "## Ghi vào brief")
+        for phrase in ("projects/_van-ban/", "brief.md", "import-sources", "dòng chốt", ADMIN_TASK):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_guides_have_no_markdown_links_and_no_author_only_tools(self):
+        for name in (ADMIN_GUIDE, ADMIN_TEACHER_DOC):
+            text = read(name)
+            if name == ADMIN_GUIDE:
+                self.assertEqual(LINK_RE.findall(text), [], name)
+            for phrase in ("/biensoan", "/atp-deliver", "Spark"):
+                with self.subTest(file=name, phrase=phrase):
+                    self.assertNotIn(phrase, text)
+
+
+class AdminDocWiringTest(unittest.TestCase):
+    def test_task_row_is_the_same_in_the_three_tables(self):
+        common = task_table_rows(read("docs/vi/tro-ly/quy-trinh-hoi.md"))
+        rows = [r for r in common if r[2] == "van-ban-hanh-chinh.md"]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][0], ADMIN_TASK)
+        for phrase in ADMIN_TRIGGERS:
+            with self.subTest(phrase=phrase):
+                self.assertIn(f'"{phrase}"', rows[0][1])
+        self.assertEqual(task_table_rows(read(".agents/rules/ppt-master-vi.md")), common)
+        assistant = section(read("AGENTS.vi.md"), AGENTS_VI_ASSISTANT_HEADING)
+        names = re.findall(r"^\| ([^|]+?) \| \[docs/vi/tro-ly/", assistant, re.M)
+        self.assertEqual(names, [row[0] for row in common])
+
+    def test_common_rules_ask_the_report_question_and_skip_pptx_steps(self):
+        body = section(read("docs/vi/tro-ly/quy-trinh-hoi.md"), "## Khi nào áp dụng")
+        for phrase in (ADMIN_ROUTING_QUESTION, '"báo cáo"', '"kế hoạch"', "van-ban-hanh-chinh.md",
+                       f'Loại việc "{ADMIN_TASK}" không tạo PPTX'):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+        self.assertIn("Soạn văn bản hành chính", section(read("docs/vi/tro-ly/quy-trinh-hoi.md"), "## Ảnh minh hoạ"))
+
+    def test_agents_vi_triggers_and_section_10(self):
+        text = read("AGENTS.vi.md")
+        triggers = section(text, "## 3. Câu lệnh tiếng Việt kích hoạt skill `ppt-master`")
+        for phrase in ADMIN_TRIGGERS:
+            with self.subTest(phrase=phrase):
+                self.assertIn(f'"{phrase}"', triggers)
+        assistant = section(text, AGENTS_VI_ASSISTANT_HEADING)
+        for phrase in (f"({ADMIN_GUIDE})", "mục 16", "năm loại việc đó không có bước xác nhận của upstream"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, assistant)
+        self.assertNotIn("bốn loại việc đó", assistant)
+
+    def test_agents_vi_section_16_follows_the_pattern(self):
+        body = section(read("AGENTS.vi.md"), AGENTS_VI_ADMIN_HEADING)
+        for phrase in (f"({ADMIN_GUIDE})", ADMIN_COMMAND, ADMIN_ROUTING_QUESTION, "projects/_van-ban/", "noi-dung.json",
+                       "hỏi một lượt", "mục 4", "requirements-vi.txt", "`ready`", "`ban_nhap`", "B7",
+                       "project_manager.py init", "không tạo SVG", "không chạm `skills/`",
+                       "không sửa file trong `tools/vi/nd30/`", "không commit gì trong `projects/`", "số tiền"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+        self.assertEqual(_step_rows(body), _van_ban_steps())
+        self.assertTrue(re.search(r"^1\. ", body, re.M))
+
+    def test_antigravity_rule_carries_the_admin_rules(self):
+        rule = read(".agents/rules/ppt-master-vi.md")
+        self.assertLess(len(rule), ANTIGRAVITY_RULE_LIMIT)
+        for phrase in ("11 loại", r"tools\vi\van_ban.py", ADMIN_ROUTING_QUESTION, "`tools/vi/nd30/`", "[CẦN BỔ SUNG",
+                       ADMIN_GUIDE):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, rule)
+
+    def test_profile_template_has_the_admin_fields(self):
+        text = read("docs/vi/tro-ly/mau-ho-so-don-vi.md")
+        for field in ("- Cơ quan chủ quản:", "- Địa danh:", "- Ký hiệu viết tắt của đơn vị:"):
+            self.assertIn(field, text)
+
+    def test_brief_template_lists_the_task(self):
+        self.assertIn(ADMIN_TASK, read("docs/vi/tro-ly/mau-brief.md"))
+
+    def test_teacher_doc_and_readme(self):
+        text = read(ADMIN_TEACHER_DOC)
+        for phrase in ("[CẦN BỔ SUNG", "bản nháp", "đóng dấu", "văn thư", "van-ban.docx", "kiem-tra.md", "slide",
+                       "Đảng", "Đoàn"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
+        readme = read("README.md")
+        credit = section(readme, "## Giấy phép & Ghi công")
+        for phrase in ("ND30", "Nguyễn Minh Phát", "MIT", "tools/vi/nd30"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, credit)
+        self.assertIn(f"({ADMIN_TEACHER_DOC})", section(readme, "## Tài liệu"))
+        quick = read("docs/vi/bat-dau-nhanh.md")
+        self.assertNotIn("10 loại", quick)
+        self.assertIn("(van-ban-hanh-chinh.md)", quick)
+
+    def test_changelog_has_an_unreleased_entry(self):
+        body = section(read("CHANGELOG-VI.md"), "## Chưa phát hành")
+        for phrase in ("van_ban.py", "Nghị định 30", "Nguyễn Minh Phát", "bản nháp"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,13 @@
 # Nhật ký thay đổi — Bản Việt
 
+## Chưa phát hành
+
+### Thêm
+- Loại việc thứ 11 "Soạn văn bản hành chính (Nghị định 30)": AI hỏi một lượt 7 câu, viết `noi-dung.json`, rồi `tools/vi/van_ban.py` dựng `van-ban.docx` đúng thể thức Nghị định 30/2020/NĐ-CP và chạy bộ kiểm thể thức, ghi `kiem-tra.md`. Bộ sinh và bộ kiểm là ND30 (© 2026 Nguyễn Minh Phát, MIT) nhúng nguyên trạng ở `tools/vi/nd30/`, có kiểm SHA-256. Làm được cả văn bản quy phạm của HĐND, UBND; văn bản Đảng và văn bản Đoàn không hỗ trợ.
+- Không bịa: số, ký hiệu, ngày ban hành, người ký, căn cứ, số tiền chưa có thì để `[CẦN BỔ SUNG: …]`; còn ô nào thì file là bản nháp, được giao kèm danh sách từng ô cần điền. Lỗi thể thức nặng thì không giao file Word.
+- Chữ "báo cáo" hoặc "kế hoạch" một mình: AI hỏi một câu Word đúng thể thức hay slide. Hồ sơ đơn vị có thêm ba mục tuỳ chọn: cơ quan chủ quản, địa danh, ký hiệu viết tắt của đơn vị.
+- Hướng dẫn cho AI `docs/vi/tro-ly/van-ban-hanh-chinh.md`, mục 16 của `AGENTS.vi.md`, luật Antigravity, và tài liệu cho thầy cô `docs/vi/van-ban-hanh-chinh.md`.
+
 ## 6.3.2-vi.12 — 2026-09-29
 
 Video giải thích kiểu kể chuyện, cắt dán và khổ dọc Full HD, học từ bốn video mẫu: cảnh kể chuyện có nền tranh và nhân vật dẫn chuyện, phong cách giấy cắt dán kiểu Vox, thẻ thông tin và dòng tài liệu, khung loạt bài, khổ 9:16 1080×1920 cho TikTok và Reels. Hình ảnh do AI của chính nền tảng vẽ (Antigravity, Codex); Claude Code dùng tám nền mẫu và người que vẽ bằng mã. Kèm hai việc thầy cô hay gặp ở slide: câu hỏi mật độ chữ, và "làm đẹp mà ít chữ hơn" nay tạo mới từ file thay vì giữ nguyên văn.

@@ -7,7 +7,7 @@ File dành cho AI. Nó bổ sung ngữ cảnh cho quy trình tạo PPTX trong `s
 Áp dụng khi cả ba điều kiện đều đúng:
 
 1. Người dùng viết tiếng Việt.
-2. Yêu cầu thuộc một trong 10 loại việc dưới đây: câu lệnh có dấu hiệu trong bảng hoặc nói rõ loại việc.
+2. Yêu cầu thuộc một trong 11 loại việc dưới đây: câu lệnh có dấu hiệu trong bảng hoặc nói rõ loại việc.
 3. Bối cảnh là trường học hoặc Đoàn (ví dụ lớp, môn học, tổ chuyên môn, học sinh, phụ huynh, giáo viên, đoàn viên).
 
 | Loại việc | Dấu hiệu nhận biết | File hướng dẫn |
@@ -22,14 +22,17 @@ File dành cho AI. Nó bổ sung ngữ cảnh cho quy trình tạo PPTX trong `s
 | Soạn giáo án tích hợp năng lực số và AI | "kế hoạch bài dạy", "KHBD", "giáo án Word", "giáo án 5512" | [giao-an.md](giao-an.md) |
 | Thí nghiệm ảo | "thí nghiệm ảo", "mô phỏng thí nghiệm", "mô phỏng tương tác" | [thi-nghiem-ao.md](thi-nghiem-ao.md) |
 | Video giải thích dựng bằng mã | "video giải thích", "video viết tay", "video whiteboard", "video hoạt hình chữ", "video kể chuyện", "video dọc", "video cắt dán" | [video-giai-thich.md](video-giai-thich.md) |
+| Soạn văn bản hành chính (Nghị định 30) | "công văn", "tờ trình", "quyết định", "thông báo", "giấy mời", "biên bản", "văn bản hành chính", "Nghị định 30", "ND30", "đúng thể thức" | [van-ban-hanh-chinh.md](van-ban-hanh-chinh.md) |
 
 - Chữ "làm video" hoặc "xuất video" một mình là ca mơ hồ thứ hai: nó có thể là video từ bài giảng slide, cũng có thể là video giải thích mới. Hỏi đúng một câu trước khi làm gì khác: "Thầy cô muốn làm video từ bài giảng slide đã có, hay dựng video giải thích mới từ nội dung chữ?" Trả lời slide thì dùng video-bai-giang.md; trả lời video mới thì dùng video-giai-thich.md. Câu lệnh có "video bài giảng" hoặc "lồng tiếng" là dòng Video bài giảng; có một cụm của dòng Video giải thích là loại việc đó, không hỏi câu này.
 - Chữ "giáo án" một mình là ca mơ hồ đã biết: nó có thể là file Word kế hoạch bài dạy, cũng có thể là slide. Hỏi đúng một câu trước khi làm gì khác: "Thầy cô cần file Word kế hoạch bài dạy (giáo án 5512), hay slide trình chiếu cho bài này?" Trả lời Word thì dùng giao-an.md; trả lời slide thì dùng bai-giang.md. Câu lệnh có "kế hoạch bài dạy", "KHBD", "giáo án Word" hoặc "giáo án 5512" là rõ ràng: dùng giao-an.md và không hỏi câu này, dù cụm đó chứa chữ "bài dạy" hay "giáo án" của dòng Bài giảng.
+- Chữ "báo cáo" hoặc "kế hoạch" một mình là ca mơ hồ thứ ba: nó có thể là văn bản Word đúng thể thức, cũng có thể là slide. Hỏi đúng một câu trước khi làm gì khác: "Thầy cô cần văn bản Word đúng thể thức Nghị định 30, hay slide trình chiếu?" Trả lời Word thì dùng van-ban-hanh-chinh.md; trả lời slide thì dùng bao-cao-tong-ket.md (báo cáo) hoặc loại việc slide gần nhất (kế hoạch). Câu lệnh có kèm "công văn", "văn bản", "Word", "đúng thể thức", "Nghị định 30" hoặc "ND30" là văn bản; có kèm "slide", "trình chiếu" hoặc "bài thuyết trình" là slide; "kế hoạch bài dạy", "KHBD" là giáo án. Ba trường hợp đó rõ ràng, không hỏi câu này.
 - Chỉ xếp vào một loại khi câu lệnh có dấu hiệu trong bảng hoặc nói rõ loại việc. Bối cảnh trường học hay Đoàn một mình không đủ để xếp loại (ví dụ giới thiệu trường, giới thiệu một phòng chức năng): coi là yêu cầu không thuộc loại nào. Chữ "Đoàn" hay "chi đoàn" chỉ là dấu hiệu khi đi kèm một hoạt động (chương trình, cuộc thi, sự kiện, lễ kỷ niệm, trao giải).
 - Loại việc "Soạn đề KHTN tiếng Anh" không tạo PPTX; nó ghi brief như các loại khác nhưng không đi vào quy trình của upstream. Các bước dành riêng cho PPTX ở trên (dòng chốt cách xác nhận cuối tin nhắn hỏi, đặt tên brief theo dự án PPTX rồi import vào dự án, `project_manager.py import-sources`, bước xác nhận của upstream, `quick-generate.md`) không áp dụng cho loại việc này; làm theo docs/vi/tro-ly/de-khtn-tieng-anh.md.
 - Loại việc "Soạn giáo án tích hợp năng lực số và AI" không tạo PPTX; nó ghi brief như các loại khác nhưng không đi vào quy trình của upstream. Các bước chỉ dành cho PPTX (dòng chốt cách xác nhận cuối tin nhắn hỏi, `import-sources`, bước xác nhận của upstream, `quick-generate.md`) không áp dụng; làm theo mục "Ghi vào brief" của docs/vi/tro-ly/giao-an.md.
 - Loại việc "Thí nghiệm ảo" không tạo PPTX; nó ghi brief như các loại khác nhưng không đi vào quy trình của upstream. Các bước chỉ dành cho PPTX (dòng chốt cách xác nhận cuối tin nhắn hỏi, `import-sources`, bước xác nhận của upstream, `quick-generate.md`) và mục "Ảnh minh hoạ" không áp dụng; làm theo mục "Ghi vào brief" của docs/vi/tro-ly/thi-nghiem-ao.md.
 - Loại việc "Video giải thích dựng bằng mã" không tạo PPTX; nó ghi brief như các loại khác nhưng không đi vào quy trình của upstream. `import-sources`, bước xác nhận của upstream, `quick-generate.md` và mục "Ảnh minh hoạ" không áp dụng; dòng chốt cách xác nhận vẫn giữ nhưng luôn ở dạng khung chat, để thầy cô duyệt danh sách cảnh trước khi dựng. Làm theo mục "Ghi vào brief" của docs/vi/tro-ly/video-giai-thich.md.
+- Loại việc "Soạn văn bản hành chính (Nghị định 30)" không tạo PPTX; nó ghi brief như các loại khác nhưng không đi vào quy trình của upstream. Các bước chỉ dành cho PPTX (dòng chốt cách xác nhận cuối tin nhắn hỏi, `import-sources`, bước xác nhận của upstream, `quick-generate.md`) và mục "Ảnh minh hoạ" không áp dụng; làm theo mục "Ghi vào brief" của docs/vi/tro-ly/van-ban-hanh-chinh.md. Văn bản Đảng và văn bản Đoàn không thuộc loại việc này.
 - Yêu cầu không thuộc loại nào, hoặc có từ khoá nhưng không phải bối cảnh trường học hay Đoàn (ví dụ báo cáo doanh thu của công ty, giới thiệu sản phẩm): không dùng phần nào của file này (không tìm hay nhắc tới hồ sơ đơn vị, không viết brief, không dùng dạng câu hỏi kèm "Gợi ý:" hay dòng chốt cách xác nhận), làm theo `SKILL.md` như bình thường.
 - Có dấu hiệu nhưng không rõ thuộc loại nào, hoặc thuộc hai loại: hỏi đúng một câu hỏi chọn loại việc (không phải chọn quy trình của upstream), kèm gợi ý loại gần nhất.
 - Người dùng viết tiếng Anh hoặc ngôn ngữ khác: không dùng bộ câu hỏi này.
@@ -43,7 +46,7 @@ File dành cho AI. Nó bổ sung ngữ cảnh cho quy trình tạo PPTX trong `s
 ## Hồ sơ đơn vị
 
 - Hồ sơ lưu ở `projects/_ho-so-don-vi.md`, theo mẫu [mau-ho-so-don-vi.md](mau-ho-so-don-vi.md). Thư mục `projects/` không được đưa lên GitHub.
-- Chưa có hồ sơ, hoặc hồ sơ thiếu mục: hỏi các mục còn thiếu trong cùng tin nhắn với câu hỏi của loại việc.
+- Chưa có hồ sơ, hoặc hồ sơ thiếu mục: hỏi các mục còn thiếu trong cùng tin nhắn với câu hỏi của loại việc. Ba mục tuỳ chọn "Cơ quan chủ quản", "Địa danh", "Ký hiệu viết tắt của đơn vị" chỉ hỏi khi soạn văn bản hành chính (trong câu hỏi 1 của van-ban-hanh-chinh.md).
 - Khi hỏi hồ sơ, không gợi ý sẵn tên đơn vị, họ tên người trình bày hay logo: để trống cho thầy cô điền. Không lấy các tên này từ README, NOTICE, bộ nhớ của AI hay dự án khác. Chỉ gợi ý cấp học khi suy ra được từ câu lệnh (ví dụ lớp 10 → THPT) và gợi ý một màu chủ đạo. Trả lời "đồng ý" không điền được mục chưa có gợi ý; mục nào thầy cô chưa cho biết thì để trống, không tự điền.
 - Không hỏi riêng mục "Cách xác nhận"; ghi mục này theo câu trả lời của thầy cô cho dòng chốt cách xác nhận (xem mục "Cách hỏi").
 - Đã có hồ sơ: mở đầu lượt hỏi bằng dòng "Hồ sơ hiện tại: <Đơn vị> — <Người trình bày>. Dùng tiếp?". Luôn có dòng này, vì nhiều thầy cô có thể dùng chung một máy.
@@ -72,7 +75,7 @@ File dành cho AI. Nó bổ sung ngữ cảnh cho quy trình tạo PPTX trong `s
 
 Mục này làm rõ, bằng ví dụ ở trường học, các quy tắc ảnh sẵn có của upstream (`skills/ppt-master/references/plan-core.md` mục 5); upstream vẫn là nơi quyết định.
 
-Áp dụng khi tạo bài mới cho 5 loại việc tạo PPTX: Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Poster/ấn phẩm Zalo – Facebook, Tập huấn/workshop; cả khi tạo nhanh. Không áp dụng cho làm đẹp slide có sẵn (Beautify), sửa PPTX có sẵn, tạo template, dựng lại từ ảnh chụp slide, Soạn đề KHTN tiếng Anh, Soạn giáo án, Thí nghiệm ảo, Video bài giảng và Video giải thích.
+Áp dụng khi tạo bài mới cho 5 loại việc tạo PPTX: Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Poster/ấn phẩm Zalo – Facebook, Tập huấn/workshop; cả khi tạo nhanh. Không áp dụng cho làm đẹp slide có sẵn (Beautify), sửa PPTX có sẵn, tạo template, dựng lại từ ảnh chụp slide, Soạn đề KHTN tiếng Anh, Soạn giáo án, Thí nghiệm ảo, Video bài giảng, Video giải thích và Soạn văn bản hành chính.
 
 - Thầy cô không dặn "không dùng ảnh" thì không làm bài toàn chữ; biểu đồ và bảng số liệu cũng tính. Không chèn ảnh trang trí chỉ để trang nào cũng có ảnh.
 - Khi lên danh sách trang, chọn nguồn ảnh cho từng trang:

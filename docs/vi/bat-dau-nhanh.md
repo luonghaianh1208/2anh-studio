@@ -44,7 +44,7 @@ Với bài giảng, báo cáo – tổng kết, hoạt động Đoàn – sự k
 - **Sau đó**, AI tóm tắt đề xuất trong khung chat để thầy cô duyệt lần cuối, rồi mới dựng slide.
 - **Việc khác** (ví dụ giới thiệu sản phẩm), AI xác nhận lại đối tượng người xem, số trang, phong cách và mẫu thiết kế như trước.
 
-Với 10 loại việc trên, muốn AI làm luôn, thêm chữ "tạo nhanh" vào câu lệnh: AI chỉ hỏi 2–3 câu thật cần thiết. Không muốn trả lời câu nào, thêm "không cần hỏi lại": AI không hỏi gì, tự đề xuất các phần còn thiếu rồi làm luôn.
+Với 11 loại việc trên, muốn AI làm luôn, thêm chữ "tạo nhanh" vào câu lệnh: AI chỉ hỏi 2–3 câu thật cần thiết. Không muốn trả lời câu nào, thêm "không cần hỏi lại": AI không hỏi gì, tự đề xuất các phần còn thiếu rồi làm luôn.
 
 ## Làm video bài giảng
 
@@ -65,6 +65,10 @@ Cần một mô phỏng để học sinh đổi tham số, đo và vẽ đồ th
 ## Làm video giải thích
 
 Cần một video ngắn giải thích bài học bằng chữ và hình viết dần ra, kèm giọng đọc và phụ đề, nhắn `Làm video giải thích bài Con lắc đơn bằng kiểu viết tay`. Thầy cô chỉ cần đưa nội dung hoặc dàn ý bài; AI hỏi vài câu, chia bài thành cảnh rồi dựng thành file `video.mp4`. Nói "làm video" không rõ loại thì AI hỏi lại: video từ slide có sẵn hay video giải thích mới. Chi tiết trong [Làm video giải thích](video-giai-thich.md).
+
+## Soạn văn bản hành chính
+
+Cần công văn, tờ trình, quyết định, thông báo, giấy mời hay biên bản đúng thể thức Nghị định 30, nhắn `Soạn công văn cử giáo viên đi tập huấn ứng dụng AI`. AI hỏi tối đa 7 câu rồi xuất file Word; thông tin chưa có (số văn bản, người ký, số tiền…) để ô cần bổ sung thay vì tự điền. Nói chỉ "báo cáo" hay "kế hoạch" thì AI hỏi lại Word hay slide. Chi tiết trong [Soạn văn bản hành chính](van-ban-hanh-chinh.md).
 
 ## Lấy file kết quả
 

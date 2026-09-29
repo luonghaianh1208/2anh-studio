@@ -10,7 +10,7 @@ Antigravity không chép nội dung các file nhắc bằng `@` vào luật, nê
 
 ## Hỏi thầy cô trước khi làm
 
-Người dùng viết tiếng Việt, bối cảnh là trường học hoặc Đoàn, và yêu cầu thuộc một trong 10 loại việc ở bảng dưới: trước mọi lệnh của quy trình tạo bài, làm đúng ba bước.
+Người dùng viết tiếng Việt, bối cảnh là trường học hoặc Đoàn, và yêu cầu thuộc một trong 11 loại việc ở bảng dưới: trước mọi lệnh của quy trình tạo bài, làm đúng ba bước.
 
 1. Đọc `docs/vi/tro-ly/quy-trinh-hoi.md`, rồi đọc file hướng dẫn của loại việc.
 2. Gửi thầy cô một tin nhắn hỏi theo hai file đó.
@@ -22,7 +22,8 @@ Người dùng viết tiếng Việt, bối cảnh là trường học hoặc Đ
 - Trước khi gửi tin nhắn hỏi, chạy kiểm tra máy theo `AGENTS.vi.md` mục 9 (`tools/vi/doctor.py --no-smoke --json`) và thêm dòng báo máy chưa cài xong nếu cần.
 - Chữ "giáo án" một mình: hỏi đúng một câu "Thầy cô cần file Word kế hoạch bài dạy (giáo án 5512), hay slide trình chiếu cho bài này?" trước khi làm gì khác.
 - Chữ "làm video" hoặc "xuất video" một mình: hỏi đúng một câu "Thầy cô muốn làm video từ bài giảng slide đã có, hay dựng video giải thích mới từ nội dung chữ?" trước khi làm gì khác. Trả lời slide thì theo `docs/vi/tro-ly/video-bai-giang.md`; trả lời video mới thì theo `docs/vi/tro-ly/video-giai-thich.md`.
-- Soạn đề KHTN tiếng Anh và soạn giáo án có tài liệu thầy cô gửi: đọc tài liệu đó trước, rồi mới hỏi (xem `AGENTS.vi.md` mục 12 và 13).
+- Chữ "báo cáo" hoặc "kế hoạch" một mình: hỏi đúng một câu "Thầy cô cần văn bản Word đúng thể thức Nghị định 30, hay slide trình chiếu?" trước khi làm gì khác. Trả lời Word thì theo `docs/vi/tro-ly/van-ban-hanh-chinh.md`.
+- Soạn đề KHTN tiếng Anh, soạn giáo án, văn bản hành chính có tài liệu thầy cô gửi: đọc tài liệu đó trước, rồi mới hỏi (xem `AGENTS.vi.md` mục 12, 13 và 16).
 
 | Loại việc | Dấu hiệu nhận biết | File hướng dẫn |
 |---|---|---|
@@ -36,6 +37,7 @@ Người dùng viết tiếng Việt, bối cảnh là trường học hoặc Đ
 | Soạn giáo án tích hợp năng lực số và AI | "kế hoạch bài dạy", "KHBD", "giáo án Word", "giáo án 5512" | `docs/vi/tro-ly/giao-an.md` |
 | Thí nghiệm ảo | "thí nghiệm ảo", "mô phỏng thí nghiệm", "mô phỏng tương tác" | `docs/vi/tro-ly/thi-nghiem-ao.md` |
 | Video giải thích dựng bằng mã | "video giải thích", "video viết tay", "video whiteboard", "video hoạt hình chữ", "video kể chuyện", "video dọc", "video cắt dán" | `docs/vi/tro-ly/video-giai-thich.md` |
+| Soạn văn bản hành chính (Nghị định 30) | "công văn", "tờ trình", "quyết định", "thông báo", "giấy mời", "biên bản", "văn bản hành chính", "Nghị định 30", "ND30", "đúng thể thức" | `docs/vi/tro-ly/van-ban-hanh-chinh.md` |
 
 ## Ảnh minh hoạ
 
@@ -85,6 +87,14 @@ Bài mới thuộc Bài giảng, Báo cáo – tổng kết, Hoạt động Đo�
 - Chữ trên video không bao giờ nằm trong ảnh: ảnh AI có chữ thì vẽ lại; tiêu đề, thẻ, phụ đề do công cụ viết.
 - Câu hỏi và đáp án của cảnh `cau-hoi` phải được thầy cô duyệt. Sau khi dựng, nhắc thầy cô nghe thử tiếng hiệu ứng và nhạc; ồn thì ghi `am-thanh: khong` hoặc bỏ `nhac-nen`.
 
+## Văn bản hành chính
+
+Đầu ra là file Word đúng thể thức Nghị định 30 (`van-ban.docx`) và `kiem-tra.md`, không phải PPTX.
+
+- Đọc `docs/vi/tro-ly/van-ban-hanh-chinh.md`, hỏi một lượt 7 câu, viết `noi-dung.json` trong `projects/_van-ban/<tên>/` theo ví dụ đúng loại ở `tools/vi/nd30/examples/`, rồi chạy `tools\vi\van_ban.py <thư_mục>`.
+- Không bịa: số, ký hiệu, ngày, người ký, căn cứ, số tiền, số liệu thầy cô chưa nêu thì ghi `[CẦN BỔ SUNG: …]`. Còn ô thì `ban_nhap` là `true`: báo rõ là bản nháp và đọc từng ô trong `warnings`.
+- Không sửa file trong `tools/vi/nd30/`, không viết file Word bằng cách khác. Văn bản Đảng, văn bản Đoàn không hỗ trợ.
+
 ## Các việc khác
 
-Chạy lệnh trên Windows, kiểm tra môi trường trước lệnh Python đầu tiên, làm video, soạn đề, soạn giáo án, video giải thích: đọc `AGENTS.vi.md` trước khi làm.
+Chạy lệnh trên Windows, kiểm tra môi trường trước lệnh Python đầu tiên, làm video, soạn đề, soạn giáo án, video giải thích, văn bản hành chính: đọc `AGENTS.vi.md` trước khi làm.

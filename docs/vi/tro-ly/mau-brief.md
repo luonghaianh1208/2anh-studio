@@ -2,7 +2,7 @@
 
 > Mẫu dành cho AI. Bản dùng thật lưu ở `projects/_brief-<tên_dự_án>.md`, sau đó được import vào thư mục `sources/` của dự án. Thay phần trong ngoặc nhọn bằng thông tin thật.
 
-- Loại việc: <Bài giảng | Báo cáo – tổng kết | Hoạt động Đoàn – sự kiện | Poster/ấn phẩm Zalo – Facebook | Tập huấn/workshop | Video bài giảng | Soạn đề KHTN tiếng Anh | Soạn giáo án tích hợp năng lực số và AI | Thí nghiệm ảo | Video giải thích dựng bằng mã>
+- Loại việc: <Bài giảng | Báo cáo – tổng kết | Hoạt động Đoàn – sự kiện | Poster/ấn phẩm Zalo – Facebook | Tập huấn/workshop | Video bài giảng | Soạn đề KHTN tiếng Anh | Soạn giáo án tích hợp năng lực số và AI | Thí nghiệm ảo | Video giải thích dựng bằng mã | Soạn văn bản hành chính (Nghị định 30)>
 - Ngày: <YYYY-MM-DD>
 
 ## Đơn vị

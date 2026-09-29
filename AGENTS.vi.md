@@ -15,7 +15,7 @@ File này bổ sung ngữ cảnh Việt Nam cho [AGENTS.md](AGENTS.md). Nó khô
 
 ## 3. Câu lệnh tiếng Việt kích hoạt skill `ppt-master`
 
-"tạo PPT", "làm slide", "làm bài giảng", "tạo bài thuyết trình", "làm poster", "làm báo cáo", "thêm thuyết minh", "làm đẹp slide", "làm video bài giảng", "lồng tiếng", "xuất video", "soạn đề", "làm đề kiểm tra", "đề tiếng Anh", "soạn giáo án", "kế hoạch bài dạy", "KHBD", "thí nghiệm ảo", "mô phỏng thí nghiệm", "video giải thích", "video viết tay", "video whiteboard", "video hoạt hình chữ", "video kể chuyện", "video dọc", "video cắt dán".
+"tạo PPT", "làm slide", "làm bài giảng", "tạo bài thuyết trình", "làm poster", "làm báo cáo", "thêm thuyết minh", "làm đẹp slide", "làm video bài giảng", "lồng tiếng", "xuất video", "soạn đề", "làm đề kiểm tra", "đề tiếng Anh", "soạn giáo án", "kế hoạch bài dạy", "KHBD", "thí nghiệm ảo", "mô phỏng thí nghiệm", "video giải thích", "video viết tay", "video whiteboard", "video hoạt hình chữ", "video kể chuyện", "video dọc", "video cắt dán", "công văn", "tờ trình", "quyết định", "thông báo", "giấy mời", "biên bản", "văn bản hành chính", "Nghị định 30", "ND30", "đúng thể thức".
 
 Các cụm "tạo nhanh", "làm nhanh", "không cần hỏi lại" là yêu cầu Quick tường minh (với bài tạo mới thông thường là hồ sơ `workflows/profiles/quick-generate.md` của upstream). Việc chọn hồ sơ và các bước thực hiện vẫn theo đúng `SKILL.md`.
 
@@ -63,7 +63,7 @@ Sau khi xuất, cho người dùng biết đường dẫn file PPTX trong thư m
 
 ## 10. Hỗ trợ thầy cô trước khi làm bài
 
-Khi người dùng viết tiếng Việt và yêu cầu thuộc một trong 10 loại việc dưới đây, đọc [docs/vi/tro-ly/quy-trinh-hoi.md](docs/vi/tro-ly/quy-trinh-hoi.md) trước, rồi đọc file của loại việc đó. Hỏi thầy cô một lượt và chờ trả lời trước khi khởi tạo dự án.
+Khi người dùng viết tiếng Việt và yêu cầu thuộc một trong 11 loại việc dưới đây, đọc [docs/vi/tro-ly/quy-trinh-hoi.md](docs/vi/tro-ly/quy-trinh-hoi.md) trước, rồi đọc file của loại việc đó. Hỏi thầy cô một lượt và chờ trả lời trước khi khởi tạo dự án.
 
 | Loại việc | File hướng dẫn |
 |---|---|
@@ -77,11 +77,12 @@ Khi người dùng viết tiếng Việt và yêu cầu thuộc một trong 10 l
 | Soạn giáo án tích hợp năng lực số và AI | [docs/vi/tro-ly/giao-an.md](docs/vi/tro-ly/giao-an.md) |
 | Thí nghiệm ảo | [docs/vi/tro-ly/thi-nghiem-ao.md](docs/vi/tro-ly/thi-nghiem-ao.md) |
 | Video giải thích dựng bằng mã | [docs/vi/tro-ly/video-giai-thich.md](docs/vi/tro-ly/video-giai-thich.md) |
+| Soạn văn bản hành chính (Nghị định 30) | [docs/vi/tro-ly/van-ban-hanh-chinh.md](docs/vi/tro-ly/van-ban-hanh-chinh.md) |
 
-- `SKILL.md` vẫn được ưu tiên. Lượt hỏi này chỉ tạo thêm tài liệu nguồn; bước xác nhận của upstream vẫn bắt buộc, trừ khi người dùng yêu cầu tạo nhanh (xem mục 3) hoặc thuộc loại việc "Soạn đề KHTN tiếng Anh" (mục 12), "Soạn giáo án tích hợp năng lực số và năng lực AI" (mục 13), "Thí nghiệm ảo" (mục 14) hoặc "Video giải thích" (mục 15) — bốn loại việc đó không có bước xác nhận của upstream, xem mục 12, mục 13, mục 14 và mục 15. Khi tạo nhanh, kể cả với "không cần hỏi lại", vẫn đọc `docs/vi/tro-ly/quy-trinh-hoi.md` và làm theo mục "Tạo nhanh" của file đó: có thể không hỏi câu nào, nhưng vẫn ghi brief.
+- `SKILL.md` vẫn được ưu tiên. Lượt hỏi này chỉ tạo thêm tài liệu nguồn; bước xác nhận của upstream vẫn bắt buộc, trừ khi người dùng yêu cầu tạo nhanh (xem mục 3) hoặc thuộc loại việc "Soạn đề KHTN tiếng Anh" (mục 12), "Soạn giáo án tích hợp năng lực số và năng lực AI" (mục 13), "Thí nghiệm ảo" (mục 14), "Video giải thích" (mục 15) hoặc "Soạn văn bản hành chính (Nghị định 30)" (mục 16) — năm loại việc đó không có bước xác nhận của upstream, xem mục 12, mục 13, mục 14, mục 15 và mục 16. Khi tạo nhanh, kể cả với "không cần hỏi lại", vẫn đọc `docs/vi/tro-ly/quy-trinh-hoi.md` và làm theo mục "Tạo nhanh" của file đó: có thể không hỏi câu nào, nhưng vẫn ghi brief.
 - Hiệu ứng: làm theo mức trong brief và [docs/vi/tro-ly/hieu-ung-lop-hoc.md](docs/vi/tro-ly/hieu-ung-lop-hoc.md). Bài giảng, báo cáo, hoạt động Đoàn, tập huấn: sau khi xuất PPTX, chạy `tools\vi\kiem_hieu_ung.py <file.pptx> --muc <mức>`, sửa tối đa một lần rồi báo kết quả cho thầy cô.
 - Bài mới dạng PPTX (Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Poster/ấn phẩm Zalo – Facebook, Tập huấn/workshop) không làm toàn chữ: chọn nguồn ảnh cho từng trang theo mục "Ảnh minh hoạ" của `docs/vi/tro-ly/quy-trinh-hoi.md`, kể cả khi tạo nhanh.
-- Yêu cầu không thuộc 10 loại (bối cảnh trường học hay Đoàn một mình không đủ để xếp loại), hoặc người dùng không viết tiếng Việt: làm theo `SKILL.md` như bình thường, không tìm hồ sơ đơn vị và không dùng bộ câu hỏi Việt.
+- Yêu cầu không thuộc 11 loại (bối cảnh trường học hay Đoàn một mình không đủ để xếp loại), hoặc người dùng không viết tiếng Việt: làm theo `SKILL.md` như bình thường, không tìm hồ sơ đơn vị và không dùng bộ câu hỏi Việt.
 
 ## 11. Làm video bài giảng
 
@@ -237,3 +238,27 @@ Khi người dùng cần một video giải thích bài học từ nội dung ch
 - Không để ảnh AI có chữ: mọi chữ trên video do công cụ viết. Không tự viết hay sửa `anh/ai/nguon.json` (chỉ `anh_ai.py nhan` ghi); không tự cắt, tách nền hay đặt ảnh vào `anh/ai/` bằng cách khác.
 
 Được phép: dùng công cụ tạo ảnh của chính nền tảng để vẽ ảnh trong `anh/ai/goc/` theo `ke-hoach.json`. Đây là ngoại lệ duy nhất của điều cấm "không viết ảnh cảnh bằng tay"; mọi điều cấm khác, kể cả không chạm `skills/`, giữ nguyên.
+
+## 16. Soạn văn bản hành chính theo Nghị định 30
+
+Khi người dùng cần công văn, tờ trình, quyết định, thông báo, giấy mời, biên bản hay văn bản hành chính khác ra file Word đúng thể thức Nghị định 30/2020/NĐ-CP, đọc [docs/vi/tro-ly/van-ban-hanh-chinh.md](docs/vi/tro-ly/van-ban-hanh-chinh.md) rồi làm đúng thứ tự dưới. Bộ sinh và bộ kiểm là mã ND30 nhúng ở `tools/vi/nd30/` (© 2026 Nguyễn Minh Phát, MIT). Như mục 4: có `venv\Scripts\python.exe` ở thư mục gốc repo thì dùng nó cho mọi lệnh Python dưới đây, không có thì dùng `python`.
+
+Câu lệnh chỉ có "báo cáo" hoặc "kế hoạch" thì hỏi đúng một câu trước: "Thầy cô cần văn bản Word đúng thể thức Nghị định 30, hay slide trình chiếu?". Trả lời Word thì theo mục này; trả lời slide thì theo mục 10. Văn bản Đảng và văn bản Đoàn không hỗ trợ: nói rõ với thầy cô, không dựng bằng thể thức Nghị định 30.
+
+1. Thầy cô gửi tài liệu Word hoặc PDF thì đọc bằng `python skills/ppt-master/scripts/source_to_md.py <file> -o <thư_mục_tạm>` trước; ảnh chụp thì nói rõ không đọc được, xin PDF hoặc Word.
+2. Sau bước 1, hỏi một lượt đúng 7 câu theo file hướng dẫn (cơ quan chủ quản, địa danh, ký hiệu viết tắt lấy từ hồ sơ đơn vị; chưa có thì hỏi trong câu 1), chờ trả lời.
+3. Chọn loại văn bản theo `tools/vi/nd30/references/danh-muc-loai-vb.md`; văn bản quy phạm của HĐND, UBND đọc thêm `tools/vi/nd30/references/the-thuc-qppl-*.md`.
+4. Tạo `projects/_van-ban/<tên_văn_bản>/` và viết `noi-dung.json` sau khi đọc ví dụ đúng loại trong `tools/vi/nd30/examples/` và schema `tools/vi/nd30/schemas/nd30-input.schema.json`. Mọi thông tin thầy cô chưa nêu ghi `[CẦN BỔ SUNG: …]`.
+5. Chạy `python tools\vi\van_ban.py projects\_van-ban\<tên_văn_bản>`; thêm `--nhap` khi thầy cô chủ động muốn bản nháp.
+6. Đọc dòng JSON. `ready` là `true` thì báo thầy cô đường dẫn `van-ban.docx` và `kiem-tra.md`, loại văn bản, số mục đạt và cảnh báo; `ban_nhap` là `true` thì nói rõ đây là bản nháp và đọc nguyên văn từng ô cần bổ sung trong `warnings`. Cảnh báo B7 (dấu, chữ ký số) lần nào cũng có, B3 có khi số văn bản để trống cho văn thư, B6 có khi chức vụ người ký nằm ngoài danh sách của bộ kiểm (ví dụ HIỆU TRƯỞNG): đều bình thường, nhắc thầy cô soát tay. Luôn nhắc văn bản chưa đóng dấu, chưa ký.
+
+| `error.step` | Xử lý |
+|---|---|
+| `input` | Thiếu thư mục hoặc `noi-dung.json`, file không phải UTF-8, hoặc sai tham số: viết hoặc lưu lại file rồi chạy lại. |
+| `json` | Sửa đúng dòng, cột hoặc trường `error.message` nêu, theo schema và ví dụ đúng loại, rồi chạy lại. |
+| `the-thuc` | Lỗi thể thức nặng, không có `van-ban.docx`: đọc các mục ✗ trong `kiem-tra.md`, sửa `noi-dung.json`, chạy lại tối đa hai lần; vẫn lỗi thì báo nguyên `error.message`. |
+| `docx` | Có `venv\Scripts\python.exe` ở thư mục gốc repo thì chạy `venv\Scripts\python.exe -m pip install -r tools/vi/requirements-vi.txt`; không thì chạy `python -m pip install -r tools/vi/requirements-vi.txt`, rồi chạy lại, tối đa một lần. |
+| `write` | Xin thầy cô đóng file Word đang mở rồi chạy lại. |
+| `internal` | Lỗi ngoài dự kiến; dán nguyên `error.message` để báo cho người bảo trì, không tự đoán cách sửa. |
+
+Điều cấm: không tự điền số, ký hiệu, ngày ban hành, người ký, căn cứ pháp lý, số tiền hay số liệu thầy cô chưa nêu; không giao bản nháp như thành phẩm; không viết file Word bằng cách khác; không sửa file trong `tools/vi/nd30/`; không chạy `project_manager.py init`; không tạo SVG; không chạm `skills/`; không commit gì trong `projects/`.
