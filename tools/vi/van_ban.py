@@ -27,7 +27,8 @@ DOCX_NAME = "van-ban.docx"
 REPORT_NAME = "kiem-tra.md"
 ERROR_STEPS = ("input", "json", "the-thuc", "docx", "write", "internal")
 REMINDER = "Văn bản chưa đóng dấu, chưa ký; soát và điền đủ trước khi ban hành."
-BLANK_RE = re.compile(r"\[CẦN BỔ SUNG[^\]]*\]?|\?\?\?")
+BLANK_RE = re.compile(r"\[CẦN BỔ SUNG[^\]]*\]?|\?\?\?", re.IGNORECASE)
+DATE_BLANK = ("phần đầu (ngày ban hành)", "chưa có ngày ban hành (ngay/thang/nam trống)")
 
 PROFILES = {
     "administrative": "văn bản hành chính gửi ra ngoài: đủ 9 thành phần thể thức, khổ A4, lề, "
@@ -242,6 +243,42 @@ def load_nd30():
     return generate_docx, validate_docx
 
 
+def issue_date_missing(header: dict) -> bool:
+    return all(str(header.get(key, "")).strip() == "" for key in ("ngay", "thang", "nam"))
+
+
+def collect_blanks(vd, path: Path, json_blanks: list[tuple[str, str]],
+                   header: dict) -> list[tuple[str, str]]:
+    """Một danh sách ô cần bổ sung, đọc từ chính file Word vừa dựng.
+
+    Bắt cả ô bộ dựng tự chèn (thiếu người ký) và ô chỉ bộ kiểm nhận ra (`<Tên đơn vị>`).
+    Ô gộp của bảng lặp lại cùng một đoạn nên đếm theo đoạn, không theo ô.
+    """
+    pattern = re.compile(f"(?:{BLANK_RE.pattern})|(?:{vd.placeholder_re().pattern})",
+                         re.IGNORECASE)
+    unused = list(json_blanks)
+    seen: dict = {}
+    found: list[tuple[str, str]] = []
+    doc = vd.Document(str(path))
+    for _, paragraph in vd._iter_all_paragraphs(doc):
+        element = paragraph._p
+        if element in seen:
+            continue
+        seen[element] = True
+        for match in pattern.finditer(paragraph.text):
+            text = match.group(0)
+            place = ""
+            for index, (json_place, json_text) in enumerate(unused):
+                if json_text.lower() == text.lower():
+                    place = json_place
+                    del unused[index]
+                    break
+            found.append((place, text))
+    if issue_date_missing(header):
+        found.insert(0, DATE_BLANK)
+    return found
+
+
 def run_validator(vd, path: Path, profile: str, allow_placeholder: bool) -> list:
     with contextlib.redirect_stdout(io.StringIO()):
         return list(vd.run_checks(path, profile, allow_placeholder))
@@ -288,7 +325,7 @@ def build_report(*, kind: str, trich_yeu: str, profile: str, rows, blanks, verdi
     lines += ["", "## Ô cần bổ sung", ""]
     if blanks:
         for number, (place, text) in enumerate(blanks, 1):
-            lines.append(f"{number}. {place}: `{text}`")
+            lines.append(f"{number}. {place}: `{text}`" if place else f"{number}. `{text}`")
     else:
         lines.append("Không còn ô nào.")
     lines += ["", REMINDER, ""]
@@ -340,8 +377,9 @@ def run(args) -> int:
     profile = spec.get("profile", "administrative")
     header = spec["header"]
     kind = document_kind(header)
-    blanks = find_blanks(spec)
-    info = {"loai": kind, "profile": profile, "blanks": len(blanks)}
+    json_blanks = find_blanks(spec)
+    info = {"loai": kind, "profile": profile,
+            "blanks": len(json_blanks) + int(issue_date_missing(header))}
 
     try:
         gd, vd = load_nd30()
@@ -375,6 +413,8 @@ def run(args) -> int:
         rows = classify(vd, strict, lenient)
         real = [(label, detail) for st, label, detail, blank in rows if st == vd.FAIL and not blank]
         blank_fail = [(label, detail) for st, label, detail, blank in rows if blank]
+        blanks = collect_blanks(vd, tmp, json_blanks, header)
+        info["blanks"] = len(blanks)
         draft = bool(blanks or blank_fail)
         counts = {
             "dat": sum(1 for r in rows if r[0] == vd.OK),
@@ -392,7 +432,8 @@ def run(args) -> int:
                 warnings.append(f"Bản nháp: còn {number} ô cần bổ sung; chưa phải thành phẩm, "
                                 "điền đủ rồi chạy lại trước khi ban hành.")
             for place, value in blanks:
-                warnings.append(f"Ô cần bổ sung ở {place}: {value}")
+                warnings.append(f"Ô cần bổ sung ở {place}: {value}" if place
+                                else f"Ô cần bổ sung: {value}")
             if not blanks:
                 for label, detail in blank_fail:
                     warnings.append(f"{label}: {detail}")

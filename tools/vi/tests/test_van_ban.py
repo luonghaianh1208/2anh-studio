@@ -18,6 +18,7 @@ import van_ban  # noqa: E402
 
 EXAMPLES = REPO_ROOT / "tools" / "vi" / "nd30" / "examples"
 SCRIPT = REPO_ROOT / "tools" / "vi" / "van_ban.py"
+ISSUE_DATE = {"ngay": "05", "thang": "10", "nam": "2026"}
 REMINDER = "Văn bản chưa đóng dấu, chưa ký; soát và điền đủ trước khi ban hành."
 
 
@@ -31,6 +32,7 @@ def filled_cong_van() -> dict:
         "Thời gian: 08 giờ 00 ngày 15/10/2026; địa điểm: Hội trường Phòng Giáo dục và Đào tạo."
     )
     spec["signature"]["nguoi_ky"] = "Nguyễn Văn An"
+    spec["header"].update(ISSUE_DATE)
     return spec
 
 
@@ -79,8 +81,18 @@ class CleanAndDraftTest(CliCase):
             sorted(Path(p).name for p in data["files"]), ["kiem-tra.md", "van-ban.docx"]
         )
 
-    def test_original_example_is_a_draft_with_two_blanks(self):
+    def test_original_example_also_lacks_the_issue_date(self):
         self.write_spec(load_example("cong_van.json"))
+        code, data, _ = self.run_cli(self.folder)
+        self.assertEqual(code, 0, data)
+        self.assertTrue(data["ban_nhap"])
+        self.assertEqual(data["so_o_can_bo_sung"], 3)
+        self.assertIn("ngày ban hành", "\n".join(data["warnings"]))
+
+    def test_original_example_is_a_draft_with_two_blanks(self):
+        spec = load_example("cong_van.json")
+        spec["header"].update(ISSUE_DATE)
+        self.write_spec(spec)
         code, data, _ = self.run_cli(self.folder)
         self.assertEqual(code, 0, data)
         self.assertTrue(data["ready"])
@@ -106,6 +118,60 @@ class CleanAndDraftTest(CliCase):
         self.assertEqual(code, 0, data)
         self.assertTrue(data["ban_nhap"])
         self.assertEqual(data["so_o_can_bo_sung"], 1)
+
+    def test_engine_inserted_signer_blank_is_counted(self):
+        spec = filled_cong_van()
+        del spec["signature"]["nguoi_ky"]
+        self.write_spec(spec)
+        code, data, _ = self.run_cli(self.folder)
+        self.assertEqual(code, 0, data)
+        self.assertTrue(data["ban_nhap"])
+        self.assertEqual(data["so_o_can_bo_sung"], 1)
+        self.assertIn("còn 1 ô", data["warnings"][0])
+        self.assertTrue(any("họ tên người ký" in w for w in data["warnings"][1:]), data)
+
+    def test_checker_only_blank_is_listed_beside_json_blank(self):
+        spec = filled_cong_van()
+        spec["body"][1]["text"] = "[CẦN BỔ SUNG: x]"
+        spec["kinh_gui"] = "<Tên đơn vị>"
+        self.write_spec(spec)
+        _, data, _ = self.run_cli(self.folder)
+        self.assertTrue(data["ban_nhap"])
+        self.assertEqual(data["so_o_can_bo_sung"], 2)
+        joined = "\n".join(data["warnings"])
+        self.assertIn("[CẦN BỔ SUNG: x]", joined)
+        self.assertIn("<Tên đơn vị>", joined)
+        report = (self.folder / "kiem-tra.md").read_text(encoding="utf-8")
+        self.assertIn("<Tên đơn vị>", report)
+
+    def test_lowercase_blank_is_counted(self):
+        spec = filled_cong_van()
+        spec["body"][1]["text"] = "Thời gian: [cần bổ sung: y]"
+        self.write_spec(spec)
+        _, data, _ = self.run_cli(self.folder)
+        self.assertTrue(data["ban_nhap"])
+        self.assertEqual(data["so_o_can_bo_sung"], 1)
+        self.assertIn("[cần bổ sung: y]", "\n".join(data["warnings"]))
+
+    def test_empty_issue_date_is_a_blank(self):
+        spec = filled_cong_van()
+        spec["header"].update({"ngay": "", "thang": "", "nam": ""})
+        self.write_spec(spec)
+        _, data, _ = self.run_cli(self.folder)
+        self.assertTrue(data["ban_nhap"])
+        self.assertEqual(data["so_o_can_bo_sung"], 1)
+        self.assertIn("ngày ban hành", "\n".join(data["warnings"]))
+        report = (self.folder / "kiem-tra.md").read_text(encoding="utf-8")
+        self.assertIn("ngày ban hành", report)
+
+    def test_empty_document_number_is_only_a_warning(self):
+        spec = filled_cong_van()
+        spec["header"]["so_vb"] = ""
+        self.write_spec(spec)
+        _, data, _ = self.run_cli(self.folder)
+        self.assertFalse(data["ban_nhap"])
+        self.assertEqual(data["so_o_can_bo_sung"], 0)
+        self.assertTrue(any(w.startswith("B3.") for w in data["warnings"]), data)
 
     def test_nhap_flag_only_changes_wording(self):
         self.write_spec(load_example("cong_van.json"))
