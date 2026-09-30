@@ -1,5 +1,5 @@
-PPT Master — Bản Việt (Vietnamese Edition)
-==========================================
+2Anh Studio — trước đây là PPT Master bản Việt (formerly PPT Master Vietnamese Edition)
+======================================================================================
 
 Dự án gốc / Original project
 - PPT Master — https://github.com/hugohe3/ppt-master
@@ -8,7 +8,7 @@ Dự án gốc / Original project
 
 Bản Việt hoá và đóng gói / Vietnamese edition and packaging
 - Lương Hải Anh — 2Anh AI Education
-- https://github.com/luonghaianh1208/PPTmaster
+- https://github.com/luonghaianh1208/2anh-studio
 - Copyright (c) 2026 Lương Hải Anh
 - Phần bổ sung / Additions: bộ cài và kiểm tra môi trường cho Windows
   (CAI-DAT.bat, KIEM-TRA.bat, CAP-NHAT.bat, tools/vi/ trừ tools/vi/nd30/),

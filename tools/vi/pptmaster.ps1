@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-  Trình khởi chạy bản Việt của PPT Master: cài đặt, kiểm tra, cập nhật, cài công cụ tuỳ chọn.
+  Trình khởi chạy 2Anh Studio (bản Việt mở rộng của PPT Master): cài đặt, kiểm tra, cập nhật, cài công cụ tuỳ chọn.
 .PARAMETER Action
   setup  - kiểm tra Python, cài thư viện, tạo .env, công cụ tuỳ chọn, chạy doctor
   check  - chạy doctor
@@ -526,7 +526,7 @@ function Invoke-Check {
 function Invoke-Update {
     if (-not (Test-Path (Join-Path $RepoRoot '.git'))) {
         Write-Fail 'Thư mục này được tải dạng ZIP nên không tự cập nhật được.'
-        Write-Host 'Tải bản mới tại https://github.com/luonghaianh1208/PPTmaster rồi chép thư mục projects\ và file .env của bạn sang.'
+        Write-Host 'Tải bản mới tại https://github.com/luonghaianh1208/2anh-studio rồi chép thư mục projects\ và file .env của bạn sang.'
         return 1
     }
     $py = Resolve-RunPython

@@ -1,18 +1,20 @@
-# PPT Master — Bản Việt
+# 2Anh Studio
 
-> Tạo bài thuyết trình PowerPoint **chỉnh sửa được** từ PDF, Word, trang web hoặc một ý tưởng — chỉ bằng cách trò chuyện với AI.
+> **Trợ lý AI làm slide, video, tài liệu và văn bản** — chỉ bằng cách trò chuyện với AI: bài thuyết trình PowerPoint chỉnh sửa được, poster, video bài giảng và video giải thích, giáo án, đề kiểm tra, thí nghiệm ảo, văn bản hành chính đúng Nghị định 30.
 
-Đây là bản Việt hoá và đóng gói của [PPT Master](https://github.com/hugohe3/ppt-master) (tác giả **Hugo He**, giấy phép MIT), do **Lương Hải Anh — 2Anh AI Education** thực hiện. Bản này thêm bộ cài một lần bấm cho Windows, quy tắc tiếng Việt cho AI và tài liệu tiếng Việt; phần lõi giữ nguyên dự án gốc.
+*Trước đây là **PPT Master bản Việt**. Đổi tên vì bộ công cụ nay làm được nhiều hơn slide; link, câu lệnh và cách cập nhật cũ vẫn dùng được.*
+
+Đây là bản Việt hoá, đóng gói và mở rộng của [PPT Master](https://github.com/hugohe3/ppt-master) (tác giả **Hugo He**, giấy phép MIT), do **Lương Hải Anh — 2Anh AI Education** thực hiện. Bản này thêm bộ cài một lần bấm cho Windows, quy tắc tiếng Việt cho AI và tài liệu tiếng Việt; phần lõi giữ nguyên dự án gốc.
 
 > **Dành cho AI agent:** người dùng nhờ cài bộ công cụ này (hoặc chỉ dán link repo) thì làm theo [docs/vi/cai-dat-bang-ai.md](docs/vi/cai-dat-bang-ai.md), không tự nghĩ cách cài khác.
 
-Phiên bản: **6.3.2-vi.13** · [Nhật ký thay đổi](CHANGELOG-VI.md)
+Phiên bản: **6.3.2-vi.14** · [Nhật ký thay đổi](CHANGELOG-VI.md)
 
 ## Bắt đầu trong 3 bước
 
 1. **Tải về.** Bấm **Code → Download ZIP** rồi giải nén, hoặc dùng Git:
    ```
-   git clone https://github.com/luonghaianh1208/PPTmaster.git
+   git clone https://github.com/luonghaianh1208/2anh-studio.git
    ```
    Tải bằng Git thì sau này cập nhật chỉ bằng một cú bấm.
 2. **Cài đặt.** Bấm đúp **`CAI-DAT.bat`**. Bộ cài kiểm tra Python, cài thư viện, tạo file cấu hình và xuất thử một file PPTX. Chi tiết: [Cài đặt trên Windows](docs/vi/cai-dat-windows.md).

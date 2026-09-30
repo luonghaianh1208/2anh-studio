@@ -2,7 +2,7 @@
 trigger: always_on
 ---
 
-# PPT Master bản Việt — luật luôn áp dụng
+# 2Anh Studio — luật luôn áp dụng
 
 Khi làm việc trong repo này, luôn đọc và áp dụng @../../AGENTS.md và @../../AGENTS.vi.md.
 

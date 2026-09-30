@@ -28,7 +28,7 @@ Chọn một trong hai cách:
 - **ZIP:** bấm **Code → Download ZIP** trên trang repo rồi giải nén. Cách này không tự cập nhật được sau này.
 - **Git:**
   ```
-  git clone https://github.com/luonghaianh1208/PPTmaster.git
+  git clone https://github.com/luonghaianh1208/2anh-studio.git
   ```
 
 Nên đặt thư mục ở đường dẫn ngắn, ví dụ `D:\PPTmaster`, và tránh đặt trong thư mục đang đồng bộ OneDrive.

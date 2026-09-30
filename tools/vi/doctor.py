@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Kiểm tra môi trường PPT Master (bản Việt).
+"""Kiểm tra môi trường 2Anh Studio.
 
 Cách dùng:
     python tools/vi/doctor.py             # kiểm tra đầy đủ, có xuất thử 1 file PPTX
@@ -297,7 +297,7 @@ def _icon(result: CheckResult) -> str:
 
 
 def render(results: Sequence[CheckResult]) -> str:
-    lines = ["Kiểm tra môi trường PPT Master (bản Việt)", ""]
+    lines = ["Kiểm tra môi trường 2Anh Studio", ""]
     for result in results:
         lines.append(f"{_icon(result)} {result.name} ({LEVEL_LABELS[result.level]}): {result.detail}")
         if not result.ok and result.fix:
@@ -359,7 +359,7 @@ def _configure_utf8() -> None:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     _configure_utf8()
-    parser = argparse.ArgumentParser(description="Kiểm tra môi trường PPT Master (bản Việt)")
+    parser = argparse.ArgumentParser(description="Kiểm tra môi trường 2Anh Studio")
     parser.add_argument("--no-smoke", action="store_true", help="Bỏ bước xuất thử PPTX")
     parser.add_argument("--json", action="store_true", help="In kết quả dạng JSON cho AI đọc")
     args = parser.parse_args(argv)

@@ -4,32 +4,32 @@ File dành cho AI agent (Antigravity, Claude Code, Cursor) trên Windows. Làm �
 
 ## Khi nào dùng
 
-- Người dùng nhờ cài PPT Master, dán link `https://github.com/luonghaianh1208/PPTmaster`, hoặc nhờ "cài đặt", "kiểm tra máy".
+- Người dùng nhờ cài 2Anh Studio (tên cũ: PPT Master bản Việt), dán link `https://github.com/luonghaianh1208/2anh-studio`, hoặc nhờ "cài đặt", "kiểm tra máy".
 - `AGENTS.vi.md` mục 9 báo môi trường chưa sẵn sàng, hoặc một lệnh Python của repo báo không tìm thấy Python hay `ModuleNotFoundError`.
 - Máy không phải Windows: không dùng file này; chạy `sh tools/vi/setup.sh` như README.
 
 ## Tải bộ công cụ
 
-Bỏ qua mục này nếu thư mục đang mở đã có `tools/vi/pptmaster.ps1`. Thư mục đang mở có sẵn `PPTmaster\tools\vi\pptmaster.ps1` thì dùng thư mục con `PPTmaster` làm thư mục đích và cũng bỏ qua mục này.
+Bỏ qua mục này nếu thư mục đang mở đã có `tools/vi/pptmaster.ps1`. Thư mục đang mở có sẵn `2anh-studio\tools\vi\pptmaster.ps1` (hoặc `PPTmaster\tools\vi\pptmaster.ps1` ở máy cài trước khi đổi tên) thì dùng thư mục con đó làm thư mục đích và cũng bỏ qua mục này.
 
-1. Chọn thư mục đích: thư mục đang mở còn trống thì dùng chính nó; đã có file khác thì dùng thư mục con `PPTmaster` bên trong (tạo bằng `New-Item -ItemType Directory -Force <thư_mục_đích>`). Kiểm tra thư mục trống bằng `Get-ChildItem -Force` để tính cả mục ẩn như `.vscode`.
+1. Chọn thư mục đích: thư mục đang mở còn trống thì dùng chính nó; đã có file khác thì dùng thư mục con `2anh-studio` bên trong (tạo bằng `New-Item -ItemType Directory -Force <thư_mục_đích>`). Kiểm tra thư mục trống bằng `Get-ChildItem -Force` để tính cả mục ẩn như `.vscode`.
 2. Chọn nhánh: mặc định là `main`. Người dùng nêu rõ một nhánh khác (ví dụ "nhánh feat/vi-tu-cai", hoặc link có `/tree/feat/vi-tu-cai`) thì dùng nhánh đó.
 3. Có Git (`git --version` chạy được):
 
    ```
-   git clone -b <nhánh> https://github.com/luonghaianh1208/PPTmaster.git <thư_mục_đích>
+   git clone -b <nhánh> https://github.com/luonghaianh1208/2anh-studio.git <thư_mục_đích>
    ```
 
-   Với nhánh `main` có thể bỏ `-b <nhánh>`: `git clone https://github.com/luonghaianh1208/PPTmaster.git <thư_mục_đích>`.
+   Với nhánh `main` có thể bỏ `-b <nhánh>`: `git clone https://github.com/luonghaianh1208/2anh-studio.git <thư_mục_đích>`.
 
 4. Không có Git: tải ZIP của nhánh rồi giải nén bằng PowerShell:
 
    ```
    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
    $ProgressPreference = 'SilentlyContinue'
-   $zip = Join-Path $env:TEMP 'PPTmaster.zip'
-   $unzip = Join-Path $env:TEMP ('PPTmaster-zip-' + [guid]::NewGuid())
-   Invoke-WebRequest -Uri 'https://github.com/luonghaianh1208/PPTmaster/archive/refs/heads/<nhánh>.zip' -OutFile $zip -UseBasicParsing
+   $zip = Join-Path $env:TEMP '2anh-studio.zip'
+   $unzip = Join-Path $env:TEMP ('2anh-studio-zip-' + [guid]::NewGuid())
+   Invoke-WebRequest -Uri 'https://github.com/luonghaianh1208/2anh-studio/archive/refs/heads/<nhánh>.zip' -OutFile $zip -UseBasicParsing
    Expand-Archive -Path $zip -DestinationPath $unzip -Force
    $src = Get-ChildItem -Path $unzip -Directory | Select-Object -First 1
    Get-ChildItem -Path $src.FullName -Force | Move-Item -Destination '<thư_mục_đích>'
@@ -48,7 +48,7 @@ Bỏ qua mục này nếu thư mục đang mở đã có `tools/vi/pptmaster.ps1
    ```
 
    Kết quả có `"ready": true` thì không chạy lệnh cài: báo thầy cô máy đã cài sẵn từ trước, rồi làm tiếp yêu cầu của thầy cô nếu có. Vừa chạy đúng kiểm tra này theo `AGENTS.vi.md` mục 9 thì không chạy lại. Chưa sẵn sàng, hoặc không chạy được Python, thì làm các bước dưới đây.
-2. Gửi thầy cô đúng một tin nhắn, không hỏi lại: "Em sẽ cài Python và thư viện cho PPT Master, mất khoảng 5–10 phút. Nếu Antigravity hỏi cho phép chạy lệnh, thầy cô bấm đồng ý giúp em."
+2. Gửi thầy cô đúng một tin nhắn, không hỏi lại: "Em sẽ cài Python và thư viện cho 2Anh Studio, mất khoảng 5–10 phút. Nếu Antigravity hỏi cho phép chạy lệnh, thầy cô bấm đồng ý giúp em."
 3. Chạy từ thư mục đích:
 
    ```

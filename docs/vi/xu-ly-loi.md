@@ -36,7 +36,7 @@ Dấu hiệu: AI báo không tải được bộ công cụ hoặc Python, khôn
 
 Gửi bộ phận IT đoạn sau:
 
-> Nhờ anh/chị hỗ trợ để tôi dùng bộ công cụ PPT Master trên máy này:
+> Nhờ anh/chị hỗ trợ để tôi dùng bộ công cụ 2Anh Studio (trước đây là PPT Master bản Việt) trên máy này:
 > 1. Cho tài khoản Windows của tôi truy cập: python.org, pypi.org, files.pythonhosted.org, github.com, codeload.github.com; thêm cdn.winget.microsoft.com, objects.githubusercontent.com (khi cần FFmpeg/Pandoc).
 > 2. Cho phép cài Python 3.12 cho riêng tài khoản của tôi (không cần quyền quản trị).
 > 3. Cho phép chạy PowerShell với tuỳ chọn `-ExecutionPolicy Bypass` cho từng lệnh.
@@ -207,4 +207,4 @@ Thường do máy không có sẵn font đang dùng. Nhắn cho AI, ví dụ "đ
 
 ## Hỏi hỗ trợ
 
-Tạo issue tại https://github.com/luonghaianh1208/PPTmaster/issues, kèm theo kết quả chạy `KIEM-TRA.bat`. **Xoá mọi API key** trong nội dung trước khi gửi.
+Tạo issue tại https://github.com/luonghaianh1208/2anh-studio/issues, kèm theo kết quả chạy `KIEM-TRA.bat`. **Xoá mọi API key** trong nội dung trước khi gửi.

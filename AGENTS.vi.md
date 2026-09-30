@@ -2,6 +2,8 @@
 
 File này bổ sung ngữ cảnh Việt Nam cho [AGENTS.md](AGENTS.md). Nó không thay thế quy tắc nào của dự án gốc.
 
+Tên sản phẩm với người dùng là **2Anh Studio** (trước đây là PPT Master bản Việt): khi giới thiệu bộ công cụ thì gọi tên này. Người dùng nhắc "PPT Master" là nói cùng bộ công cụ này. Lõi `skills/ppt-master/` vẫn là PPT Master của Hugo He và giữ nguyên tên, ghi công.
+
 ## 1. Thứ tự ưu tiên
 
 - `skills/ppt-master/SKILL.md` và `AGENTS.md` luôn được ưu tiên khi có mâu thuẫn với file này.

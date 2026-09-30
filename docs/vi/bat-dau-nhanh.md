@@ -8,7 +8,7 @@ Dùng Antigravity và máy chưa cài gì: không cần tải ZIP hay bấm `CAI
 2. Mở khung **Agent**, dán câu lệnh:
 
    ```
-   Cài PPT Master từ https://github.com/luonghaianh1208/PPTmaster vào thư mục này rồi báo khi sẵn sàng tạo slide
+   Cài 2Anh Studio (trước đây là PPT Master bản Việt) từ https://github.com/luonghaianh1208/2anh-studio vào thư mục này rồi báo khi sẵn sàng tạo slide
    ```
 
 3. Chờ khoảng 5–10 phút. Khi Antigravity hỏi cho phép chạy lệnh, bấm đồng ý. Nếu AI xin chạy với quyền quản trị hoặc tắt phần mềm diệt virus, bấm từ chối.

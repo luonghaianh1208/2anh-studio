@@ -1,5 +1,17 @@
 # Nhật ký thay đổi — Bản Việt
 
+## 6.3.2-vi.14 — 2026-09-30
+
+PPT Master bản Việt đổi tên thành **2Anh Studio**. Bộ công cụ nay làm được nhiều hơn slide (poster, video, giáo án, đề kiểm tra, thí nghiệm ảo, văn bản hành chính) và dùng được ở nhiều ngành, nên tên mới không gắn với PowerPoint hay với một nghề.
+
+### Đổi
+- Tên sản phẩm: **2Anh Studio** — trợ lý AI làm slide, video, tài liệu và văn bản. README, NOTICE, tài liệu cài đặt, luật Antigravity và bộ kiểm tra môi trường dùng tên mới; AI giới thiệu bộ công cụ bằng tên mới và vẫn hiểu khi người dùng nhắc "PPT Master".
+- Repo GitHub đổi thành `luonghaianh1208/2anh-studio`. Link cũ `luonghaianh1208/PPTmaster` tự chuyển sang link mới.
+
+### Không đổi
+- Máy đã cài không phải làm gì: `CAP-NHAT.bat` vẫn cập nhật như cũ, tên các file lệnh (`CAI-DAT.bat`, `KIEM-TRA.bat`, `CAP-NHAT.bat`, `tools/vi/pptmaster.ps1`) và mọi câu lệnh cho AI ("tạo PPT", "làm slide", "soạn công văn"…) giữ nguyên. Thư mục cài sẵn tên `PPTmaster` vẫn dùng bình thường.
+- Lõi PPT Master của Hugo He (`skills/ppt-master/`, giấy phép MIT) giữ nguyên tên và ghi công.
+
 ## 6.3.2-vi.13 — 2026-09-30
 
 Soạn văn bản hành chính đúng thể thức Nghị định 30/2020/NĐ-CP: loại việc thứ 11, dựa trên bộ công cụ ND30 mã nguồn mở của Nguyễn Minh Phát (giấy phép MIT), bỏ phần văn bản Đoàn. AI hỏi một lượt, sinh file Word sửa được, tự kiểm thể thức, và không bao giờ tự bịa số, ngày, người ký hay căn cứ.

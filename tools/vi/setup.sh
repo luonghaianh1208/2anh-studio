@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Cài đặt PPT Master (bản Việt) trên macOS/Linux.
+# Cài đặt 2Anh Studio (bản Việt mở rộng của PPT Master) trên macOS/Linux.
 set -eu
 
 REPO_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)

@@ -608,7 +608,7 @@ class SelfInstallGuideTest(unittest.TestCase):
 
     def test_download_section_covers_git_zip_branch_and_agent_rules(self):
         body = section(read(SELF_INSTALL_DOC), "## Tải bộ công cụ")
-        for phrase in ("git clone https://github.com/luonghaianh1208/PPTmaster.git", "archive/refs/heads/", "nhánh", "AGENTS.md", "AGENTS.vi.md"):
+        for phrase in ("git clone https://github.com/luonghaianh1208/2anh-studio.git", "archive/refs/heads/", "nhánh", "AGENTS.md", "AGENTS.vi.md"):
             self.assertIn(phrase, body)
 
     def test_download_section_zip_is_fast_tls12_and_cleans_up(self):
@@ -618,7 +618,7 @@ class SelfInstallGuideTest(unittest.TestCase):
             "$ProgressPreference = 'SilentlyContinue'",
             "Remove-Item $zip, $unzip -Recurse -Force -ErrorAction SilentlyContinue",
             "Get-ChildItem -Force",
-            r"PPTmaster\tools\vi\pptmaster.ps1",
+            r"2anh-studio\tools\vi\pptmaster.ps1",
             "không tải chồng",
         ):
             self.assertIn(phrase, body)
@@ -690,7 +690,7 @@ class SelfInstallUserDocsTest(unittest.TestCase):
         text = read("docs/vi/bat-dau-nhanh.md")
         self.assertEqual(h2_headings(text)[0], "## Để AI tự cài")
         body = section(text, "## Để AI tự cài")
-        for phrase in ("https://github.com/luonghaianh1208/PPTmaster", "cho phép chạy lệnh", "5–10 phút", "cài đặt giúp em", "(xu-ly-loi.md#máy-trường-chặn-cài-đặt)", "bấm từ chối", "thư mục AI báo trong tin nhắn sẵn sàng"):
+        for phrase in ("https://github.com/luonghaianh1208/2anh-studio", "cho phép chạy lệnh", "5–10 phút", "cài đặt giúp em", "(xu-ly-loi.md#máy-trường-chặn-cài-đặt)", "bấm từ chối", "thư mục AI báo trong tin nhắn sẵn sàng"):
             self.assertIn(phrase, body)
 
     def test_windows_install_doc_offers_ai_setup(self):
