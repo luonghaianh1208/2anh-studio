@@ -35,7 +35,40 @@ def ten_khung(i: int) -> str:
 
 
 def _anh_khung(page, path=None):
+    if isinstance(page, TrangKhung):
+        return page.anh(path)
     return page.screenshot(path=None if path is None else str(path), type="jpeg", quality=CHAT_LUONG)
+
+
+# Dựng thật chụp bằng HeadlessExperimental.beginFrame: Chromium chỉ vẽ khi được gọi và trả ảnh ngay từ khung vừa
+# dựng, nhanh khoảng 2 lần page.screenshot ở Full HD (số đo ở docs/vi/phat-trien/2026-10-01-video-ma-begin-frame.md).
+# Tỉ lệ điểm ảnh phải đặt bằng cờ dòng lệnh: beginFrame bỏ qua device_scale_factor của context.
+CO_BEGIN_FRAME = ["--no-sandbox", "--deterministic-mode", "--enable-begin-frame-control",
+                  "--disable-new-content-rendering-timeout", "--run-all-compositor-stages-before-draw",
+                  "--disable-threaded-animation", "--disable-threaded-scrolling", "--disable-checker-imaging"]
+# Lần gọi đầu sau khi mở trình duyệt chưa có ảnh (bề mặt vẽ chưa sẵn sàng); các lần sau luôn có.
+LAN_THU_KHUNG = 3
+
+
+class TrangKhung:
+    """Trang Playwright chụp bằng beginFrame; mọi thuộc tính khác (evaluate, set_content…) chuyển cho trang gốc."""
+
+    def __init__(self, page, phien) -> None:
+        self._page, self._phien = page, phien
+
+    def __getattr__(self, ten):
+        return getattr(self._page, ten)
+
+    def anh(self, path=None) -> bytes:
+        for _ in range(LAN_THU_KHUNG):
+            r = self._phien.send("HeadlessExperimental.beginFrame",
+                                 {"screenshot": {"format": "jpeg", "quality": CHAT_LUONG}})
+            if r.get("screenshotData"):
+                du_lieu = base64.b64decode(r["screenshotData"])
+                if path is not None:
+                    Path(path).write_bytes(du_lieu)
+                return du_lieu
+        raise RuntimeError("beginFrame không trả ảnh khung")
 
 
 class GhiKhungLoi(Exception):
@@ -53,27 +86,32 @@ class LoiBuocCon(Exception):
         return self.message
 
 
-def _mo(p):
+def _mo(p, args=("--no-sandbox",)):
+    args = list(args)
     try:
-        return p.chromium.launch(args=["--no-sandbox"])
+        return p.chromium.launch(args=args)
     except Exception as first:
         base = Path(os.environ.get("LOCALAPPDATA", "")) / "ms-playwright"
         for pattern in ("chromium_headless_shell-*/*/chrome-headless-shell.exe", "chromium-*/*/chrome.exe"):
             for exe in sorted(base.glob(pattern), reverse=True):
                 try:
-                    return p.chromium.launch(executable_path=str(exe), args=["--no-sandbox"])
+                    return p.chromium.launch(executable_path=str(exe), args=args)
                 except Exception:
                     continue
         raise MediaError("chromium", f"Không mở được Chromium: {first}", FIX_CHROMIUM) from first
 
 
-@contextlib.contextmanager
-def trinh_duyet():
+def _sync_playwright():
     try:
         from playwright.sync_api import sync_playwright
     except ImportError as exc:
         raise MediaError("chromium", "Chưa cài playwright (Chromium).", FIX_CHROMIUM) from exc
-    with sync_playwright() as p:
+    return sync_playwright()
+
+
+@contextlib.contextmanager
+def trinh_duyet():
+    with _sync_playwright() as p:
         browser = _mo(p)
         try:
             yield browser
@@ -86,9 +124,42 @@ def trang_moi(browser, kho: Kho = KHO_CU):
     return browser.new_page(viewport={"width": kho.rong, "height": kho.cao}, device_scale_factor=kho.ti_le)
 
 
+def _mo_begin_frame(p, kho: Kho):
+    browser = _mo(p, CO_BEGIN_FRAME + [f"--force-device-scale-factor={kho.ti_le}"])
+    try:
+        ctx = browser.new_context(viewport={"width": kho.rong, "height": kho.cao})
+        page = ctx.new_page()
+        phien = ctx.new_cdp_session(page)
+        phien.send("HeadlessExperimental.enable")
+        trang = TrangKhung(page, phien)
+        trang.anh()  # mồi: lần đầu chưa có ảnh; không ra ảnh sau LAN_THU_KHUNG lần thì dùng cách chụp cũ
+        return browser, trang
+    except Exception:
+        browser.close()
+        raise
+
+
+@contextlib.contextmanager
+def trang_chup(kho: Kho = KHO_CU):
+    """Trang để dựng thật: chụp bằng beginFrame nếu Chromium hỗ trợ, không thì page.screenshot như cũ."""
+    with _sync_playwright() as p:
+        try:
+            browser, page = _mo_begin_frame(p, kho)
+        except Exception as exc:  # noqa: BLE001 — Chromium không có beginFrame (hoặc không mở được với cờ đó)
+            print(f"Không chụp được bằng beginFrame ({exc}); dùng cách chụp cũ, chậm hơn.", file=sys.stderr, flush=True)
+            browser, page = _mo(p), None
+        try:
+            yield page if page is not None else trang_moi(browser, kho)
+        finally:
+            # Lỗi khi đóng (Chromium đã sập) không được che lỗi gốc của thân `with`, ví dụ ổ đầy.
+            with contextlib.suppress(Exception):
+                browser.close()
+
+
 def mo_trang(page, html: str) -> None:
     page.set_content(html)
-    page.wait_for_function("window.THI_VIDEO && window.THI_VIDEO.san === true", timeout=30000)
+    # Hỏi theo giờ, không theo khung vẽ: trang beginFrame không tự vẽ nên requestAnimationFrame không chạy.
+    page.wait_for_function("window.THI_VIDEO && window.THI_VIDEO.san === true", timeout=30000, polling=50)
     page.evaluate(
         "(chuViet) => document.fonts.load(\"40px 'Itim'\", document.body.innerText + chuViet)", CHU_VIET,
     )
@@ -178,8 +249,7 @@ def chup_dai(cong_viec: dict) -> int:
         return bool(co.get("chuyen") or co.get("lauBang"))
 
     da_ghi = 0
-    with trinh_duyet() as browser:
-        page = trang_moi(browser, kho)
+    with trang_chup(kho) as page:
         if dau > 0 and can_nen(dau):
             # Khung cuối cảnh trước (t = (số khung − 1)/fps) dựng lại tại chỗ, không chờ tiến trình khác.
             mo_trang(page, html(dau - 1))

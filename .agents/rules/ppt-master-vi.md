@@ -65,7 +65,7 @@ HTML chạy không cần mạng và phiếu Word, không phải PPTX. Đọc `do
 
 Video MP4 dựng từ nội dung chữ, không phải PPTX. Đọc `docs/vi/tro-ly/video-giai-thich.md` và `canh-video.md`, hỏi một lượt, viết `video.md` trong `projects/_video/<tên>/`.
 
-- Chạy `tools\vi\video_ma.py <thư_mục> --plan-only`, rồi `--xem-truoc` xem từng cảnh, rồi mới dựng thật; báo trước mất khoảng 1,5 lần thời lượng (dọc cắt dán khoảng 2 lần). Không viết HTML, ảnh cảnh bằng tay, không tự chạy FFmpeg. `chromium` thì hỏi trước khi tải (150–300 MB).
+- Chạy `tools\vi\video_ma.py <thư_mục> --plan-only`, rồi `--xem-truoc` xem từng cảnh, rồi mới dựng thật; báo trước mất khoảng bằng thời lượng video (cắt dán khoảng 1,5 lần). Không viết HTML, ảnh cảnh bằng tay, không tự chạy FFmpeg. `chromium` thì hỏi trước khi tải (150–300 MB).
 - Ảnh thật, nhạc nền chỉ khi thầy cô đồng ý: ảnh bằng `image_search.py … -o projects\_video\<tên>\anh`; nhạc bằng `tools\vi\tim_nhac.py "<từ khoá>" -o …\nhac` rồi ghi `nhac-nen`, gửi thầy cô nghe thử (`mang` thì kiểm mạng, chạy lại một lần). Không dùng ảnh, nhạc không rõ nguồn.
 - Ảnh AI (`nen: ve:`, `nhan-vat: ve:`): chạy `anh_ai.py ke-hoach`, dùng công cụ tạo ảnh của Antigravity (được phép) vẽ từng mục vào `anh/ai/goc/` (nhân vật mẫu trước, nền #00FF00 thuần), rồi `anh_ai.py nhan --mo-hinh "<mô hình>"` và `--xem-truoc` cho thầy cô duyệt; không tự viết `nguon.json`. Không có công cụ vẽ thì dùng `nen: mau/<tên>`, `nhan-vat: nguoi-que`.
 - Hình phải khớp lời đọc: tắt tiếng vẫn đoán được cảnh nói gì; `ke-chuyen` nền mẫu phải có `the`; không quá hai `ke-chuyen` liền nhau. Chữ không bao giờ nằm trong ảnh.

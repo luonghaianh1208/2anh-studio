@@ -1176,7 +1176,7 @@ class TransitionBookkeepingTest(unittest.TestCase):
         viec = {"cac_du": cac_du, "models_js": {}, "dau": 0, "cuoi": 3,
                 "khung_dau": [0, so_khung[0], so_khung[0] + so_khung[1]], "so_khung": so_khung, "fps": lich.FPS}
         with tempfile.TemporaryDirectory() as tmp, \
-                mock.patch.object(chup, "trinh_duyet", CaptureBookkeepingTest.trinh_duyet_gia), \
+                mock.patch.object(chup, "trang_chup", CaptureBookkeepingTest.trang_chup_gia), \
                 mock.patch.object(chup, "chup_canh", CaptureBookkeepingTest.chup_canh_gia), \
                 mock.patch.object(trang, "dung_trang", dung_trang_gia), \
                 contextlib.redirect_stderr(io.StringIO()):
@@ -1348,11 +1348,11 @@ class ParallelCaptureChromiumTest(unittest.TestCase):
 def _khong_mo_duoc_chromium(cong_viec):
     """Thay `_chup_dai_con` trong tiến trình con: Chromium không mở được (MediaError `chromium`)."""
     @contextlib.contextmanager
-    def hong():
+    def hong(kho=None):
         raise chup.MediaError("chromium", "Không mở được Chromium: thử", chup.FIX_CHROMIUM)
         yield
 
-    with mock.patch.object(chup, "trinh_duyet", hong):
+    with mock.patch.object(chup, "trang_chup", hong):
         return chup._chup_dai_con(cong_viec)
 
 
@@ -1436,7 +1436,7 @@ def _chup_canh_day_dia(page, html, so_khung, fps, thu_muc, so_dau, ghi_log=None)
 
 def _dia_day(cong_viec):
     """Thay `_chup_dai_con` trong tiến trình con: chạy `chup_dai` thật, trình duyệt giả, ổ đĩa đầy khi ghi khung."""
-    with mock.patch.object(chup, "trinh_duyet", CaptureBookkeepingTest.trinh_duyet_gia), \
+    with mock.patch.object(chup, "trang_chup", CaptureBookkeepingTest.trang_chup_gia), \
             mock.patch.object(chup, "chup_canh", _chup_canh_day_dia), \
             mock.patch.object(trang, "dung_trang", lambda du, model=None: "<html></html>"):
         return chup._chup_dai_con(cong_viec)
@@ -1447,7 +1447,7 @@ class CaptureBookkeepingTest(unittest.TestCase):
 
     @staticmethod
     @contextlib.contextmanager
-    def trinh_duyet_gia():
+    def trang_chup_gia(kho=None):
         yield mock.MagicMock()
 
     @staticmethod
@@ -1469,7 +1469,7 @@ class CaptureBookkeepingTest(unittest.TestCase):
         viec = {"cac_du": cac_du, "models_js": {}, "dau": 0, "cuoi": 3, "khung_dau": khung_dau,
                 "so_khung": so_khung, "fps": lich.FPS}
         with tempfile.TemporaryDirectory() as tmp, \
-                mock.patch.object(chup, "trinh_duyet", self.trinh_duyet_gia), \
+                mock.patch.object(chup, "trang_chup", self.trang_chup_gia), \
                 mock.patch.object(chup, "chup_canh", self.chup_canh_gia), \
                 mock.patch.object(trang, "dung_trang", dung_trang_gia), \
                 contextlib.redirect_stderr(io.StringIO()):
@@ -1482,7 +1482,7 @@ class CaptureBookkeepingTest(unittest.TestCase):
     def test_disk_error_while_writing_frames_is_a_write_error(self):
         cac_du, so_khung = ba_canh_ngan()
         with tempfile.TemporaryDirectory() as tmp, \
-                mock.patch.object(chup, "trinh_duyet", self.trinh_duyet_gia), \
+                mock.patch.object(chup, "trang_chup", self.trang_chup_gia), \
                 mock.patch.object(chup, "chup_canh", _chup_canh_day_dia), \
                 mock.patch.object(trang, "dung_trang", lambda du, model=None: "<html></html>"), \
                 contextlib.redirect_stderr(io.StringIO()), \
@@ -1496,7 +1496,7 @@ class CaptureBookkeepingTest(unittest.TestCase):
         # Đọc file mã cảnh (OSError) không phải lỗi ghi khung: vẫn là `dung`.
         cac_du, so_khung = ba_canh_ngan()
         with tempfile.TemporaryDirectory() as tmp, \
-                mock.patch.object(chup, "trinh_duyet", self.trinh_duyet_gia), \
+                mock.patch.object(chup, "trang_chup", self.trang_chup_gia), \
                 mock.patch.object(trang, "dung_trang", side_effect=FileNotFoundError(2, "no such file")), \
                 contextlib.redirect_stderr(io.StringIO()), \
                 self.assertRaises(chup.MediaError) as caught:
@@ -1519,6 +1519,98 @@ class CaptureBookkeepingTest(unittest.TestCase):
             chup.chup_song_song(cac_du, {}, so_khung, lich.FPS, Path(tmp), 2)
         self.assertEqual(caught.exception.step, "write")
         self.assertIn("ổ đĩa", caught.exception.fix)
+
+
+class _PhienGia:
+    """Phiên CDP giả: trả lần lượt các kết quả beginFrame cho trước, ghi lại số lần gọi."""
+
+    def __init__(self, *ket_qua):
+        self.ket_qua, self.goi = list(ket_qua), 0
+
+    def send(self, lenh, tham_so=None):
+        self.goi += 1
+        return self.ket_qua.pop(0)
+
+
+class BeginFrameBookkeepingTest(unittest.TestCase):
+    """Không cần Chromium: cách gọi beginFrame lại khi khung chưa có ảnh, và quay về cách chụp cũ."""
+
+    def test_frame_without_image_is_asked_again(self):
+        import base64
+
+        phien = _PhienGia({"hasDamage": True}, {"hasDamage": True, "screenshotData": base64.b64encode(b"jpg").decode()})
+        with tempfile.TemporaryDirectory() as tmp:
+            duong = Path(tmp) / "f.jpg"
+            self.assertEqual(chup._anh_khung(chup.TrangKhung(mock.MagicMock(), phien), duong), b"jpg")
+            self.assertEqual(duong.read_bytes(), b"jpg")
+        self.assertEqual(phien.goi, 2)
+
+    def test_no_image_after_every_try_is_an_error(self):
+        phien = _PhienGia(*[{"hasDamage": False}] * chup.LAN_THU_KHUNG)
+        with self.assertRaises(RuntimeError):
+            chup.TrangKhung(mock.MagicMock(), phien).anh()
+        self.assertEqual(phien.goi, chup.LAN_THU_KHUNG)
+
+    def test_page_calls_go_to_the_real_page(self):
+        goc = mock.MagicMock()
+        chup.TrangKhung(goc, _PhienGia()).evaluate("x", 1)
+        goc.evaluate.assert_called_once_with("x", 1)
+
+    def test_chromium_without_begin_frame_falls_back_to_screenshots(self):
+        browser = mock.MagicMock()
+        with mock.patch.object(chup, "_sync_playwright", lambda: contextlib.nullcontext(mock.MagicMock())), \
+                mock.patch.object(chup, "_mo_begin_frame", side_effect=RuntimeError("không có beginFrame")), \
+                mock.patch.object(chup, "_mo", return_value=browser), \
+                contextlib.redirect_stderr(io.StringIO()) as loi:
+            with chup.trang_chup(chup.KHO_CU) as page:
+                self.assertIs(page, browser.new_page.return_value)
+        browser.close.assert_called_once()
+        self.assertIn("cách chụp cũ", loi.getvalue())
+
+    def test_failed_warm_up_closes_the_begin_frame_browser(self):
+        browser = mock.MagicMock()
+        browser.new_context.return_value.new_cdp_session.return_value = _PhienGia(
+            {}, *[{"hasDamage": True}] * chup.LAN_THU_KHUNG)
+        with mock.patch.object(chup, "_mo", return_value=browser) as mo, self.assertRaises(RuntimeError):
+            chup._mo_begin_frame(mock.MagicMock(), chup.Kho("ngang", 1080))
+        browser.close.assert_called_once()
+        self.assertIn("--force-device-scale-factor=1.5", mo.call_args.args[1])
+
+    def test_error_while_closing_does_not_hide_the_real_error(self):
+        browser = mock.MagicMock()
+        browser.close.side_effect = RuntimeError("Chromium đã sập")
+        with mock.patch.object(chup, "_sync_playwright", lambda: contextlib.nullcontext(mock.MagicMock())), \
+                mock.patch.object(chup, "_mo_begin_frame", return_value=(browser, mock.MagicMock())), \
+                self.assertRaises(chup.GhiKhungLoi):
+            with chup.trang_chup(chup.KHO_CU):
+                raise chup.GhiKhungLoi("ổ đầy")
+
+
+@unittest.skipUnless(co_chromium(), NEED_CHROMIUM)
+class BeginFrameChromiumTest(unittest.TestCase):
+    def test_begin_frame_matches_screenshot_at_full_hd(self):
+        import base64
+
+        from video_ma_parts.kho import Kho
+
+        cac_du, so_khung = ba_canh_ngan()
+        html, t = trang.dung_trang(cac_du[2]), (so_khung[2] - 1) / lich.FPS
+        kho = Kho("ngang", 1080)
+        with chup.trang_chup(kho) as page:
+            self.assertIsInstance(page, chup.TrangKhung, "Chromium của Playwright phải có beginFrame")
+            chup.mo_trang(page, html)
+            page.evaluate("(t) => window.datThoiDiem(t)", t)
+            moi = chup._anh_khung(page)
+        with chup.trinh_duyet() as browser:
+            page = chup.trang_moi(browser, kho)
+            chup.mo_trang(page, html)
+            page.evaluate("(t) => window.datThoiDiem(t)", t)
+            cu = chup._anh_khung(page)
+            self.assertEqual(page.evaluate("(src) => new Promise((ok) => { const i = new Image(); "
+                                           "i.onload = () => ok([i.naturalWidth, i.naturalHeight]); i.src = src; })",
+                                           "data:image/jpeg;base64," + base64.b64encode(moi).decode()), [1920, 1080])
+            url = ["data:image/jpeg;base64," + base64.b64encode(b).decode() for b in (cu, moi)]
+            self.assertLessEqual(page.evaluate(LECH_NUA_PHAI.replace("640", "0"), url), 0.005)
 
 
 class ChromiumMissingTest(unittest.TestCase):

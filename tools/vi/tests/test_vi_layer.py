@@ -1715,7 +1715,7 @@ class ExplainerVideoGuideTest(unittest.TestCase):
             with self.subTest(file="AGENTS.vi.md", phrase=phrase):
                 self.assertIn(phrase, agents)
         teachers = read("docs/vi/video-giai-thich.md")
-        for phrase in ("Itim", "OFL", "7–8 phút", "11 phút", "bàn tay", "máy quay"):
+        for phrase in ("Itim", "OFL", "5 phút", "7–8 phút", "bàn tay", "máy quay"):
             with self.subTest(file="docs/vi/video-giai-thich.md", phrase=phrase):
                 self.assertIn(phrase, teachers)
         self.assertIn("image_search.py", read(".agents/rules/ppt-master-vi.md"))

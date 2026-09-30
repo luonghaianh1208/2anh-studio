@@ -15,6 +15,7 @@ PPT Master bản Việt đổi tên thành **2Anh Studio**. Bộ công cụ nay 
 ### Bản vá (2026-09-30, sau khi gắn tag)
 - Văn bản hành chính: ví dụ của ND30 còn ghi "UBND HUYỆN", "trên địa bàn huyện", nên AI dễ chép tên đơn vị cũ. Hướng dẫn nay nói rõ từ 1/7/2025 chính quyền địa phương chỉ còn cấp tỉnh và cấp xã, phường, đặc khu; ví dụ chỉ dùng để lấy khuôn. `van_ban.py` cảnh báo (không chặn) khi văn bản có chữ huyện, quận, thị xã, thị trấn, cả trong `warnings` và `kiem-tra.md`. Thêm gợi ý nơi nhận ghi tên cơ quan, gửi lãnh đạo để báo cáo thì ghi "(để b/c)". Máy đã cài nhận bản vá qua `CAP-NHAT.bat`.
 - Luật Antigravity (`.agents/rules/ppt-master-vi.md`) viết gọn lại, từ khoảng 12 000 xuống khoảng 9 300 byte, giữ đủ các quy tắc bắt buộc; còn chỗ cho quy tắc mới dưới giới hạn 12 000 của Antigravity.
+- Video giải thích dựng nhanh gần gấp đôi (2026-10-01): khi dựng thật, khung hình được chụp bằng `HeadlessExperimental.beginFrame`, tức lấy ảnh ngay từ khung Chromium vừa vẽ, thay cho `page.screenshot`. Trên máy 6 lõi, video cắt dán 92 giây dựng mất 127 giây thay vì 243 giây; video viết tay 156 giây mất 140 giây thay vì 196 giây. Hình không đổi: khác biệt chỉ ở khử răng cưa mép chữ, mắt thường không thấy. Chromium không hỗ trợ `beginFrame` thì tự quay về cách chụp cũ; ảnh xem trước vẫn chụp như cũ. Không cài thêm gì. Số đo ở `docs/vi/phat-trien/2026-10-01-video-ma-begin-frame.md`.
 
 ## 6.3.2-vi.13 — 2026-09-30
 

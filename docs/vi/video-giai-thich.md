@@ -42,7 +42,7 @@ Nền tranh và nhân vật do AI vẽ chỉ làm được khi thầy cô dùng 
 
 Trước khi dựng thật, AI dựng thử mỗi cảnh một ảnh (thư mục `xem-truoc`) để soát chữ có tràn khung không. Video có ảnh chụp thật hoặc ảnh AI vẽ thì AI gửi thầy cô xem các cảnh đó trước (lệnh `--xem-truoc`) và chỉ dựng khi thầy cô đồng ý.
 
-Dựng thật mất khoảng 1,5 lần thời lượng video trên máy 6 lõi: video 5 phút mất khoảng 7–8 phút; máy 2–3 lõi mất khoảng 11 phút. Video khổ dọc kiểu cắt dán chậm hơn: khoảng 2 lần thời lượng ngay trên máy 6 lõi (video 5 phút khoảng 10 phút). Cộng thêm thời gian tạo giọng. Máy càng nhiều lõi thì càng nhanh vì công cụ chụp khung bằng nhiều trình duyệt chạy song song. Trong lúc đó máy chạy nặng hơn bình thường.
+Dựng thật mất khoảng bằng thời lượng video trên máy 6 lõi: video 5 phút mất khoảng 5 phút; máy 2–3 lõi mất khoảng 7–8 phút. Video kiểu cắt dán chậm hơn: khoảng 1,5 lần thời lượng ngay trên máy 6 lõi (video 5 phút khoảng 7–8 phút). Cộng thêm thời gian tạo giọng. Máy càng nhiều lõi thì càng nhanh vì công cụ chụp khung bằng nhiều trình duyệt chạy song song. Trong lúc đó máy chạy nặng hơn bình thường.
 
 ## Hình và ảnh
 
