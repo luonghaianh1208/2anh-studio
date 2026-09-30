@@ -14,6 +14,7 @@ PPT Master bản Việt đổi tên thành **2Anh Studio**. Bộ công cụ nay 
 
 ### Bản vá (2026-09-30, sau khi gắn tag)
 - Văn bản hành chính: ví dụ của ND30 còn ghi "UBND HUYỆN", "trên địa bàn huyện", nên AI dễ chép tên đơn vị cũ. Hướng dẫn nay nói rõ từ 1/7/2025 chính quyền địa phương chỉ còn cấp tỉnh và cấp xã, phường, đặc khu; ví dụ chỉ dùng để lấy khuôn. `van_ban.py` cảnh báo (không chặn) khi văn bản có chữ huyện, quận, thị xã, thị trấn, cả trong `warnings` và `kiem-tra.md`. Thêm gợi ý nơi nhận ghi tên cơ quan, gửi lãnh đạo để báo cáo thì ghi "(để b/c)". Máy đã cài nhận bản vá qua `CAP-NHAT.bat`.
+- Luật Antigravity (`.agents/rules/ppt-master-vi.md`) viết gọn lại, từ khoảng 12 000 xuống khoảng 9 300 byte, giữ đủ các quy tắc bắt buộc; còn chỗ cho quy tắc mới dưới giới hạn 12 000 của Antigravity.
 
 ## 6.3.2-vi.13 — 2026-09-30
 
