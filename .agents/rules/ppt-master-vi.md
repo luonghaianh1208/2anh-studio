@@ -90,9 +90,9 @@ Bài mới thuộc bốn loại ở mục Mật độ chữ hỏi mức hiệu �
 
 ## Văn bản hành chính
 
-Đầu ra là file Word đúng thể thức Nghị định 30 (`van-ban.docx`) và `kiem-tra.md`, không phải PPTX.
+Đầu ra là file Word đúng Nghị định 30 và `kiem-tra.md`, không phải PPTX.
 
-- Đọc `docs/vi/tro-ly/van-ban-hanh-chinh.md`, hỏi một lượt 7 câu, viết `noi-dung.json` trong `projects/_van-ban/<tên>/` theo ví dụ đúng loại ở `tools/vi/nd30/examples/`, rồi chạy `tools\vi\van_ban.py "projects\_van-ban\<tên>"`.
+- Đọc `docs/vi/tro-ly/van-ban-hanh-chinh.md`, hỏi một lượt 7 câu, viết `noi-dung.json` trong `projects/_van-ban/<tên>/` theo khuôn ví dụ ở `tools/vi/nd30/examples/` (không chép tên đơn vị: từ 1/7/2025 không còn cấp huyện), rồi chạy `tools\vi\van_ban.py "projects\_van-ban\<tên>"`.
 - Không bịa: số, ký hiệu, ngày, người ký, căn cứ, số tiền, số liệu chưa nêu thì ghi `[CẦN BỔ SUNG: …]`. Còn ô thì `ban_nhap` là `true`: báo rõ là bản nháp, đọc từng ô và dòng "Thầy cô đối chiếu" trong `warnings`.
 - Không sửa file trong `tools/vi/nd30/`, không viết file Word cách khác, không đổi profile để qua bộ kiểm. Văn bản Đảng, Đoàn không hỗ trợ.
 

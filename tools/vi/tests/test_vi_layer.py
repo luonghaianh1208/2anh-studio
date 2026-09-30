@@ -2358,6 +2358,15 @@ class AdminDocWiringTest(unittest.TestCase):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, rules)
 
+    def test_two_tier_local_government_is_stated_everywhere(self):
+        guide = read("docs/vi/tro-ly/van-ban-hanh-chinh.md")
+        for phrase in ("1/7/2025", "không chép tên đơn vị", "không còn huyện, quận, thị xã, thị trấn",
+                       "Có tên đơn vị cấp huyện", "(để b/c)"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, guide)
+        self.assertIn("1/7/2025", read("AGENTS.vi.md"))
+        self.assertIn("không còn cấp huyện", read(".agents/rules/ppt-master-vi.md"))
+
     def test_b6_is_fixed_in_the_tool_not_explained_away(self):
         self.assertNotIn("B6", read(ADMIN_GUIDE))
         body = section(read("AGENTS.vi.md"), AGENTS_VI_ADMIN_HEADING)

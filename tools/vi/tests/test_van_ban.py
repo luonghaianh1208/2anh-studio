@@ -242,7 +242,8 @@ class SignerTitleTest(CliCase):
         data, report = self.run_signed(chuc_vu="HIỆU TRƯỞNG")
         self.assert_no_b6_warning(data, report, "HIỆU TRƯỞNG")
         self.assertEqual(data["kiem_tra"]["canh_bao"], 1, data["warnings"])
-        checks = [w for w in data["warnings"] if not w.startswith(van_ban.CHECK_VALUES_PREFIX)]
+        checks = [w for w in data["warnings"]
+                  if not w.startswith((van_ban.CHECK_VALUES_PREFIX, "Có tên đơn vị cấp huyện"))]
         self.assertEqual(len(checks), 1, data["warnings"])
         self.assertTrue(checks[0].startswith("B7"))
 
@@ -433,6 +434,55 @@ class TextShapeTest(CliCase):
                 self.assertFalse(data["ban_nhap"], data["warnings"])
                 self.assertTrue([w for w in data["warnings"] if w.startswith("Nghi còn chỗ trống")
                                  and shown in w], data["warnings"])
+
+
+def two_tier_cong_van() -> dict:
+    """Công văn dùng đúng danh xưng sau 1/7/2025: chỉ cấp tỉnh và cấp xã, phường."""
+    spec = filled_cong_van()
+    spec["header"]["co_quan_chu_quan"] = "UBND TỈNH BẮC NINH"
+    spec["header"]["co_quan_ban_hanh"] = "SỞ GIÁO DỤC VÀ ĐÀO TẠO"
+    spec["kinh_gui"] = "Các trường trung học phổ thông trên địa bàn tỉnh"
+    spec["body"][0]["text"] = "Sở Giáo dục và Đào tạo tổ chức tập huấn ứng dụng AI cho giáo viên."
+    return spec
+
+
+class OldAdministrativeUnitTest(CliCase):
+    def test_example_with_district_units_warns_in_json_and_report(self):
+        self.write_spec(filled_cong_van())  # ví dụ ND30 gốc: "UBND HUYỆN ...", "trên địa bàn huyện"
+        code, data, _ = self.run_cli(self.folder)
+        self.assertEqual(code, 0, data)
+        notes = [w for w in data["warnings"] if w.startswith("Có tên đơn vị cấp huyện")]
+        self.assertEqual(len(notes), 1, data["warnings"])
+        self.assertIn("1/7/2025", notes[0])
+        report = (self.folder / "kiem-tra.md").read_text(encoding="utf-8")
+        self.assertIn("## Đơn vị hành chính", report)
+
+    def test_warning_does_not_make_a_draft(self):
+        self.write_spec(filled_cong_van())
+        _, data, _ = self.run_cli(self.folder)
+        self.assertFalse(data["ban_nhap"], data["warnings"])
+
+    def test_every_old_level_is_caught_once(self):
+        for text, shown in (("Kính gửi UBND quận Ba Đình", "quận"), ("các thị xã trong tỉnh", "thị xã"),
+                            ("UBND thị trấn Đông Anh", "thị trấn"), ("Phòng GD&ĐT huyện Gia Lâm", "huyện")):
+            with self.subTest(text=text):
+                folder = self.root / f"u{abs(hash(text))}"
+                folder.mkdir()
+                spec = two_tier_cong_van()
+                spec["body"][1]["text"] = text
+                self.write_spec(spec, folder)
+                _, data, _ = self.run_cli(folder)
+                notes = [w for w in data["warnings"] if w.startswith("Có tên đơn vị cấp huyện")]
+                self.assertEqual(len(notes), 1, data["warnings"])
+                self.assertIn(shown, notes[0])
+
+    def test_two_tier_names_do_not_warn(self):
+        spec = two_tier_cong_van()
+        spec["body"][1]["text"] = "Kính đề nghị UBND các xã, phường và đặc khu phối hợp; địa điểm: phường Kinh Bắc."
+        self.write_spec(spec)
+        _, data, _ = self.run_cli(self.folder)
+        self.assertFalse([w for w in data["warnings"] if w.startswith("Có tên đơn vị cấp huyện")],
+                         data["warnings"])
 
 
 class NoYamlTest(CliCase):

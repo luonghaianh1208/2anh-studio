@@ -31,6 +31,10 @@ REMINDER = "Văn bản chưa đóng dấu, chưa ký; soát và điền đủ tr
 BLANK_RE = re.compile(r"\[CẦN BỔ SUNG[^\]]*\]?|\?\?\?", re.IGNORECASE)
 SUSPECT_RE = re.compile(r"…{2,}|\.{4,}|…\s*/\s*…|\bX{2}/X{2}\b|\[CAN BO SUNG[^\]]*\]?", re.IGNORECASE)
 CHECK_VALUES_PREFIX = "Thầy cô đối chiếu"
+# Từ 1/7/2025 chính quyền địa phương còn 2 cấp (tỉnh, xã/phường): không còn huyện, quận, thị xã, thị trấn.
+OLD_UNIT_RE = re.compile(r"\b(?:huyện|quận|thị xã|thị trấn)\b", re.IGNORECASE)
+OLD_UNIT_NOTE = ("Có tên đơn vị cấp huyện ({text}): từ 1/7/2025 chính quyền địa phương chỉ còn cấp tỉnh "
+                 "và cấp xã, phường; kiểm tra lại danh xưng đơn vị hiện hành (kính gửi, nơi nhận, tên cơ quan).")
 HEADER_BLANKS = (
     ("co_quan_ban_hanh", "tên cơ quan ban hành"),
     ("ky_hieu", "ký hiệu văn bản"),
@@ -314,6 +318,7 @@ def collect_blanks(vd, path: Path, json_blanks: list[tuple[str, str]],
     seen: dict = {}
     found: list[tuple[str, str]] = list(fields)
     suspects: list[str] = []
+    old_units: list[str] = []
     doc = vd.Document(str(path))
     for _, paragraph in vd._iter_all_paragraphs(doc):
         element = paragraph._p
@@ -331,7 +336,10 @@ def collect_blanks(vd, path: Path, json_blanks: list[tuple[str, str]],
                     break
             found.append((place, text))
         suspects.extend(match.group(0) for match in SUSPECT_RE.finditer(text_nfc))
-    return found, suspects
+        for match in OLD_UNIT_RE.finditer(text_nfc):
+            if match.group(0).lower() not in (u.lower() for u in old_units):
+                old_units.append(match.group(0))
+    return found, suspects, old_units
 
 
 def check_values(spec: dict) -> list[tuple[str, str]]:
@@ -404,7 +412,7 @@ def _cell(text: str) -> str:
 
 
 def build_report(*, kind: str, trich_yeu: str, profile: str, rows, blanks, verdict: str,
-                 vd, values, suspects) -> str:
+                 vd, values, suspects, old_units=()) -> str:
     marks = {vd.OK: "✓", vd.WARN: "⚠", vd.FAIL: "✗"}
     lines = [
         f"# Kiểm tra thể thức — {kind}",
@@ -438,6 +446,8 @@ def build_report(*, kind: str, trich_yeu: str, profile: str, rows, blanks, verdi
                   "Không tính là ô cần bổ sung; còn thiếu thì ghi `[CẦN BỔ SUNG: …]` rồi chạy lại.",
                   ""]
         lines += [f"- `{text}`" for text in suspects]
+    if old_units:
+        lines += ["", "## Đơn vị hành chính", "", OLD_UNIT_NOTE.format(text=", ".join(old_units))]
     lines += ["", "## Thầy cô đối chiếu", "",
               "Máy không kiểm được các giá trị dưới đây đúng hay sai; thầy cô đối chiếu với "
               "thực tế trước khi trình ký.", ""]
@@ -539,7 +549,7 @@ def run(args) -> int:
         rows = classify(vd, strict, lenient)
         real = [(label, detail) for st, label, detail, blank in rows if st == vd.FAIL and not blank]
         blank_fail = [(label, detail) for st, label, detail, blank in rows if blank]
-        blanks, suspects = collect_blanks(vd, tmp, json_blanks, fields)
+        blanks, suspects, old_units = collect_blanks(vd, tmp, json_blanks, fields)
         values = check_values(spec)
         info["blanks"] = len(blanks)
         draft = bool(blanks or blank_fail)
@@ -567,6 +577,8 @@ def run(args) -> int:
         for text in suspects:
             warnings.append(f"Nghi còn chỗ trống chưa đánh dấu: {text} — còn thiếu thì ghi "
                             "[CẦN BỔ SUNG: …] rồi chạy lại.")
+        if old_units:
+            warnings.append(OLD_UNIT_NOTE.format(text=", ".join(old_units)))
         for status, label, detail, _ in rows:
             if status == vd.WARN:
                 warnings.append(f"{label}: {detail}")
@@ -581,7 +593,7 @@ def run(args) -> int:
             verdict = "Đạt các mục bộ kiểm tra được."
         report = build_report(kind=kind, trich_yeu=str(header.get("trich_yeu", "")),
                               profile=profile, rows=rows, blanks=blanks, verdict=verdict, vd=vd,
-                              values=values, suspects=suspects)
+                              values=values, suspects=suspects, old_units=old_units)
 
         try:
             if real:

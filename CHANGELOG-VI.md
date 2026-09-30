@@ -12,6 +12,9 @@ PPT Master bản Việt đổi tên thành **2Anh Studio**. Bộ công cụ nay 
 - Máy đã cài không phải làm gì: `CAP-NHAT.bat` vẫn cập nhật như cũ, tên các file lệnh (`CAI-DAT.bat`, `KIEM-TRA.bat`, `CAP-NHAT.bat`, `tools/vi/pptmaster.ps1`) và mọi câu lệnh cho AI ("tạo PPT", "làm slide", "soạn công văn"…) giữ nguyên. Thư mục cài sẵn tên `PPTmaster` vẫn dùng bình thường.
 - Lõi PPT Master của Hugo He (`skills/ppt-master/`, giấy phép MIT) giữ nguyên tên và ghi công.
 
+### Bản vá (2026-09-30, sau khi gắn tag)
+- Văn bản hành chính: ví dụ của ND30 còn ghi "UBND HUYỆN", "trên địa bàn huyện", nên AI dễ chép tên đơn vị cũ. Hướng dẫn nay nói rõ từ 1/7/2025 chính quyền địa phương chỉ còn cấp tỉnh và cấp xã, phường, đặc khu; ví dụ chỉ dùng để lấy khuôn. `van_ban.py` cảnh báo (không chặn) khi văn bản có chữ huyện, quận, thị xã, thị trấn, cả trong `warnings` và `kiem-tra.md`. Thêm gợi ý nơi nhận ghi tên cơ quan, gửi lãnh đạo để báo cáo thì ghi "(để b/c)". Máy đã cài nhận bản vá qua `CAP-NHAT.bat`.
+
 ## 6.3.2-vi.13 — 2026-09-30
 
 Soạn văn bản hành chính đúng thể thức Nghị định 30/2020/NĐ-CP: loại việc thứ 11, dựa trên bộ công cụ ND30 mã nguồn mở của Nguyễn Minh Phát (giấy phép MIT), bỏ phần văn bản Đoàn. AI hỏi một lượt, sinh file Word sửa được, tự kiểm thể thức, và không bao giờ tự bịa số, ngày, người ký hay căn cứ.

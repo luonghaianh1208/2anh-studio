@@ -62,6 +62,8 @@ Máy không biết số liệu thật, nên `kiem-tra.md` có mục "Thầy cô 
 
 - Chọn loại theo `tools/vi/nd30/references/danh-muc-loai-vb.md` (27 loại văn bản hành chính của Nghị định 30, biểu mẫu nội bộ, bảng nhận diện nhanh từ câu nói của người dùng). Mơ hồ thì dùng bảng "câu hỏi gợi ý phân loại" ở cuối file đó trong câu hỏi 1.
 - Mở ví dụ gần nhất trong `tools/vi/nd30/examples/` trước khi viết: `cong_van.json` (công văn), `input-sample.json` (tờ trình), `quyet_dinh.json`, `thong_bao.json`, `giay_moi.json`, `bien_ban.json`. Loại không có ví dụ riêng (kế hoạch, báo cáo, hướng dẫn…) thì đi theo `quyet_dinh.json` hoặc `thong_bao.json` và đổi `ten_loai_in_hoa`.
+- Ví dụ chỉ dùng để lấy **khuôn** (tên trường, cách viết), không chép tên đơn vị: ví dụ của ND30 còn ghi "UBND HUYỆN …", "trên địa bàn huyện". Từ 1/7/2025 chính quyền địa phương chỉ còn hai cấp: tỉnh, thành phố trực thuộc trung ương và xã, phường, đặc khu; không còn huyện, quận, thị xã, thị trấn. Tên cơ quan chủ quản, cơ quan ban hành, kính gửi, nơi nhận lấy từ hồ sơ đơn vị hoặc lời thầy cô; không chắc danh xưng hiện hành thì ghi `[CẦN BỔ SUNG: tên đơn vị hiện hành]`.
+- Nơi nhận ghi tên cơ quan, đơn vị ("UBND Thành phố", "Các sở, ngành"), không ghi cá nhân lãnh đạo; gửi lãnh đạo để biết hoặc để báo cáo thì ghi rõ, ví dụ "Chủ tịch UBND Thành phố (để b/c)", theo thông lệ của đơn vị.
 - Thể thức từng thành phần (quốc hiệu, tên cơ quan, số ký hiệu, trích yếu, nơi nhận) và chữ viết tắt tên loại: `tools/vi/nd30/references/the-thuc-nd30.md`.
 - Văn bản quy phạm pháp luật của HĐND, UBND (nghị quyết HĐND, quyết định UBND có tính quy phạm) theo thể thức riêng, không theo Nghị định 30: đọc `tools/vi/nd30/references/the-thuc-qppl-nq-hdnd.md` hoặc `tools/vi/nd30/references/the-thuc-qppl-qd-ubnd.md`, và ví dụ `nghi_quyet_hdnd.json`, `nghi_quyet_hdnd_kem_quy_dinh.json`, `quyet_dinh_ubnd_qppl.json`.
   - Nghị quyết hoặc quyết định "ban hành kèm theo Quy định/Quy chế" là hai văn bản riêng: tạo hai thư mục (một cho nghị quyết/quyết định, một cho quy định đính kèm), mỗi thư mục một `noi-dung.json`, và chạy `tools/vi/van_ban.py` hai lần.
@@ -147,6 +149,7 @@ Lệnh in đúng một dòng JSON ở stdout: `ready`, `files`, `loai_van_ban`, 
   - B3 (số văn bản đang trống) là bình thường: văn thư điền khi vào sổ;
   - "Thầy cô đối chiếu": đọc nguyên văn để thầy cô soát các giá trị máy không kiểm được;
   - "Nghi còn chỗ trống chưa đánh dấu": hỏi lại thầy cô chỗ đó;
+  - "Có tên đơn vị cấp huyện": văn bản có chữ huyện, quận, thị xã hoặc thị trấn; báo thầy cô kiểm tra lại danh xưng đơn vị hiện hành, sửa `noi-dung.json` rồi chạy lại (tên riêng lịch sử hay địa chỉ cũ thì giữ);
 - câu nhắc cuối: văn bản chưa đóng dấu, chưa ký; soát, điền đủ rồi trình ký và đóng dấu theo quy trình văn thư của đơn vị.
 
 `error` khác `null`: xử lý theo `error.step`:
