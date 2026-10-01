@@ -57,6 +57,10 @@ class _May(BaseHTTPRequestHandler):
         self.end_headers()
         if _May.tra == "url":
             noi_dung = {"data": [{"url": f"http://127.0.0.1:{self.server.server_port}/anh.png"}]}
+        elif _May.tra == "rac":
+            noi_dung = {"data": [{"b64_json": base64.b64encode(b"day khong phai anh, chi la chu").decode()}]}
+        elif _May.tra == "b64-hong":
+            noi_dung = {"data": [{"b64_json": "!!!khong-phai-base64"}]}
         elif _May.tra == "xam":
             noi_dung = {"data": [{"b64_json": base64.b64encode(png_xanh(256, 256, (235, 235, 235))).decode()}]}
         else:
@@ -259,6 +263,91 @@ class CliTest(unittest.TestCase):
             self.assertTrue(out2["ready"], out2)
             self.assertEqual(out2["da_ve"], 0)
             self.assertTrue(out2["warnings"])
+        self.assertEqual(_May.goi, [])
+
+    def _video_hai_anh_ve_san(self, tmp):
+        video = VIDEO.replace("nhip: @dau | anh: tim: hanoi old quarter | nen\n", "nhip: @dau | chu: Phố cổ\n").replace(
+            "bo-cuc: toan-canh", "bo-cuc: mot")
+        (Path(tmp) / "video.md").write_text(video, encoding="utf-8")
+        ds = ke_hoach.lap(parse.parse(video))
+        thu_muc_goc = Path(tmp) / "anh" / "ai" / "goc"
+        thu_muc_goc.mkdir(parents=True)
+        for m in ds:
+            (thu_muc_goc / f"{m.ma}.png").write_bytes(png_xanh())
+        return ds
+
+    def _nguon(self, tmp):
+        return {b["ma"]: b for b in json.loads((Path(tmp) / "anh" / "ai" / "nguon.json").read_text(encoding="utf-8"))}
+
+    def test_platform_can_state_its_tool_and_model(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ds = self._video_hai_anh_ve_san(tmp)
+            out = self.chay(tmp, "--cong-cu", "Antigravity", "--mo-hinh", "Nano Banana Pro")
+            self.assertTrue(out["ready"], out)
+            self.assertFalse(any("chưa rõ mô hình" in w for w in out["warnings"]), out["warnings"])
+            nguon = self._nguon(tmp)
+            for m in ds:
+                self.assertEqual((nguon[m.ma]["cong_cu"], nguon[m.ma]["mo_hinh"]), ("Antigravity", "Nano Banana Pro"))
+            # Chạy lại không cờ: vẫn là ảnh nền tảng vẽ, không gọi API, mô hình đã rõ nên không cảnh báo.
+            out2 = self.chay(tmp)
+            self.assertTrue(out2["ready"], out2)
+            self.assertEqual(out2["da_ve"], 0)
+            self.assertFalse(any("chưa rõ mô hình" in w for w in out2["warnings"]), out2["warnings"])
+        self.assertEqual(_May.goi, [])
+
+    def test_model_flag_fills_in_earlier_unknown_platform_records(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ds = self._video_hai_anh_ve_san(tmp)
+            self.assertTrue(any("chưa rõ mô hình" in w for w in self.chay(tmp)["warnings"]))
+            self.assertEqual({b["mo_hinh"] for b in self._nguon(tmp).values()}, {"không rõ"})
+            out = self.chay(tmp, "--mo-hinh", "GPT Image 1")
+            self.assertTrue(out["ready"], out)
+            self.assertFalse(any("chưa rõ mô hình" in w for w in out["warnings"]), out["warnings"])
+            nguon = self._nguon(tmp)
+            self.assertEqual({nguon[m.ma]["mo_hinh"] for m in ds}, {"GPT Image 1"})
+        self.assertEqual(_May.goi, [])
+
+    def test_non_image_answers_are_provider_errors(self):
+        for tra in ("rac", "b64-hong"):
+            with self.subTest(tra=tra), tempfile.TemporaryDirectory() as tmp:
+                (Path(tmp) / "video.md").write_text(VIDEO.replace(
+                    "nhip: @dau | anh: tim: hanoi old quarter | nen\n", "nhip: @dau | chu: Phố cổ\n").replace(
+                    "bo-cuc: toan-canh", "bo-cuc: mot"), encoding="utf-8")
+                _May.tra = tra
+                out = self.chay(tmp)
+                self.assertFalse(out["ready"], out)
+                self.assertEqual(out["error"]["step"], "nha-cung-cap", out["error"])
+                self.assertIn("không phải ảnh", out["error"]["message"])
+
+    def _chay_khong_khoa(self, tmp, home, *them):
+        e = {k: v for k, v in os.environ.items() if not k.startswith("ANH_AI_")}
+        e.update({"USERPROFILE": str(home), "HOME": str(home), "ANH_AI_URL": self.url})
+        r = subprocess.run([sys.executable, str(TOOLS_VI / "anh_vox.py"), str(tmp), *them], capture_output=True,
+                           text=True, encoding="utf-8", env=e)
+        return json.loads(r.stdout.strip().splitlines()[-1])
+
+    def test_plan_only_does_not_need_a_readable_config(self):
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as home:
+            (Path(home) / ".2anh-studio").mkdir()
+            (Path(home) / ".2anh-studio" / "anh-ai.json").write_text("{hong", encoding="utf-8")
+            self._video_hai_anh_ve_san(tmp)
+            out = self._chay_khong_khoa(tmp, home, "--chi-ke-hoach")
+            self.assertTrue(out["ready"], out)
+            ke = json.loads((Path(tmp) / "anh" / "ai" / "ke-hoach.json").read_text(encoding="utf-8"))
+            self.assertIsNone(ke["mo_hinh"])
+            self.assertEqual(len(ke["muc"]), 2)
+
+    def test_non_string_key_in_config_is_a_config_error_with_json(self):
+        for khoa in (123, ["a"], {"x": 1}):
+            with self.subTest(khoa=khoa), tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as home:
+                (Path(home) / ".2anh-studio").mkdir()
+                (Path(home) / ".2anh-studio" / "anh-ai.json").write_text(json.dumps({"khoa": khoa}), encoding="utf-8")
+                (Path(tmp) / "video.md").write_text(VIDEO.replace(
+                    "nhip: @dau | anh: tim: hanoi old quarter | nen\n", "nhip: @dau | chu: Phố cổ\n").replace(
+                    "bo-cuc: toan-canh", "bo-cuc: mot"), encoding="utf-8")
+                out = self._chay_khong_khoa(tmp, home)
+                self.assertFalse(out["ready"], out)
+                self.assertEqual(out["error"]["step"], "cau-hinh", out["error"])
         self.assertEqual(_May.goi, [])
 
     def test_partial_failure_saves_successful_draws_and_resumes(self):

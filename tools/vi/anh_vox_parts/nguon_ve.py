@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import json
 import os
 import urllib.error
@@ -16,6 +17,7 @@ MO_HINH_MAC_DINH = "ag/gemini-3.1-flash-image"
 FIX_KHOA = ("Đặt khoá API của 9router: `setx ANH_AI_KEY \"<khoá>\"` (lấy ở trang quản trị 9router) rồi mở lại cửa sổ "
             "lệnh; hoặc dùng `anh: tim:` (ảnh thật), hoặc thay ảnh bằng `chu`, `the`.")
 FIX_MANG = "Kiểm tra 9router đang chạy (`9router` mở ở cổng 20128) hoặc địa chỉ `ANH_AI_URL`, rồi chạy lại."
+KHONG_PHAI_ANH = "Nguồn vẽ trả dữ liệu không phải ảnh."
 FIX_NCC = "Đọc thông báo của nhà cung cấp: hết hạn mức thì chờ hoặc đổi `ANH_AI_MO_HINH`; câu lệnh bị từ chối thì sửa mô tả `ve:`."
 
 
@@ -42,6 +44,9 @@ def doc_cau_hinh(env=os.environ, home: Path | None = None) -> CauHinh:
             tep = json.loads(f.read_text(encoding="utf-8"))
         except ValueError as exc:
             raise VeError("cau-hinh", f"File cấu hình {f} hỏng: {exc}", "Sửa hoặc xoá file đó rồi chạy lại.") from None
+        if not isinstance(tep, dict) or any(k in tep and not isinstance(tep[k], str) for k in ("url", "khoa", "mo_hinh")):
+            raise VeError("cau-hinh", f"File cấu hình {f} sai dạng: cần một đối tượng JSON, `url`, `khoa`, `mo_hinh` "
+                                      "đều là chuỗi.", "Sửa hoặc xoá file đó rồi chạy lại.")
     khoa_tho = env.get("ANH_AI_KEY") or tep.get("khoa")
     khoa = None
     if khoa_tho:
@@ -82,7 +87,10 @@ def ve(ch: CauHinh, prompt: str, kich_thuoc: str, timeout: float = 120, mo=urlli
         chu = _an(str(data), ch.khoa)[:300]
         raise VeError("nha-cung-cap", f"Nguồn vẽ không trả ảnh: {chu}", FIX_NCC) from None
     if muc.get("b64_json"):
-        return base64.b64decode(muc["b64_json"])
+        try:
+            return base64.b64decode(muc["b64_json"])
+        except (binascii.Error, ValueError, TypeError):
+            raise VeError("nha-cung-cap", KHONG_PHAI_ANH, FIX_NCC) from None
     if muc.get("url"):
         try:
             with mo(urllib.request.Request(muc["url"]), timeout=timeout) as r:

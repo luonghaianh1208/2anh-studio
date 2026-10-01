@@ -3,7 +3,7 @@
 (`tim:`), rồi tính trước ảnh đã xử lý (cắt nền viền giấy xé, khung mép xé, duotone, halftone) vào `anh/ai/xu-ly/` và
 bảng `anh/ai/vox.json` cho video_ma.
 
-  python tools/vi/anh_vox.py <thư_mục> [--chi-ke-hoach] [--toi-da N]
+  python tools/vi/anh_vox.py <thư_mục> [--chi-ke-hoach] [--toi-da N] [--cong-cu <tên>] [--mo-hinh <tên>]
 
 stdout đúng một dòng JSON. Hướng dẫn: docs/vi/tro-ly/video-giai-thich.md
 """
@@ -38,6 +38,7 @@ SO_LUONG_SONG_SONG = 3
 SO_LAN_THU_LAI = 3
 FIX_INPUT = "Viết video.md trong thư mục dự án (xem docs/vi/tro-ly/video-giai-thich.md) rồi chạy lại."
 FIX_INTERNAL = "Lỗi ngoài dự kiến; dán nguyên thông báo này cho người bảo trì."
+CONG_CU_API = "api"
 CONG_CU_NEN_TANG = "nen-tang"
 MO_HINH_NEN_TANG = "không rõ"
 
@@ -63,7 +64,9 @@ def _khoa_tho_de_an() -> str | None:
     try:
         f = Path.home() / ".2anh-studio" / "anh-ai.json"
         if f.is_file():
-            return json.loads(f.read_text(encoding="utf-8")).get("khoa")
+            tep = json.loads(f.read_text(encoding="utf-8"))
+            khoa = tep.get("khoa") if isinstance(tep, dict) else None
+            return khoa if isinstance(khoa, str) and khoa else None
     except (OSError, ValueError):
         return None
     return None
@@ -96,7 +99,7 @@ def _doc_video(thu_muc: Path) -> parse.Video:
     return video
 
 
-def _ghi_ke_hoach(thu_muc: Path, ch: nguon_ve.CauHinh, ds: list) -> str:
+def _ghi_ke_hoach(thu_muc: Path, mo_hinh: str | None, ds: list) -> str:
     duong_dan = thu_muc / "anh" / "ai" / KE_HOACH_TEN
     duong_dan.parent.mkdir(parents=True, exist_ok=True)
     muc = []
@@ -105,7 +108,7 @@ def _ghi_ke_hoach(thu_muc: Path, ch: nguon_ve.CauHinh, ds: list) -> str:
         d["tuy_chon"] = list(m.tuy_chon)
         d["file_goc"] = str(ke_hoach.file_goc(Path("."), m).as_posix())
         muc.append(d)
-    noi_dung = {"mo_hinh": ch.mo_hinh, "muc": muc}
+    noi_dung = {"mo_hinh": mo_hinh, "muc": muc}
     duong_dan.write_text(json.dumps(noi_dung, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     return "anh/ai/" + KE_HOACH_TEN
 
@@ -147,26 +150,48 @@ def _ve_mot_anh(ch: nguon_ve.CauHinh, m, chi_muc: int, tong: int) -> bytes:
 
 
 def _luu_anh(data: bytes, duong_dan: Path) -> None:
-    duong_dan.parent.mkdir(parents=True, exist_ok=True)
-    chu_ki = data[:12]
-    if chu_ki.startswith(b"\x89PNG"):
-        duong_dan.write_bytes(data)
-        return
-    from PIL import Image
+    """Lưu ảnh nguồn vẽ trả về thành PNG. Dữ liệu không đọc được thành ảnh là lỗi `nha-cung-cap`, không phải `write`."""
     import io
-    im = Image.open(io.BytesIO(data))
-    im.save(duong_dan, "PNG")
+
+    from PIL import Image
+    try:
+        with Image.open(io.BytesIO(data)) as im:
+            im.load()
+            la_png = im.format == "PNG"
+            if not la_png:
+                im = im.copy()
+    except (OSError, ValueError, Image.DecompressionBombError):
+        raise nguon_ve.VeError("nha-cung-cap", nguon_ve.KHONG_PHAI_ANH, nguon_ve.FIX_NCC) from None
+    duong_dan.parent.mkdir(parents=True, exist_ok=True)
+    if la_png:
+        duong_dan.write_bytes(data)
+    else:
+        im.save(duong_dan, "PNG")
 
 
-def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict:
+def _nen_tang_ve(ban_ghi) -> bool:
+    """Bản ghi nguồn của ảnh nền tảng tự vẽ (mọi `cong_cu` khác `api`): không vẽ lại bằng API dù mô hình khác."""
+    return ban_ghi is not None and ban_ghi.get("cong_cu") != CONG_CU_API
+
+
+def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list, cong_cu: str | None = None,
+         mo_hinh: str | None = None) -> dict:
+    """`cong_cu`, `mo_hinh`: công cụ và mô hình nền tảng đã dùng vẽ ảnh có sẵn trong `anh/ai/goc/` (`--cong-cu`,
+    `--mo-hinh`); ghi vào nguồn của ảnh mới và điền vào bản ghi "không rõ" cũ của cùng ảnh."""
     video = _doc_video(thu_muc)
     ds = ke_hoach.lap(video)
-    ch = nguon_ve.doc_cau_hinh()
-    ke_hoach_rel = _ghi_ke_hoach(thu_muc, ch, ds)
 
     if chi_ke_hoach:
+        # Lập kế hoạch không cần cấu hình nguồn vẽ: file cấu hình hỏng không chặn bước này.
+        try:
+            mo_hinh_ch = nguon_ve.doc_cau_hinh().mo_hinh
+        except nguon_ve.VeError:
+            mo_hinh_ch = None
+        ke_hoach_rel = _ghi_ke_hoach(thu_muc, mo_hinh_ch, ds)
         return {"files": [ke_hoach_rel], "so_anh": len(ds), "da_ve": 0, "dung_lai": 0, "ke_hoach": ke_hoach_rel}
 
+    ch = nguon_ve.doc_cau_hinh()
+    ke_hoach_rel = _ghi_ke_hoach(thu_muc, ch.mo_hinh, ds)
     thu_muc_ai = thu_muc / "anh" / "ai"
     nguon_cu = {b["ma"]: b for b in _doc_nguon(thu_muc_ai, warnings) if isinstance(b, dict) and "ma" in b}
 
@@ -181,22 +206,21 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict
             can_ve.append(m)
             continue
         ban_ghi = nguon_cu.get(m.ma)
-        if ban_ghi is not None and ban_ghi.get("mo_hinh") == ch.mo_hinh:
+        if ban_ghi is not None and ban_ghi.get("cong_cu") == CONG_CU_API and ban_ghi.get("mo_hinh") == ch.mo_hinh:
             dung_lai += 1
             continue
-        # Ảnh do nền tảng tự vẽ (chưa rõ mô hình): dùng lại bất kể `ANH_AI_MO_HINH` hiện tại là gì.
-        if ban_ghi is not None and ban_ghi.get("cong_cu") == CONG_CU_NEN_TANG:
-            dung_lai += 1
-            warnings.append(f"ảnh ai/goc/{m.ma}.png do nền tảng vẽ, chưa rõ mô hình")
+        if ban_ghi is not None and not _nen_tang_ve(ban_ghi):
+            can_ve.append(m)   # vẽ bằng API với mô hình khác: vẽ lại
             continue
-        if ban_ghi is None:
-            dung_lai += 1
-            ban_ghi_moi = {"file": f"ai/goc/{m.ma}.png", "cong_cu": CONG_CU_NEN_TANG,
-                           "mo_hinh": MO_HINH_NEN_TANG, "prompt": m.prompt, "ngay": date.today().isoformat(), "ma": m.ma}
-            nguon_moi.append(ban_ghi_moi)
-            warnings.append(f"ảnh ai/goc/{m.ma}.png do nền tảng vẽ, chưa rõ mô hình")
-            continue
-        can_ve.append(m)
+        # Ảnh có sẵn do nền tảng tự vẽ: dùng lại bất kể `ANH_AI_MO_HINH`; ghi (hay điền) công cụ và mô hình đã nêu.
+        dung_lai += 1
+        if ban_ghi is None or (mo_hinh and ban_ghi.get("mo_hinh") == MO_HINH_NEN_TANG):
+            nguon_moi.append({"file": f"ai/goc/{m.ma}.png",
+                              "cong_cu": cong_cu or (ban_ghi or {}).get("cong_cu") or CONG_CU_NEN_TANG,
+                              "mo_hinh": mo_hinh or MO_HINH_NEN_TANG, "prompt": m.prompt,
+                              "ngay": (ban_ghi or {}).get("ngay") or date.today().isoformat(), "ma": m.ma})
+        if not mo_hinh and (ban_ghi is None or ban_ghi.get("mo_hinh") == MO_HINH_NEN_TANG):
+            warnings.append(f"ảnh ai/goc/{m.ma}.png do nền tảng vẽ, chưa rõ mô hình (thêm `--mo-hinh \"<tên>\"`)")
 
     if len(can_ve) > toi_da:
         raise AnhVoxError("input", f"Cần vẽ {len(can_ve)} ảnh, quá giới hạn {toi_da}",
@@ -213,22 +237,21 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict
             tuong_lai = {pool.submit(_ve_mot_anh, ch, m, i + 1, tong): m for i, m in enumerate(can_ve)}
             for f in concurrent.futures.as_completed(tuong_lai):
                 m = tuong_lai[f]
+                file_goc = ke_hoach.file_goc(thu_muc, m)
                 try:
-                    data = f.result()
+                    # Lưu và ghi nguồn ngay khi mỗi ảnh vẽ xong: ảnh đã trả tiền không mất nếu ảnh khác lỗi sau đó.
+                    _luu_anh(f.result(), file_goc)
                 except concurrent.futures.CancelledError:
                     continue
-                except nguon_ve.VeError as exc:
+                except nguon_ve.VeError as exc:   # lỗi vẽ, hoặc nguồn vẽ trả dữ liệu không phải ảnh
                     if loi_dung is None:
                         loi_dung = exc
                     if not da_huy:
                         pool.shutdown(wait=False, cancel_futures=True)
                         da_huy = True
                     continue
-                # Lưu và ghi nguồn ngay khi mỗi ảnh vẽ xong: ảnh đã trả tiền không mất nếu ảnh khác lỗi sau đó.
-                file_goc = ke_hoach.file_goc(thu_muc, m)
-                _luu_anh(data, file_goc)
                 files.append(str(file_goc.relative_to(thu_muc).as_posix()))
-                nguon_moi.append({"file": f"ai/goc/{m.ma}.png", "cong_cu": "api", "mo_hinh": ch.mo_hinh,
+                nguon_moi.append({"file": f"ai/goc/{m.ma}.png", "cong_cu": CONG_CU_API, "mo_hinh": ch.mo_hinh,
                                   "prompt": m.prompt, "ngay": date.today().isoformat(), "ma": m.ma})
                 da_ve += 1
 
@@ -249,7 +272,7 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict
         ma_ke_hoach = m.ma   # mã trước khi vẽ lại: video_ma so với kế hoạch lập lại từ video.md để nhận ra ảnh cũ
         if m.kieu == "cat" and m.nguon == "ve" and not xu_ly.alpha_sach(xu_ly.tach_nen(ke_hoach.file_goc(thu_muc, m))):
             # Ảnh do nền tảng vẽ: không có API để vẽ lại, chuyển thẳng sang khung (xu_ly_muc ghi cảnh báo).
-            if (nguon_ve_.get(m.ma) or {}).get("cong_cu") != CONG_CU_NEN_TANG:
+            if not _nen_tang_ve(nguon_ve_.get(m.ma)):
                 try:
                     m, ve_moi = _ve_lai(thu_muc, ch, m, nguon_ve_)
                     da_ve += ve_moi
@@ -286,12 +309,11 @@ def _ve_lai(thu_muc: Path, ch: nguon_ve.CauHinh, m, nguon_ve_: dict) -> tuple:
     m2 = replace(m, prompt=prompt, ma=ke_hoach.ma_anh(prompt, m.kich_thuoc))
     goc = ke_hoach.file_goc(thu_muc, m2)
     ban_ghi = nguon_ve_.get(m2.ma)
-    if goc.is_file() and ban_ghi is not None and (ban_ghi.get("mo_hinh") == ch.mo_hinh
-                                                   or ban_ghi.get("cong_cu") == CONG_CU_NEN_TANG):
+    if goc.is_file() and ban_ghi is not None and (ban_ghi.get("mo_hinh") == ch.mo_hinh or _nen_tang_ve(ban_ghi)):
         return m2, 0
     log(f"Ảnh cảnh {m.canh} tách nền chưa sạch, vẽ lại một lần với nền xanh chặt hơn...")
     _luu_anh(_ve_mot_anh(ch, m2, 1, 1), goc)
-    ban_ghi = {"file": f"ai/goc/{m2.ma}.png", "cong_cu": "api", "mo_hinh": ch.mo_hinh, "prompt": prompt,
+    ban_ghi = {"file": f"ai/goc/{m2.ma}.png", "cong_cu": CONG_CU_API, "mo_hinh": ch.mo_hinh, "prompt": prompt,
                "ngay": date.today().isoformat(), "ma": m2.ma}
     _ghi_nguon(thu_muc / "anh" / "ai", [ban_ghi])
     nguon_ve_[m2.ma] = ban_ghi
@@ -337,18 +359,22 @@ def main(argv=None) -> int:
     ap.add_argument("thu_muc")
     ap.add_argument("--chi-ke-hoach", action="store_true")
     ap.add_argument("--toi-da", type=int, default=TOI_DA_MAC_DINH)
+    ap.add_argument("--cong-cu")
+    ap.add_argument("--mo-hinh")
     base = {"ready": False, "files": [], "so_anh": 0, "da_ve": 0, "dung_lai": 0, "ke_hoach": None}
     try:
         args = ap.parse_args(argv)
     except SystemExit:
         emit({**base, "warnings": [],
               "error": {"step": "input", "message": "Sai tham số dòng lệnh.",
-                        "fix": "Dùng: python tools/vi/anh_vox.py <thư_mục> [--chi-ke-hoach] [--toi-da N]"}})
+                        "fix": "Dùng: python tools/vi/anh_vox.py <thư_mục> [--chi-ke-hoach] [--toi-da N] "
+                               "[--cong-cu <tên>] [--mo-hinh <tên>]"}})
         return 1
     warnings: list = []
     try:
         thu_muc = Path(args.thu_muc).resolve()
-        kq = chay(thu_muc, args.chi_ke_hoach, args.toi_da, warnings)
+        kq = chay(thu_muc, args.chi_ke_hoach, args.toi_da, warnings, cong_cu=(args.cong_cu or "").strip() or None,
+                  mo_hinh=(args.mo_hinh or "").strip() or None)
         emit({**base, **kq, "ready": True, "warnings": warnings, "error": None})
         return 0
     except parse.ParseError as exc:
