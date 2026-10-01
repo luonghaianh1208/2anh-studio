@@ -89,9 +89,14 @@ def _o_list(md: str) -> list:
 
 class SlotTest(unittest.TestCase):
     def test_slot_overflow_never_lands_on_nen(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: toan-canh\nloi: Một hai.\n"
-              "nhip: @dau | anh: tim: x | nen\nnhip: một | chu: A\nnhip: hai | chu: B\n")
-        self.assertNotIn("nen", _o_list(md)[1:])
+        # toan-canh chỉ có 2 ô ngoài `nen` (giua, duoi). Hai nhịp không ghi ô đầu tiên chiếm hết `giua`/`duoi`;
+        # nhịp thứ ba ghi tường minh `nen` (ảnh phủ kín khung) nên là nhịp *gần nhất* trước nhịp thứ tư — nếu ô hết
+        # thì "dùng lại ô cuối" theo đúng nhịp liền trước (lỗi cũ), nhịp thứ tư sẽ ăn nhầm "nen"; phải rơi về ô cuối
+        # của bố cục ("duoi") thay vì ô của nhịp liền trước.
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: toan-canh\nloi: Một hai ba bốn.\n"
+              "nhip: một | chu: A\nnhip: hai | nhan: B\nnhip: ba | anh: tim: x | nen\nnhip: bốn | dau: C\n")
+        o = _o_list(md)
+        self.assertEqual(o, ["giua", "duoi", "nen", "duoi"])
 
     def test_unslotted_beat_skips_a_slot_a_later_beat_names_explicitly(self):
         md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Một hai.\n"
