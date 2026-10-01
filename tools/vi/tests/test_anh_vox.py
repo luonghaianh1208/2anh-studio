@@ -1,5 +1,6 @@
 """anh_vox.py: danh sách ảnh, cấu hình, gọi API kiểu OpenAI (máy chủ giả), lưu đệm, khoá không lộ."""
-import base64, io, json, os, subprocess, sys, tempfile, threading, unittest
+import base64, io, json, os, shutil, subprocess, sys, tempfile, threading, unittest
+from unittest import mock
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
@@ -11,9 +12,9 @@ from video_ma_parts import parse  # noqa: E402
 KHOA = "sk-bi-mat-khong-duoc-lo"
 
 
-def png_xanh(w=64, h=64) -> bytes:
+def png_xanh(w=64, h=64, nen=(0, 255, 0)) -> bytes:
     from PIL import Image
-    im = Image.new("RGB", (w, h), (0, 255, 0))
+    im = Image.new("RGB", (w, h), nen)
     for x in range(w // 4, 3 * w // 4):
         for y in range(h // 4, 3 * h // 4):
             im.putpixel((x, y), (200, 60, 40))
@@ -51,8 +52,10 @@ class _May(BaseHTTPRequestHandler):
         self.end_headers()
         if _May.tra == "url":
             noi_dung = {"data": [{"url": f"http://127.0.0.1:{self.server.server_port}/anh.png"}]}
+        elif _May.tra == "xam":
+            noi_dung = {"data": [{"b64_json": base64.b64encode(png_xanh(256, 256, (235, 235, 235))).decode()}]}
         else:
-            noi_dung = {"data": [{"b64_json": base64.b64encode(png_xanh()).decode()}]}
+            noi_dung = {"data": [{"b64_json": base64.b64encode(png_xanh(256, 256)).decode()}]}
         self.wfile.write(json.dumps(noi_dung).encode())
 
     def do_GET(self):
@@ -287,6 +290,136 @@ class CliTest(unittest.TestCase):
     def test_steps_are_the_documented_ones(self):
         import anh_vox
         self.assertEqual(anh_vox.ERROR_STEPS, ("input", "parse", "cau-hinh", "mang", "nha-cung-cap", "tach-nen", "write", "internal"))
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
+    def test_full_run_writes_processed_images_and_the_index(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "video.md").write_text(VIDEO.replace(
+                "nhip: @dau | anh: tim: hanoi old quarter | nen\n", "nhip: @dau | chu: Phố cổ\n").replace(
+                "bo-cuc: toan-canh", "bo-cuc: mot"), encoding="utf-8")
+            out = self.chay(tmp)
+            self.assertTrue(out["ready"], out)
+            bang = json.loads((Path(tmp) / "anh" / "ai" / "vox.json").read_text(encoding="utf-8"))
+            self.assertEqual(set(bang), {"1-0", "1-1"})
+            self.assertEqual(bang["1-0"]["kieu"], "cat")
+            self.assertEqual(bang["1-1"]["kieu"], "khung")
+            for v in bang.values():
+                self.assertTrue((Path(tmp) / "anh" / v["file"]).is_file())
+            self.assertEqual({v["mo_hinh"] for v in bang.values()}, {"m1"})
+            self.assertIn("anh/ai/vox.json", out["files"])
+
+    def _video_mot_cat(self, tmp):
+        video = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n"
+                 "## Cảnh 1\nbo-cuc: hai-ben\nloi: Cốc cà phê.\n"
+                 "nhip: Cốc cà phê | anh: ve: cốc cà phê sứ trắng | trai\n")
+        (Path(tmp) / "video.md").write_text(video, encoding="utf-8")
+        m = ke_hoach.lap(parse.parse(video))[0]
+        goc = ke_hoach.file_goc(Path(tmp), m)
+        goc.parent.mkdir(parents=True)
+        goc.write_bytes(png_xanh(256, 256, (235, 235, 235)))   # nền xám: tách không sạch
+        (goc.parent.parent / "nguon.json").write_text(json.dumps([
+            {"file": f"ai/goc/{m.ma}.png", "cong_cu": "api", "mo_hinh": "m1", "prompt": m.prompt,
+             "ngay": "2026-10-01", "ma": m.ma}]), encoding="utf-8")
+        return m
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
+    def test_unclean_cutout_is_redrawn_once_with_a_stricter_prompt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            m = self._video_mot_cat(tmp)
+            out = self.chay(tmp)
+            self.assertTrue(out["ready"], out)
+            self.assertEqual(len(_May.goi), 1)
+            self.assertIn("tuyệt đối đồng màu", _May.goi[0]["prompt"])
+            bang = json.loads((Path(tmp) / "anh" / "ai" / "vox.json").read_text(encoding="utf-8"))
+            self.assertEqual(bang["1-0"]["kieu"], "cat")
+            self.assertNotEqual(bang["1-0"]["ma"], m.ma)
+            nguon = json.loads((Path(tmp) / "anh" / "ai" / "nguon.json").read_text(encoding="utf-8"))
+            self.assertIn(bang["1-0"]["ma"], {n["ma"] for n in nguon})
+            # Chạy lại: dùng lại ảnh vẽ lại, không gọi API nữa.
+            self.assertTrue(self.chay(tmp)["ready"])
+            self.assertEqual(len(_May.goi), 1)
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
+    def test_still_unclean_after_redraw_becomes_a_frame_with_a_warning(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._video_mot_cat(tmp)
+            _May.tra = "xam"
+            out = self.chay(tmp)
+            self.assertTrue(out["ready"], out)
+            self.assertEqual(len(_May.goi), 1)
+            bang = json.loads((Path(tmp) / "anh" / "ai" / "vox.json").read_text(encoding="utf-8"))
+            self.assertEqual(bang["1-0"]["kieu"], "khung")
+            self.assertTrue(bang["1-0"]["file"].endswith("-khung.png"))
+            self.assertTrue(any("khung" in w for w in out["warnings"]), out["warnings"])
+
+
+VIDEO_TIM = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n"
+             "## Cảnh 1\nbo-cuc: toan-canh\nloi: Phố cổ Hà Nội.\nnhip: @dau | anh: tim: hanoi old quarter | nen\n")
+
+
+@unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
+class AnhThatTest(unittest.TestCase):
+    """Ảnh thật `tim:` chạy image_search.py qua subprocess — giả lập, không ra mạng."""
+
+    def setUp(self):
+        import anh_vox
+        self.anh_vox = anh_vox
+        self._tmp = tempfile.TemporaryDirectory()
+        self.thu_muc = Path(self._tmp.name)
+        (self.thu_muc / "video.md").write_text(VIDEO_TIM, encoding="utf-8")
+        self.lenh = []
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def _gia(self, ma_thoat=0, nguon=True):
+        def run(cmd, *a, **k):
+            self.lenh.append(cmd)
+            ten = cmd[cmd.index("--filename") + 1]
+            ra = Path(cmd[cmd.index("-o") + 1])
+            if ma_thoat == 0:
+                from PIL import Image
+                ra.mkdir(parents=True, exist_ok=True)
+                Image.new("RGB", (1600, 1000), (90, 110, 140)).save(ra / ten, "JPEG")
+                if nguon:
+                    (ra / "image_sources.json").write_text(json.dumps({"items": [
+                        {"filename": ten, "author": "Ai Đó", "license_name": "CC BY 4.0", "provider": "openverse"}]}),
+                        encoding="utf-8")
+            return subprocess.CompletedProcess(cmd, ma_thoat, "", "loi gia")
+        return run
+
+    def _chay(self, run):
+        with mock.patch.object(self.anh_vox.subprocess, "run", run):
+            return self.anh_vox.chay(self.thu_muc, False, 20, [])
+
+    def test_real_photo_is_fetched_processed_and_credited(self):
+        kq = self._chay(self._gia())
+        self.assertEqual(len(self.lenh), 1)
+        cmd = self.lenh[0]
+        self.assertIn("image_search.py", cmd[1])
+        self.assertEqual(cmd[2], "hanoi old quarter")
+        self.assertEqual(cmd[cmd.index("--orientation") + 1], "landscape")
+        bang = json.loads((self.thu_muc / "anh" / "ai" / "vox.json").read_text(encoding="utf-8"))
+        self.assertEqual(bang["1-0"]["kieu"], "phu")
+        self.assertIsNone(bang["1-0"]["mo_hinh"])
+        self.assertEqual(bang["1-0"]["nguon"], "Ảnh: Ai Đó · CC BY 4.0 · openverse")
+        self.assertTrue((self.thu_muc / "anh" / bang["1-0"]["file"]).is_file())
+        self.assertIn("anh/ai/vox.json", kq["files"])
+        # Đã có ảnh: không tìm lại.
+        self._chay(self._gia())
+        self.assertEqual(len(self.lenh), 1)
+
+    def test_search_failure_is_a_network_error(self):
+        with self.assertRaises(nguon_ve.VeError) as c:
+            self._chay(self._gia(ma_thoat=1))
+        self.assertEqual(c.exception.step, "mang")
+        self.assertIn("hanoi old quarter", c.exception.message)
+
+    def test_photo_without_credit_is_refused(self):
+        with self.assertRaises(nguon_ve.VeError) as c:
+            self._chay(self._gia(nguon=False))
+        self.assertEqual(c.exception.step, "nha-cung-cap")
+        self.assertIn("chưa có nguồn", c.exception.message)
 
 
 if __name__ == "__main__":

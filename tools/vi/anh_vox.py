@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Lập danh sách ảnh và vẽ ảnh AI cho video `phong-cach: vox` qua API kiểu OpenAI (9router mặc định).
+"""Lập danh sách ảnh và vẽ ảnh AI cho video `phong-cach: vox` qua API kiểu OpenAI (9router mặc định), tìm ảnh thật
+(`tim:`), rồi tính trước ảnh đã xử lý (cắt nền viền giấy xé, khung mép xé, duotone, halftone) vào `anh/ai/xu-ly/` và
+bảng `anh/ai/vox.json` cho video_ma.
 
   python tools/vi/anh_vox.py <thư_mục> [--chi-ke-hoach] [--toi-da N]
 
@@ -12,20 +14,25 @@ import argparse
 import concurrent.futures
 import json
 import os
+import subprocess
 import sys
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from anh_vox_parts import ke_hoach, nguon_ve  # noqa: E402
-from video_ma_parts import parse  # noqa: E402
+from anh_vox_parts import ke_hoach, nguon_ve, xu_ly  # noqa: E402
+from video_ma_parts import anh, parse  # noqa: E402
 
 ERROR_STEPS = ("input", "parse", "cau-hinh", "mang", "nha-cung-cap", "tach-nen", "write", "internal")
 KE_HOACH_TEN = "ke-hoach.json"
 NGUON_TEN = "nguon.json"
 NGUON_HONG = "nguon.hong.json"
+VOX_TEN = "vox.json"   # bảng duy nhất video_ma đọc: "<cảnh>-<nhịp>" -> file đã xử lý, kiểu cuối, nguồn
+CAU_VE_LAI = "nền xanh lá #00FF00 tuyệt đối đồng màu, không gradient, không bóng"
+FIX_NGUON_THAT = ("Xoá ảnh đó trong `anh/` rồi chạy lại để tìm ảnh khác, hoặc thêm bản ghi nguồn của ảnh vào "
+                  "`anh/image_sources.json`.")
 TOI_DA_MAC_DINH = 20
 SO_LUONG_SONG_SONG = 3
 SO_LAN_THU_LAI = 3
@@ -231,7 +238,89 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict
     if loi_dung is not None:
         raise loi_dung
 
-    return {"files": files, "so_anh": len(ds), "da_ve": da_ve, "dung_lai": dung_lai, "ke_hoach": ke_hoach_rel}
+    for m in ds:
+        if m.nguon == "tim":
+            _tai_anh_that(thu_muc, m, video.meta["kho"])
+
+    nguon_ve_ = {b["ma"]: b for b in _doc_nguon(thu_muc_ai, []) if isinstance(b, dict) and "ma" in b}
+    bang = {}
+    for m in ds:
+        khoa = f"{m.canh}-{m.chi_so}"
+        if m.kieu == "cat" and m.nguon == "ve" and not xu_ly.alpha_sach(xu_ly.tach_nen(ke_hoach.file_goc(thu_muc, m))):
+            m, ve_moi = _ve_lai(thu_muc, ch, m, nguon_ve_)
+            da_ve += ve_moi
+            files.append(str(ke_hoach.file_goc(thu_muc, m).relative_to(thu_muc).as_posix()))
+        mo_hinh = nguon = None
+        if m.nguon == "ve":
+            mo_hinh = (nguon_ve_.get(m.ma) or {}).get("mo_hinh") or ch.mo_hinh
+        else:
+            nguon = _nguon_anh_that(thu_muc, m)
+        warnings.extend(xu_ly.xu_ly_muc(thu_muc, m, kho=video.meta["kho"], bang_mau=video.meta["bang-mau"]))
+        file_xl = ke_hoach.file_xu_ly(thu_muc, m)
+        files.append(str(file_xl.relative_to(thu_muc).as_posix()))
+        bang[khoa] = {"file": str(file_xl.relative_to(thu_muc / "anh").as_posix()), "kieu": m.kieu, "ma": m.ma,
+                      "mo_hinh": mo_hinh, "nguon": nguon}
+    duong_bang = thu_muc_ai / VOX_TEN
+    duong_bang.parent.mkdir(parents=True, exist_ok=True)
+    tam = duong_bang.with_name(VOX_TEN + ".tam")
+    tam.write_text(json.dumps(bang, ensure_ascii=False, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    os.replace(tam, duong_bang)
+    files.append("anh/ai/" + VOX_TEN)
+
+    return {"files": list(dict.fromkeys(files)), "so_anh": len(ds), "da_ve": da_ve, "dung_lai": dung_lai, "ke_hoach": ke_hoach_rel}
+
+
+def _ve_lai(thu_muc: Path, ch: nguon_ve.CauHinh, m, nguon_ve_: dict) -> tuple:
+    """Ảnh cắt nền tách chưa sạch: vẽ lại đúng một lần với câu lệnh chặt hơn (mã băm mới, ghi nguon.json). Ảnh vẽ lại
+    đã có (lượt trước, cùng mô hình hoặc do nền tảng vẽ) thì dùng lại. Trả (mục mới, số ảnh vừa vẽ)."""
+    prompt = f"{m.prompt}, {CAU_VE_LAI}"
+    m2 = replace(m, prompt=prompt, ma=ke_hoach.ma_anh(prompt, m.kich_thuoc))
+    goc = ke_hoach.file_goc(thu_muc, m2)
+    ban_ghi = nguon_ve_.get(m2.ma)
+    if goc.is_file() and ban_ghi is not None and (ban_ghi.get("mo_hinh") == ch.mo_hinh
+                                                   or ban_ghi.get("cong_cu") == CONG_CU_NEN_TANG):
+        return m2, 0
+    log(f"Ảnh cảnh {m.canh} tách nền chưa sạch, vẽ lại một lần với nền xanh chặt hơn...")
+    _luu_anh(_ve_mot_anh(ch, m2, 1, 1), goc)
+    ban_ghi = {"file": f"ai/goc/{m2.ma}.png", "cong_cu": "api", "mo_hinh": ch.mo_hinh, "prompt": prompt,
+               "ngay": date.today().isoformat(), "ma": m2.ma}
+    _ghi_nguon(thu_muc / "anh" / "ai", [ban_ghi])
+    nguon_ve_[m2.ma] = ban_ghi
+    return m2, 1
+
+
+def _tai_anh_that(thu_muc: Path, m, kho: str) -> None:
+    """`anh: tim:` -> chạy image_search.py của skill (chỉ chạy, không sửa) vào `anh/`; đã có file thì bỏ qua."""
+    dich = ke_hoach.file_goc(thu_muc, m)
+    if dich.is_file():
+        return
+    script = Path(__file__).resolve().parents[2] / "skills" / "ppt-master" / "scripts" / "image_search.py"
+    cmd = [sys.executable, str(script), m.prompt, "--filename", dich.name,
+           "--orientation", "landscape" if kho == "ngang" else "portrait", "-o", str(dich.parent)]
+    log(f"Tìm ảnh thật \"{m.prompt}\" (cảnh {m.canh})...")
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=600)
+        hong = proc.returncode != 0
+    except (OSError, subprocess.TimeoutExpired):
+        hong = True
+    if hong or not dich.is_file():
+        raise nguon_ve.VeError("mang", f"Không tìm được ảnh thật cho \"{m.prompt}\" (cảnh {m.canh}).",
+                               "Đổi từ khoá `tim:` (tiếng Anh, cụ thể hơn) hoặc dùng `anh: ve:`.")
+
+
+def _nguon_anh_that(thu_muc: Path, m) -> str | None:
+    """Dòng nguồn ảnh thật/ảnh có sẵn từ `anh/image_sources.json` (cùng cách video_ma đọc). Ảnh `tim:` bắt buộc có."""
+    ten = ke_hoach.file_goc(thu_muc, m).name
+    try:
+        nguon = anh._nguon_tu_manifest(thu_muc, ten)
+    except anh.AnhError as exc:
+        if m.nguon != "tim":
+            return None
+        raise nguon_ve.VeError("nha-cung-cap", f"Ảnh thật chưa có nguồn: {exc}.", FIX_NGUON_THAT) from None
+    if not nguon and m.nguon == "tim":
+        raise nguon_ve.VeError("nha-cung-cap", f"Ảnh thật chưa có nguồn: `anh/{ten}` không có bản ghi trong "
+                                               "`anh/image_sources.json`.", FIX_NGUON_THAT)
+    return nguon or None
 
 
 def main(argv=None) -> int:
@@ -255,7 +344,7 @@ def main(argv=None) -> int:
         return 0
     except parse.ParseError as exc:
         error = {"step": "parse", "message": str(exc), "fix": "Sửa đúng dòng đó trong video.md rồi chạy lại."}
-    except (AnhVoxError, nguon_ve.VeError) as exc:
+    except (AnhVoxError, nguon_ve.VeError, xu_ly.XuLyError) as exc:
         error = {"step": exc.step, "message": exc.message, "fix": exc.fix}
     except OSError as exc:
         error = {"step": "write", "message": f"Không ghi được file: {exc}", "fix": "Đóng file đang mở và kiểm tra ổ đĩa rồi chạy lại."}
