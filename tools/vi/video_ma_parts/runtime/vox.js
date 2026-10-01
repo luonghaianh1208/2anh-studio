@@ -8,10 +8,10 @@
   // Phần trên `khoiDong` là hàm thuần (chạy được trong Node, test ở tests/js/test_vox.js).
   var NS = 'http://www.w3.org/2000/svg';
   // Độ sâu (điểm CSS, âm là xa) và tâm xoay của camera (ở lớp gần): khi camera xoay, lớp lệch ngang (dọc)
-  // z·sin(rotateY (rotateX)), lớp càng xa càng lệch nhiều (thị sai). Không lớp nào phóng: lớp đổi tỉ lệ liên tục thì
-  // Chromium vẽ chữ, ảnh và bộ lọc qua bộ đệm dựng từ tỉ lệ của các khung trước, nên cùng t mà khung khác nhau tuỳ
-  // đã vẽ những khung nào trước đó (đo được: lệch tới 192/255 ở dấu chữ Việt). Mọi lớp chỉ dời theo bước điểm ảnh
-  // thiết bị, nên khung là hàm thuần của t; đẩy vào `camera().s` vì thế không áp lên trang.
+  // z·sin(rotateY (rotateX)), lớp càng xa càng lệch nhiều (thị sai). Không lớp nào phóng bằng transform: scale: lớp
+  // đổi tỉ lệ bằng transform thì Chromium vẽ chữ, ảnh và bộ lọc qua bộ đệm dựng từ tỉ lệ của các khung trước, nên cùng
+  // t mà khung khác nhau tuỳ đã vẽ những khung nào trước đó (đo được: lệch tới 192/255 ở dấu chữ Việt). Lớp dời theo
+  // bước điểm ảnh thiết bị; đẩy vào `camera().s` đi qua CSS `zoom` (DAY_VAO dưới), nên khung vẫn là hàm thuần của t.
   var SAU = { gan: 0, giua: -80, xa: -220 };
   var TAM_XOAY = 0;
   // Đẩy vào (camera().s) áp bằng CSS `zoom` lên lớp gần (đủ) và lớp giữa (75 %), lớp xa đứng yên: zoom đi qua dàn
@@ -112,7 +112,6 @@
       z: z };
   }
 
-
   // Camera: đẩy 1 → 1,06 theo smoothstep suốt cảnh, xoay rotateY tối đa ±4° (pha theo hạt), rotateX = 0,4 × rotateY.
   function camera(t, T, hat) {
     var u = T > 0 ? kep(t / T, 0, 1) : 1;
@@ -179,7 +178,8 @@
     var k = Math.max(kho.rong / rong, kho.cao / cao) * 1.04;
     return { x: (kho.rong - rong * k) / 2, y: (kho.cao - cao * k) / 2, w: rong * k, h: cao * k };
   }
-  // Hộp ảnh bitmap khớp lưới điểm ảnh thiết bị: canvas cùng cỡ chép 1:1, không lọc (khung không phụ thuộc lịch sử vẽ).
+  // Hộp ảnh bitmap khớp lưới điểm ảnh thiết bị: ảnh nướng cùng cỡ, đặt 1:1 ở tỉ lệ 1 (zoom đẩy vào dàn trang lại ở
+  // tỉ lệ mới, không qua bộ đệm tỉ lệ), không lọc (khung không phụ thuộc lịch sử vẽ).
   function luoi(b) {
     var k = (typeof root.devicePixelRatio === 'number' && root.devicePixelRatio) || 1;
     function g(x) { return Math.round(x * k) / k + 0; }
@@ -256,7 +256,7 @@
       manh: [bien('--manh1', '#2E86AB'), bien('--manh2', '#F2A541'), bien('--manh3', '#3B8B5A'), bien('--manh4', '#C8553D')] };
 
     // Sân khấu: .khung-3d (chỉ dời khi chuyển lia) > ba lớp phẳng xa / giữa / gần (.san bọc lớp giữa và gần).
-    // Mỗi lớp chỉ dời theo độ sâu (lopCamera).
+    // Mỗi lớp dời theo độ sâu (lopCamera); lớp giữa và gần còn đẩy vào bằng zoom ở khung trong (.lop-zoom).
     var k3 = tao('div', 'khung-3d', khung);
     var lop = { xa: tao('div', 'lop lop-xa', k3) };
     var san = tao('div', 'san', k3);
@@ -266,11 +266,11 @@
     lop.gan = tao('div', 'lop-zoom', ngoai.gan);
     ngoai.xa = lop.xa;
     // Mọi hình raster (nền giấy SVG có feTurbulence, mảng giấy có pattern, ảnh PNG) được "nướng" một lần, trước khi
-    // trang báo `san`, thành ảnh PNG đúng điểm ảnh thiết bị (vẽ qua canvas rồi toDataURL), đặt 1:1 trên lớp chỉ dời
-    // theo bước điểm ảnh. Lý do: (1) bộ lọc SVG không chạy lại mỗi khung; (2) khung là hàm thuần của t — ảnh lấy mẫu
-    // lại dưới tỉ lệ thay đổi đi qua bộ đệm giải mã theo tỉ lệ của các khung trước; còn <canvas> để trong trang thì
-    // thành lớp ghép riêng (`Canvas`), kéo các vật đè lên nó thành lớp `Overlap` giữ tỉ lệ raster cũ. Ảnh 1:1 trong lớp
-    // gốc thì mỗi khung vẽ lại đúng như nhau.
+    // trang báo `san`, thành ảnh PNG đúng điểm ảnh thiết bị (vẽ qua canvas rồi toDataURL), đặt 1:1 ở tỉ lệ 1. Lý do:
+    // (1) bộ lọc SVG không chạy lại mỗi khung; (2) khung là hàm thuần của t — ảnh lấy mẫu lại dưới transform đổi tỉ lệ
+    // đi qua bộ đệm giải mã theo tỉ lệ của các khung trước; còn <canvas> để trong trang thì thành lớp ghép riêng
+    // (`Canvas`), kéo các vật đè lên nó thành lớp `Overlap` giữ tỉ lệ raster cũ. Ảnh <img> thường trong lớp gốc (lớp xa
+    // chỉ dời; lớp giữa, gần đẩy vào bằng zoom, dàn trang lại mỗi khung) thì mỗi khung vẽ lại đúng như nhau.
     function anhSvg(svg, cha) {
       var im = tao('img', 'nen-anh', cha);
       im.alt = '';
@@ -619,15 +619,18 @@
           var bn = hcn(ng);
           if (bn.left < -1 || bn.right > R || bn.bottom > D) { loi.push('nguon-' + id); }
         }
-        if (!v.chong) { hop.push({ id: id, b: b }); }
+        if (!v.chong) { hop.push({ id: id, b: b, anh: v.n.vat === 'anh', dan: v.vat === 'dau' || v.vat === 'nhan' }); }
       });
       cacVat.forEach(function (v) {
         if (!v.nen) { return; }
         var ng = v.el.querySelector('.nguon-anh');
         if (ng) { var bn = hcn(ng); if (bn.left < -1 || bn.right > R || bn.bottom > D) { loi.push('nguon-nhip-' + v.k); } }
       });
+      // Đè nhau quá 30 % vật nhỏ hơn: giữa hai vật chữ và giữa hai ảnh. Con dấu, nhãn dán lên ảnh là chủ ý (ô `giua` của
+      // `hai-ben` nằm đè mép hai ảnh), nên cặp dấu/nhãn – ảnh không tính.
       for (var i = 0; i < hop.length; i++) {
         for (var j = i + 1; j < hop.length; j++) {
+          if ((hop[i].anh && hop[j].dan) || (hop[i].dan && hop[j].anh)) { continue; }
           var a = hop[i].b, b = hop[j].b;
           var w = Math.min(a.right, b.right) - Math.max(a.left, b.left);
           var h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);

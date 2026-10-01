@@ -54,7 +54,7 @@ Ví dụ: `nhip: để mai tính | anh: ve: bàn tay cầm điện thoại, ch�
 | `toan-canh` | `nen` (ảnh phủ kín khung), `giua`, `duoi` | như ngang | nơi chốn, bối cảnh, một khoảnh khắc |
 
 - `mot`: `giua` là ô lớn cho ảnh; `tren` và `duoi` là dải hẹp, dành cho `chu`, `nhan`, `dau`, `so`.
-- `hai-ben`: ô `giua` nằm đè lên mép trong của hai bên; chỉ đặt ở đó một `dau` hoặc `nhan` ngắn, không đặt ảnh hay `the`. Hai bên là ảnh cắt nền thì con dấu khoảng 8 ký tự vẫn vừa (`IM LẶNG`); hai bên là ảnh `khung` (khung chiếm trọn ô) thì chỉ 2–3 ký tự như `VS`, dài hơn là lỗi `canh` "đè lên nhau quá nhiều".
+- `hai-ben`: ô `giua` nằm đè lên mép trong của hai bên; chỉ đặt ở đó một `dau` hoặc `nhan` ngắn, không đặt ảnh hay `the`. Con dấu, nhãn được dán đè lên ảnh hai bên (công cụ không tính là đè nhau), nhưng càng dài càng che ảnh: giữ khoảng 8 ký tự (`IM LẶNG`); hai bên là ảnh `khung` thì nên ngắn hơn, như `VS`.
 - `dan-hang`: mỗi ô hẹp (ngang khoảng một phần tư khung), hợp với `the`, `nhan`, ảnh cắt nền; chữ dài thì dễ tràn.
 - `toan-canh`: `nen` chỉ nhận `anh` (ảnh được cắt phủ đúng khổ, dạng khung); chữ đè lên ở `giua` hoặc `duoi`.
 - Ô sai với bố cục là lỗi `parse`, thông báo liệt kê các ô đúng. Bố cục `chong` mà ghi ô cũng là lỗi.
@@ -79,7 +79,7 @@ Mặc định ảnh ở lớp giữa; chữ, thẻ, nhãn, dấu ở lớp gần
 - `loi`: 1–3 câu trên một dòng; lời dài quá 700 ký tự có cảnh báo, nên tách cảnh.
 - `nguon:` của cảnh tối đa 90 ký tự. `chuyen:` của cảnh: `xe-giay`, `lia` hoặc `khong`, chỉ từ Cảnh 2.
 - `thoi-luong` là số nguyên 15–600 giây.
-- Ở bước `--xem-truoc` và dựng thật, công cụ đo trên hình và báo lỗi `canh` khi chữ của một nhịp tràn ô, hai vật đè nhau quá 30% (trừ bố cục `chong`), hoặc dòng nguồn tràn khung. Rút chữ, đổi ô hay đổi bố cục rồi chạy lại.
+- Ở bước `--xem-truoc` và dựng thật, công cụ đo trên hình và báo lỗi `canh` khi chữ của một nhịp tràn ô, hai vật đè nhau quá 30% (giữa hai vật chữ hay giữa hai ảnh; trừ bố cục `chong`, và trừ `dau`, `nhan` dán lên ảnh), hoặc dòng nguồn tràn khung. Rút chữ, đổi ô hay đổi bố cục rồi chạy lại.
 
 ## Ví dụ từng bố cục
 

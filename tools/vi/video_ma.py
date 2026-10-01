@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dựng video giải thích kiểu viết tay từ video.md (giọng đọc, cảnh vẽ bằng mã, phụ đề).
+"""Dựng video giải thích từ video.md (kiểu Vox, hay kịch bản cũ viết tay / cắt dán): giọng đọc, cảnh vẽ bằng mã, phụ đề.
 
   python tools/vi/video_ma.py <thư_mục> [--plan-only] [--xem-truoc]
 
@@ -323,7 +323,7 @@ def chay(thu_muc: Path, plan_only: bool, xem_truoc: bool, warnings: list) -> dic
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description="Dựng video giải thích kiểu viết tay từ video.md", add_help=False)
+    ap = argparse.ArgumentParser(description="Dựng video giải thích từ video.md", add_help=False)
     ap.add_argument("thu_muc")
     ap.add_argument("--plan-only", action="store_true")
     ap.add_argument("--xem-truoc", action="store_true")

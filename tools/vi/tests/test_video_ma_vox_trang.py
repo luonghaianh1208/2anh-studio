@@ -149,9 +149,26 @@ class VoxTrangTest(unittest.TestCase):
             page = chup.trang_moi(b, Kho("doc", 720))
             self.assertIn("nhip-0", chup.kiem_tran(page, trang.dung_trang(du)))
 
-    def test_overlapping_objects_are_reported(self):
-        du = du_vox(["@dau | anh: ve: cốc | trai", f"hai | dau: {DAU16} | giua"], "hai-ben",
-                    anh_tn={0: anh("cat", 400, 300)})
+    def test_overlapping_images_are_reported(self):
+        # Ảnh rộng 2:1 ở `giua` đè lên ảnh ở `trai` hơn 30 % ảnh nhỏ: hai ảnh chồng thật, phải báo.
+        du = du_vox(["@dau | anh: ve: cốc | trai", "hai | anh: ve: bánh | giua"], "hai-ben",
+                    anh_tn={0: anh("cat", 400, 300), 1: anh("cat", 600, 300)})
+        with chup.trinh_duyet() as b:
+            page = chup.trang_moi(b, Kho("ngang", 720))
+            self.assertIn("chong:nhip-0,nhip-1", chup.kiem_tran(page, trang.dung_trang(du)))
+
+    def test_stamp_between_two_cutouts_is_not_an_overlap(self):
+        # Mẫu của hướng dẫn: hai ảnh cắt nền 1,5:1 hai bên, con dấu "IM LẶNG" ở `giua`. Dấu, nhãn được phép đè ảnh.
+        for vat in ("dau: IM LẶNG", "nhan: Im lặng"):
+            du = du_vox(["@dau | anh: ve: cốc | trai", "hai | anh: ve: bánh | phai", f"ba | {vat} | giua"], "hai-ben",
+                        anh_tn={0: anh("cat", 600, 400), 1: anh("cat", 600, 400)})
+            with self.subTest(vat=vat), chup.trinh_duyet() as b:
+                page = chup.trang_moi(b, Kho("ngang", 720))
+                tran = chup.kiem_tran(page, trang.dung_trang(du))
+                self.assertFalse([m for m in tran if m.startswith("chong:")], tran)
+
+    def test_text_items_overlapping_each_other_are_still_reported(self):
+        du = du_vox([f"@dau | chu: {CHU40} | trai", f"hai | dau: {DAU16} | giua"], "hai-ben")
         with chup.trinh_duyet() as b:
             page = chup.trang_moi(b, Kho("ngang", 720))
             self.assertIn("chong:nhip-0,nhip-1", chup.kiem_tran(page, trang.dung_trang(du)))
