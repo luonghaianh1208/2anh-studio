@@ -152,6 +152,46 @@ class NhipTest(unittest.TestCase):
             doc("## Cảnh 1\nbo-cuc: mot\nchuyen: lau-bang\nloi: A.\nnhip: @dau | chu: A\n")
 
 
+class TuyChonGopTest(unittest.TestCase):
+    """Tuỳ chọn viết chung một phần; tách thành nhiều phần ` | ` là lỗi, không lặng lẽ bỏ phần thừa."""
+
+    def test_options_split_over_several_fields_are_an_error(self):
+        for nhip in ("nhip: Hà Nội | anh: ve: phố cổ | phai | khung | duotone\n",
+                     "nhip: Hà Nội | anh: ve: phố cổ | khung | duotone\n"):
+            with self.subTest(nhip=nhip), self.assertRaises(parse.ParseError) as c:
+                doc("## Cảnh 1\nbo-cuc: hai-ben\nloi: Đây là Hà Nội.\n" + nhip)
+            self.assertIn("| phai | khung duotone", str(c.exception))
+
+    def test_valid_shapes_still_parse(self):
+        cases = {
+            "nhip: Hà Nội | anh: ve: phố cổ | phai | khung duotone\n": ("phai", ("khung", "duotone")),
+            "nhip: Hà Nội | anh: ve: phố cổ | khung duotone\n": (None, ("khung", "duotone")),
+            "nhip: Hà Nội | anh: ve: phố cổ | phai\n": ("phai", ()),
+            "nhip: Hà Nội | anh: ve: phố cổ\n": (None, ()),
+            "nhip: Hà Nội | the: Nhãn | 12 | chú thích | phai | gan\n": ("phai", ("gan",)),
+            "nhip: Hà Nội | the: Nhãn | 12 | phai\n": ("phai", ()),
+        }
+        for nhip, (o, tuy) in cases.items():
+            with self.subTest(nhip=nhip):
+                n = doc("## Cảnh 1\nbo-cuc: hai-ben\nloi: Đây là Hà Nội.\n" + nhip).canh[0].nhip[0]
+                self.assertEqual((n.o, n.tuy_chon), (o, tuy))
+
+
+class MuiTenTest(unittest.TestCase):
+    def test_arrow_endpoints_must_be_slots_of_the_layout(self):
+        doc("## Cảnh 1\nbo-cuc: hai-ben\nloi: A b.\nnhip: A | mui-ten: trai -> phai\n")
+        for dau_mui in ("trai -> tren", "giua -> 5"):
+            with self.subTest(dau_mui=dau_mui), self.assertRaises(parse.ParseError) as c:
+                doc(f"## Cảnh 1\nbo-cuc: hai-ben\nloi: A b.\nnhip: A | mui-ten: {dau_mui}\n")
+            self.assertIn("trai, phai, giua", str(c.exception))
+        with self.assertRaises(parse.ParseError):
+            doc("## Cảnh 1\nbo-cuc: hai-ben\nloi: A b.\nnhip: A | mui-ten: trai -> phai\n",
+                "---\ntieu-de: T\nphong-cach: vox\nkho: doc\n---\n\n")
+        with self.assertRaises(parse.ParseError) as c:
+            doc("## Cảnh 1\nbo-cuc: chong\nloi: A b.\nnhip: A | chu: X\nnhip: b | mui-ten: 1 -> 2\n")
+        self.assertIn("chong", str(c.exception))
+
+
 class KhoaTuTest(unittest.TestCase):
     def test_tokens(self):
         self.assertEqual(vox.khoa_tu("\"Để mai tính\", anh ấy nói!"), ["để", "mai", "tính", "anh", "ấy", "nói"])

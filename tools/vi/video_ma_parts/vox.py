@@ -97,6 +97,8 @@ def doc_nhip(value: str, no: int, chi_so: int) -> Nhip:
         cat = 3 if len(the) >= 3 and the[2] not in TUY_CHON and not _la_o(the[2]) else 2
         noi_dung, du = " | ".join(the[:cat]), the[cat:]
     o = du[0] if du and du[0] and not set(du[0].split()) <= set(TUY_CHON) else None
+    if len(du) > (2 if o is not None else 1):
+        raise _loi(no, "Tuỳ chọn viết chung một phần, cách nhau bằng khoảng trắng, ví dụ `| phai | khung duotone`.")
     tuy = tuple((du[1] if o is not None and len(du) > 1 else (du[0] if o is None and du else "")).split())
     for t in tuy:
         if t not in TUY_CHON:
@@ -160,6 +162,13 @@ def kiem_canh(scene, kho: str) -> None:
                 raise _loi(n.dong, f"Ô `{n.o}` không có ở bố cục `{bo_cuc}` khổ {kho}; ô đúng: {', '.join(o_hop_le)}.")
         if n.o == "nen" and n.vat != "anh":
             raise _loi(n.dong, "Ô `nen` chỉ dành cho ảnh phủ kín khung (`anh`).")
+        if n.vat == "mui-ten":
+            if not o_hop_le:
+                raise _loi(n.dong, f"Bố cục `{bo_cuc}` không có ô nên không dùng `mui-ten`; đổi bố cục hoặc bỏ nhịp này.")
+            for dau_mui in (x.strip() for x in n.noi_dung.split("->")):
+                if dau_mui not in o_hop_le:
+                    raise _loi(n.dong, f"Đầu mũi tên `{dau_mui}` không phải ô của bố cục `{bo_cuc}` khổ {kho}; "
+                                       f"ô đúng: {', '.join(o_hop_le)}.")
         if n.vat == "chu":
             so_chu += 1
             if so_chu > CHU_TOI_DA:
@@ -210,7 +219,8 @@ def moc_nhip(nhips: list, moc_tu: list, dan_dau: float) -> list:
 
 
 def _o_cac_nhip(scene, kho_ten: str) -> list:
-    """Ô của từng nhịp theo thứ tự: nhịp ghi ô thì dùng đúng ô đó; không ghi thì ô đầu tiên của `BO_CUC[bo_cuc][kho]`
+    """Ô của từng nhịp theo thứ tự: nhịp ghi ô thì dùng đúng ô đó; `mui-ten` không ghi ô thì `None` (vẽ trên cả
+    khung, không chiếm ô nào); không ghi thì ô đầu tiên của `BO_CUC[bo_cuc][kho]`
     (trừ `nen`) chưa có vật nào dùng (kể cả ô ghi tường minh ở một nhịp *sau* trong cùng cảnh — tránh đè lên ô mà
     nhịp sau sẽ nhận), hết ô thì dùng ô cuối của bố cục (không bao giờ là `nen`: `nen` chỉ dành cho ảnh ghi tường
     minh); bố cục `chong` không có ô, trả `"chong-<k>"`."""
@@ -227,6 +237,9 @@ def _o_cac_nhip(scene, kho_ten: str) -> list:
     for n in scene.nhip:
         if n.o is not None:
             ket.append(n.o)
+            continue
+        if n.vat == "mui-ten":
+            ket.append(None)   # mũi tên vẽ trên cả khung, không chiếm ô
             continue
         if bo_cuc == "chong":
             ket.append(f"chong-{chong_dem}")
@@ -255,7 +268,7 @@ def _nhip_du_lieu(n: Nhip, o: str, bat_dau: float) -> dict:
         m = _SO_RE.search(n.noi_dung)
         raw = m.group(1)
         thap_phan = len(raw.split(".", 1)[1]) if "." in raw else 0
-        d["so"] = {"giaTri": float(raw), "truoc": n.noi_dung[:m.start()], "sau": n.noi_dung[m.end():],
+        d["so"] = {"giaTri": float(raw), "truoc": hien(n.noi_dung[:m.start()]), "sau": hien(n.noi_dung[m.end():]),
                    "thapPhan": thap_phan}
     return d
 

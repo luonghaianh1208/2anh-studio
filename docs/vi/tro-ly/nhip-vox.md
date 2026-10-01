@@ -35,7 +35,7 @@ Ví dụ: `nhip: để mai tính | anh: ve: bàn tay cầm điện thoại, ch�
 | `chu` | một dòng chữ lớn, ý chốt hay câu ngắn | 40 ký tự; tối đa 2 dòng `chu` mỗi cảnh | hiện từng từ |
 | `nhan` | nhãn trên băng dính màu | 30 ký tự | dán |
 | `dau` | con dấu, thường viết hoa | 16 ký tự | đóng mạnh, máy rung nhẹ |
-| `mui-ten` | `<ô> -> <ô>`, ví dụ `trai -> phai` | | vẽ dần |
+| `mui-ten` | `<ô> -> <ô>`, hai đầu là ô của bố cục, ví dụ `trai -> phai`; vẽ trên cả khung, không chiếm ô; bố cục `chong` không dùng được | | vẽ dần |
 | `so` | một số chạy `{{số}}` kèm chữ trước hoặc sau, ví dụ `{{48}} giờ mỗi tuần` | 24 ký tự | chạy số từ 0 lên |
 
 - Giới hạn đếm ký tự hiện ra. Vượt giới hạn là lỗi `parse` nêu đúng dòng.

@@ -103,6 +103,24 @@ class SlotTest(unittest.TestCase):
               "nhip: @dau | chu: A\nnhip: một | chu: B | trai\n")
         self.assertEqual(_o_list(md), ["phai", "trai"])
 
+    def test_unslotted_arrow_does_not_take_a_slot(self):
+        # Mũi tên vẽ trên cả khung, không chiếm ô: ảnh sau nó vẫn vào `phai`, không bị đẩy sang `giua`.
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Một hai ba.\n"
+              "nhip: @dau | anh: tim: x | trai\nnhip: hai | mui-ten: trai -> phai\nnhip: ba | anh: tim: y\n")
+        o = _o_list(md)
+        self.assertEqual((o[0], o[2]), ("trai", "phai"))
+        self.assertIsNone(o[1])
+
+
+class SoTest(unittest.TestCase):
+    def test_counter_text_drops_the_emphasis_marks(self):
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nnguon: X\nloi: Ba.\n"
+              "nhip: @dau | so: ==Tăng== {{85}}% ((giá))\n")
+        v = parse.parse(md)
+        plan, _ = lich.dung_lich(v.canh, [lich.GiongInfo(None, 3.0, [0.0], False, "may", moc_tu=moc(c.loi)) for c in v.canh])
+        so = vox.du_lieu_canh(v.canh[0], plan[0], {"anh": {}}, v.meta)["nhip"][0]["so"]
+        self.assertEqual((so["truoc"], so["sau"]), ("Tăng ", "% giá"))
+
 
 class ChuDeTest(unittest.TestCase):
     def test_theme_and_fonts(self):

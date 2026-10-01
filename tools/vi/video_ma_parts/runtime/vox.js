@@ -326,7 +326,8 @@
     var cacVat = cacNhip.map(function (n, k) {
       var vat = vatCua(n);
       var tuy = n.tuyChon || [];
-      var o = n.o === 'nen' || vat === 'anh-phu' ? { x: 0, y: 0, w: kho.rong, h: kho.cao } : hopO(n, k);
+      // Ảnh phủ và mũi tên (không chiếm ô) nằm trên cả khung.
+      var o = n.o === 'nen' || vat === 'anh-phu' || vat === 'mui-ten' ? { x: 0, y: 0, w: kho.rong, h: kho.cao } : hopO(n, k);
       // Ảnh phủ kín khung (`toan-canh` ô `nen`) là phông xa: lớp xa chỉ dời, không phóng (rẻ khi ghép).
       var tenLop = vat === 'anh-phu' ? 'xa' :
         (tuy.indexOf('xa') >= 0 ? 'giua' : (tuy.indexOf('gan') >= 0 ? 'gan' : (n.vat === 'anh' ? 'giua' : 'gan')));
