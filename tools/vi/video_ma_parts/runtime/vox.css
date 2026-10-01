@@ -1,0 +1,83 @@
+/* Cảnh Vox (phong-cach: vox): nạp một mình (không có viet-tay.css). Bảng màu là biến CSS trên #khung (vox.js đọc
+   --giay để vẽ nền giấy). Không có filter theo khung: bóng đổ cố định, ảnh đã có viền và bóng trong PNG. */
+html, body { margin: 0; padding: 0; background: #F4ECD8; }
+#khung { position: relative; width: var(--rong); height: var(--cao); overflow: hidden; }
+.vox { font-family: 'Be Vietnam Pro', sans-serif; background: var(--giay); color: var(--muc); --the: #FFFBF2; --ke: #EFE8D6; }
+.vox.bang-kem { --giay: #F4ECD8; --muc: #1E2430; --nhan: #E4572E;
+  --manh1: #2E86AB; --manh2: #F2A541; --manh3: #3B8B5A; --manh4: #C8553D; }
+.vox.bang-bao-cu { --giay: #E9DFC8; --muc: #2B2620; --nhan: #B23A2B;
+  --manh1: #7A8B6F; --manh2: #C9A15B; --manh3: #556270; --manh4: #A0522D; }
+.vox.bang-dem { --giay: #1B2133; --muc: #F4ECD8; --nhan: #F2C14E; --the: #F7F1E3; --ke: #2A3350;
+  --manh1: #2E4057; --manh2: #048A81; --manh3: #D1495B; --manh4: #6C5B7B; }
+.vox.bang-tuoi { --giay: #FFF3E0; --muc: #222222; --nhan: #FF4F5A;
+  --manh1: #00A6A6; --manh2: #FFB400; --manh3: #7A4EAB; --manh4: #3DDC97; }
+
+/* Sân khấu 2,5D: ba lớp phẳng, mỗi lớp một biến đổi 2D theo độ sâu (vox.js lopCamera), raster một lần rồi ghép. */
+.khung-3d, .san { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); }
+.lop { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); will-change: transform; }
+.lop > svg { position: absolute; left: 0; top: 0; display: block; }
+
+/* Vật của nhịp. */
+.vat { position: absolute; transform-origin: 50% 50%; box-sizing: border-box; }
+.vat > img.anh { display: block; width: 100%; height: 100%; }
+.vat-anh-phu > img.anh { object-fit: cover; }
+.vat .bang-dinh { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.vat .bang-dinh polygon { fill: rgba(236, 226, 196, 0.86); stroke: rgba(120, 100, 60, 0.18); stroke-width: 1; }
+.nguon-anh { position: absolute; left: 0; top: calc(100% + 4px); max-width: 100%; font-size: 13px; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muc); opacity: 0.85; }
+.nguon-anh.tren-nen { top: auto; left: auto; padding: 2px 8px; background: rgba(20, 20, 24, 0.72);
+  color: #FFFFFF; opacity: 1; max-width: 60%; }
+
+.vat > .noi { max-width: 100%; max-height: 100%; overflow: hidden; box-sizing: border-box; }
+.vat-chu, .vat-so, .vat-the, .vat-nhan, .vat-dau { display: flex; align-items: center; justify-content: center; }
+
+/* Chữ lớn: dải giấy trắng ngà sau từng dòng (cắt dán), mực đậm. */
+.vat-chu > .noi, .vat-so > .noi { font-weight: 800; line-height: 1.32; text-align: center; padding: 0.06em 0.12em;
+  white-space: normal; overflow-wrap: normal; }
+.vat-chu .dong, .vat-so .dong { background: var(--the); color: #1E2430; padding: 0.02em 0.22em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone; box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.18); }
+.vat-so .so-chay { color: var(--nhan); font-variant-numeric: tabular-nums; }
+
+/* Thẻ: giấy trắng, viền mực đậm, bóng lệch cố định. */
+.vat-the > .noi { background: var(--the); color: #1E2430; border: 4px solid #1E2430; box-shadow: 8px 8px 0 rgba(20, 20, 24, 0.85);
+  padding: 18px 24px; font-size: 18px; line-height: 1.25; }
+.the-nhan { color: var(--nhan); font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+.vox.bang-dem .the-nhan { color: #D1495B; }
+.the-gia-tri { font-weight: 800; font-size: 64px; line-height: 1.08; white-space: nowrap; overflow: visible; margin: 0.12em 0 0.1em; }
+.the-chu-thich { font-weight: 400; }
+
+/* Nhãn băng dính màu nhấn. */
+.vat-nhan > .noi { background: var(--nhan); color: #FFFFFF; font-weight: 800; font-size: 30px; text-transform: uppercase;
+  white-space: nowrap; padding: 0.3em 0.8em 0.34em; letter-spacing: 0.02em; text-align: center; line-height: 1.25; box-shadow: 4px 5px 0 rgba(0, 0, 0, 0.2);
+  clip-path: polygon(0 6%, 2% 0, 98% 4%, 100% 0, 99% 35%, 100% 65%, 98% 100%, 60% 96%, 2% 100%, 0 70%, 1.5% 40%); }
+.vox.bang-dem .vat-nhan > .noi { color: #1B2133; }
+
+/* Con dấu: viền đỏ 6 px bo tròn, chữ hoa, hoà trộn multiply, hạt nhiễu làm mực loang lổ. */
+.vat-dau > .noi { position: relative; border: 6px solid #C8102E; border-radius: 14px; color: #C8102E; font-weight: 800;
+  font-size: 44px; text-transform: uppercase; white-space: nowrap; padding: 0.12em 0.45em 0.16em; letter-spacing: 0.04em;
+  mix-blend-mode: multiply; }
+/* Nền tối: con dấu đóng trên mẩu giấy sáng để đọc được. */
+.vox.bang-dem .vat-dau > .noi { mix-blend-mode: normal; background: #F4ECD8; box-shadow: 4px 5px 0 rgba(0, 0, 0, 0.35); }
+.vat-dau .hat-dau { position: absolute; left: 0; top: 0; width: 100%; height: 100%; mix-blend-mode: screen; opacity: 0.55;
+  pointer-events: none; }
+
+/* Mũi tên vẽ dần. */
+.vat-mui-ten svg { position: absolute; left: 0; top: 0; overflow: visible; }
+.vat-mui-ten .duong { fill: none; stroke: var(--muc); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 1;
+  stroke-dashoffset: 1; }
+.vat-mui-ten .mui { fill: var(--muc); stroke: var(--muc); stroke-width: 3; stroke-linejoin: round; }
+
+/* Lớp đứng yên: ảnh cảnh trước khi chuyển, dòng nguồn góc dưới trái trên vạch phụ đề, khung loạt. */
+.nen-truoc { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); display: none; z-index: 5;
+  transform-origin: 0 0; }
+.goc-nguon { position: absolute; left: 24px; bottom: calc(var(--cao) - var(--day) + 8px); z-index: 4; display: flex;
+  flex-direction: column; align-items: flex-start; gap: 4px; max-width: min(760px, calc(var(--rong) - 48px));
+  pointer-events: none; }
+.nguon-canh, #nhac-nguon { font-size: 13px; line-height: 1.25; padding: 2px 8px; background: rgba(20, 20, 24, 0.78);
+  color: #FFFFFF; max-width: 100%; box-sizing: border-box; }
+#khung-loat { position: absolute; left: 0; top: 0; width: var(--rong); height: 40px; z-index: 4; pointer-events: none;
+  font-size: 12px; line-height: 1; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 800; color: #1E2430; }
+#khung-loat span { position: absolute; top: 14px; padding: 3px 7px; background: rgba(255, 251, 242, 0.92); }
+#khung-loat .ten { left: 18px; }
+#khung-loat .so { right: 18px; color: var(--nhan); }
+.lop > .nen-anh { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); display: block; }

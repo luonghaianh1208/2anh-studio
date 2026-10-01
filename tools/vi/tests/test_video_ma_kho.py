@@ -157,7 +157,15 @@ class OBoCucTest(unittest.TestCase):
 
     def test_kho_doc_co_bang_rieng_va_kho_la_la_loi(self):
         self.assertEqual(set(kho.O), {"ngang", "doc"})
-        self.assertEqual(set(kho.O["doc"]), set(kho.O["ngang"]))
+        # Ô thường: hai khổ cùng tên. Ô Vox `hai-ben` cố ý khác tên theo khổ (ngang trai/phai, dọc tren/duoi; spec §4.5).
+        def thuong(k):
+            return {t for t in kho.O[k] if not t.startswith("vox-")}
+        self.assertEqual(thuong("doc"), thuong("ngang"))
+        rieng = {"ngang": {"vox-hai-ben-trai", "vox-hai-ben-phai"}, "doc": {"vox-hai-ben-tren", "vox-hai-ben-duoi"}}
+        for k, khac in (("ngang", "doc"), ("doc", "ngang")):
+            vox_k = {t for t in kho.O[k] if t.startswith("vox-")}
+            self.assertEqual(vox_k - rieng[k], {t for t in kho.O[khac] if t.startswith("vox-")} - rieng[khac])
+            self.assertTrue(rieng[k] <= vox_k)
         self.assertEqual(kho.o("doc", "cot-phu"), {"x": 160, "y": 640, "w": 400, "h": 380})
         for ten in kho.O["doc"]:
             self.assertEqual(kho.o("doc", ten), kho.O["doc"][ten])
