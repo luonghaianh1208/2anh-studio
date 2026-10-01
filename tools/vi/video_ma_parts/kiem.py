@@ -444,6 +444,8 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
     warnings: list = []
     if doc_nhac_nen:
         doc_nhac(video, thu_muc)
+    if video.meta["phong-cach"] == "vox":
+        return warnings
     _kiem_ai(video, thu_muc)
     da_doc: dict = {}
     da_bao: set = set()

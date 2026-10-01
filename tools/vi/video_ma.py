@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from thi_nghiem_parts import thu_vien  # noqa: E402
-from video_ma_parts import anh, chup, ghep, giong, hinh, kho, kiem, lich, parse, trang  # noqa: E402
+from video_ma_parts import anh, chup, ghep, giong, hinh, kho, kiem, lich, parse, thoi_luong, trang  # noqa: E402
 from video_parts import media  # noqa: E402
 
 FIX_INPUT = "Viết video.md trong thư mục dự án (xem docs/vi/tro-ly/video-giai-thich.md) rồi chạy lại."
@@ -221,6 +221,12 @@ def _dung(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> dict:
     cac_giong = [_lay_giong(c, thu_muc / "giong", video.meta) for c in video.canh]
     cac_lich, canh_bao = lich.dung_lich(video.canh, cac_giong)
     warnings.extend(canh_bao)
+    if "thoi-luong" in video.meta:
+        warnings[:] = [w for w in warnings if "mục tiêu `thoi-luong:" not in w]
+        cb_that = thoi_luong.canh_bao(int(video.meta["thoi-luong"]), sum(cl.thoi_luong for cl in cac_lich),
+                                       video.meta["toc-do"], False)
+        if cb_that is not None:
+            warnings.append(cb_that)
     cac_du = _cac_du(video, cac_lich, models, thu_muc, nhac)
     models_js = {so: m.js for so, m in models.items()}
     so_khung = [cl.so_khung for cl in cac_lich]
@@ -257,9 +263,14 @@ def chay(thu_muc: Path, plan_only: bool, xem_truoc: bool, warnings: list) -> dic
     nhac = kiem.doc_nhac(video, thu_muc)
     warnings.extend(kiem.kiem(video, thu_muc, doc_nhac_nen=False))
     warnings.extend(kiem.canh_bao_hinh_khop_loi(video))
+    uoc = thoi_luong.uoc_tinh(video)
+    if "thoi-luong" in video.meta:
+        canh_bao = thoi_luong.canh_bao(int(video.meta["thoi-luong"]), uoc, video.meta["toc-do"], True)
+        if canh_bao is not None:
+            warnings.append(canh_bao)
     if plan_only:
         return {"files": [], "so_canh": len(video.canh), "thoi_luong_giay": None,
-                "phong_cach": video.meta["phong-cach"], "giong": None}
+                "phong_cach": video.meta["phong-cach"], "giong": None, "thoi_luong_uoc": round(uoc, 1)}
     if xem_truoc:
         if not co_chromium():
             raise media.MediaError("chromium", "Chưa cài Chromium hoặc playwright.", chup.FIX_CHROMIUM)
@@ -279,7 +290,8 @@ def main(argv=None) -> int:
               "error": {"step": "input", "message": "Sai tham số dòng lệnh.", "fix": "Dùng: python tools/vi/video_ma.py <thư_mục> [--plan-only] [--xem-truoc]"}})
         return 1
     warnings: list = []
-    base = {"ready": False, "files": [], "so_canh": 0, "thoi_luong_giay": None, "phong_cach": None, "giong": None}
+    base = {"ready": False, "files": [], "so_canh": 0, "thoi_luong_giay": None, "phong_cach": None, "giong": None,
+            "thoi_luong_uoc": None}
     try:
         kq = chay(Path(args.thu_muc).resolve(), args.plan_only, args.xem_truoc, warnings)
         emit({**base, **kq, "ready": True, "warnings": warnings, "error": None})
