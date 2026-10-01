@@ -6,8 +6,8 @@ Video giải thích chỉ còn một lối: **kiểu Vox**. Video cũ dài gấp
 
 ### Thêm
 - `phong-cach: vox`: mỗi cảnh là `bo-cuc` (`mot`, `hai-ben`, `dan-hang`, `chong`, `toan-canh`), `loi` và 1–6 dòng `nhip`. Mỗi nhịp gắn một cụm từ trong lời với một vật (ảnh, thẻ, chữ, nhãn, con dấu, mũi tên, số chạy) ở một ô; vật hiện đúng lúc giọng đọc tới cụm đó. Dựng bằng lớp giấy cắt dán 2,5D: ba lớp sâu, máy quay đẩy và nghiêng nhẹ, ảnh cắt nền viền giấy xé có bóng, ảnh khung mép xé dán băng dính, chuyển cảnh xé giấy và lia nhanh xen nhau, bốn bảng màu giấy.
-- `tools/vi/anh_vox.py`: lập danh sách ảnh từ các nhịp, vẽ ảnh AI bằng công cụ vẽ của nền tảng (Antigravity, Codex) hoặc qua API kiểu OpenAI (mặc định 9router trên máy, mô hình `ag/gemini-3.1-flash-image`, cấu hình bằng `ANH_AI_URL`, `ANH_AI_KEY`, `ANH_AI_MO_HINH`), tải ảnh thật `tim:` bằng `image_search.py`, tách nền xanh, tính trước viền xé, bóng, duotone, halftone, và ghi nguồn. Lưu đệm theo mã băm câu lệnh: sửa một nhịp chỉ vẽ lại ảnh đó; tối đa 20 ảnh mới mỗi lần chạy (`--toi-da`). Khoá API không bao giờ nằm trong repo, log hay JSON đầu ra.
-- Khoá `thoi-luong` (15–600 giây): `video_ma.py --plan-only` trả `thoi_luong_uoc` và cảnh báo khi kịch bản dài quá +15% hay ngắn dưới −25%, nêu số từ cần bớt hay thêm; sau khi tạo giọng thì kiểm lại bằng thời lượng thật. `--xem-truoc` của video Vox chụp mỗi cảnh hai ảnh, giữa cảnh và cuối cảnh.
+- `tools/vi/anh_vox.py`: lập danh sách ảnh từ các nhịp, vẽ ảnh AI bằng công cụ vẽ của nền tảng (Antigravity, Codex) hoặc qua API kiểu OpenAI (mặc định 9router trên máy, mô hình `ag/gemini-3.1-flash-image`, cấu hình bằng `ANH_AI_URL`, `ANH_AI_KEY`, `ANH_AI_MO_HINH`), tải ảnh thật `tim:` bằng `image_search.py`, tách nền xanh, tính trước viền xé, bóng, duotone, halftone, và ghi nguồn. Lưu đệm theo mã băm câu lệnh: sửa một nhịp chỉ vẽ lại ảnh đó; tối đa 20 ảnh mới mỗi lần chạy (`--toi-da`); ảnh nền tảng vẽ ghi công cụ và mô hình bằng `--cong-cu`, `--mo-hinh`. Khoá API không bao giờ nằm trong repo, log hay JSON đầu ra.
+- Khoá `thoi-luong` (15–600 giây): `video_ma.py --plan-only` trả `thoi_luong_uoc` và cảnh báo khi kịch bản dài quá +15% hay ngắn dưới −25%, nêu số từ cần bớt hay thêm, chạy được trước khi có ảnh; sau khi tạo giọng thì kiểm lại bằng thời lượng thật. `--xem-truoc` của video Vox chụp mỗi cảnh hai ảnh, giữa cảnh và cuối cảnh.
 - Hướng dẫn cho AI viết lại hoàn toàn (`docs/vi/tro-ly/video-giai-thich.md`) và file mới `docs/vi/tro-ly/nhip-vox.md`: mạch móc → vấn đề → giải thích → lật → chốt, quỹ từ theo thời lượng (60 giây khoảng 130 từ), "Không bịa số liệu" (số nào cũng có nguồn), phép thử tắt tiếng, chữ trên hình tối đa khoảng 6 từ, bảng chọn bố cục, vòng tự kiểm và một video mẫu 60 giây "Giao tiếp với đồng nghiệp". Từ kích hoạt mới "video vox", "kiểu vox". Mục "Tạo ảnh cho video Vox thất bại" trong Xử lý lỗi.
 
 ### Đổi
@@ -22,7 +22,8 @@ Video giải thích chỉ còn một lối: **kiểu Vox**. Video cũ dài gấp
 - Nguồn vẽ ảnh phụ thuộc tài khoản của người dùng (9router, Antigravity): hết hạn mức hay tài khoản bị khoá thì video Vox vẫn làm được bằng ảnh thật, thẻ, chữ, con dấu nhưng kém sinh động; đổi nguồn chỉ cần đổi `ANH_AI_MO_HINH` hoặc `ANH_AI_URL`.
 - Ảnh AI có thể có chữ hoặc sai ý; không kiểm tự động được, AI phải xem ở bước `--xem-truoc` và vẽ lại.
 - Vật màu xanh lá bị ăn mất khi tách nền xanh: công cụ tự chuyển sang khung kèm cảnh báo.
-- `--plan-only` của video có nhịp ảnh dừng ở lỗi `canh` "chưa có ảnh đã xử lý" khi chưa chạy `anh_vox.py`, nên chưa ước được thời lượng trước khi vẽ ảnh; hướng dẫn dặn AI tự ước bằng quỹ từ trước, rồi mới vẽ.
+- Sửa `video.md` sau khi đã vẽ ảnh (đổi số cảnh, thứ tự nhịp, mô tả `ve:`, tuỳ chọn ảnh) làm ảnh cũ: `--xem-truoc` và dựng thật dừng ở lỗi `canh` "đã cũ so với video.md" tới khi chạy lại `anh_vox.py` (`--plan-only` chỉ cảnh báo, nên vẫn ước được thời lượng trước khi vẽ ảnh).
+- Ảnh nền tảng tự vẽ chỉ ghi đúng mô hình khi AI nêu `--mo-hinh`; không nêu thì cuối video ghi "không rõ".
 
 ## 6.3.2-vi.14 — 2026-09-30
 

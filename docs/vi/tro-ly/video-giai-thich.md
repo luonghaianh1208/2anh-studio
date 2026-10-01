@@ -175,11 +175,11 @@ nhip: đừng gõ chữ | chu: Gặp mặt trước | giua
 nhip: tóm tắt | nhan: Rồi nhắn một dòng chốt | duoi
 
 ## Cảnh 6
-bo-cuc: mot
+bo-cuc: hai-ben
 chuyen: lia
 loi: Nghe thì tốn công hơn. Thật ra đó là đường nhanh nhất để khỏi phải làm lại.
-nhip: tốn công | anh: ve: con rùa gỗ màu nâu bò trên mặt bàn làm việc, chụp cận ngang mặt bàn | giua
-nhip: nhanh nhất | chu: Chậm một nhịp, khỏi làm lại | duoi
+nhip: tốn công | anh: ve: con rùa gỗ màu nâu bò trên mặt bàn làm việc, chụp cận ngang mặt bàn | trai
+nhip: nhanh nhất | chu: Chậm một nhịp, khỏi làm lại | phai
 
 ## Cảnh 7
 bo-cuc: mot
@@ -194,7 +194,7 @@ Mọi ảnh của nhịp `anh` đi qua `tools/vi/anh_vox.py`: lệnh lập danh 
 
 Nguồn ảnh AI, theo thứ tự:
 
-1. **Công cụ vẽ ảnh của chính nền tảng** (Antigravity, Codex app). Chạy `python tools\vi\anh_vox.py projects\_video\<tên_video> --chi-ke-hoach`, đọc `anh/ai/ke-hoach.json`: mỗi mục có `nguon: "ve"` có `ma`, `prompt` (dán nguyên văn, không dịch, không bớt), `kich_thuoc` và `file_goc`. Vẽ từng mục, 3–4 ảnh một lượt, lưu đúng tên `anh/ai/goc/<ma>.png`. Rồi chạy `anh_vox.py` không cờ: ảnh có sẵn được dùng, không vẽ lại, và được ghi là do nền tảng vẽ ("chưa rõ mô hình" trong `warnings`).
+1. **Công cụ vẽ ảnh của chính nền tảng** (Antigravity, Codex app). Chạy `python tools\vi\anh_vox.py projects\_video\<tên_video> --chi-ke-hoach`, đọc `anh/ai/ke-hoach.json`: mỗi mục có `nguon: "ve"` có `ma`, `prompt` (dán nguyên văn, không dịch, không bớt), `kich_thuoc` và `file_goc`. Vẽ từng mục, 3–4 ảnh một lượt, lưu đúng tên `anh/ai/goc/<ma>.png`. Rồi chạy `anh_vox.py` với `--cong-cu "<nền tảng>" --mo-hinh "<mô hình đã vẽ>"` (ví dụ `--cong-cu Antigravity --mo-hinh "Nano Banana Pro"`): ảnh có sẵn được dùng, không vẽ lại, và cuối video ghi đúng mô hình. Không biết tên mô hình thì bỏ hai cờ: ảnh được ghi "không rõ" mô hình ("chưa rõ mô hình" trong `warnings`); chạy lại với `--mo-hinh` sau cũng điền được.
 2. **API tạo ảnh kiểu OpenAI** (cách của Claude Code và mọi nền tảng không tự vẽ được). Cấu hình đọc theo thứ tự: biến môi trường `ANH_AI_URL`, `ANH_AI_KEY`, `ANH_AI_MO_HINH`, rồi file `%USERPROFILE%\.2anh-studio\anh-ai.json` (khoá `url`, `khoa`, `mo_hinh`). Mặc định là 9router trên máy, `http://localhost:20128/v1`, mô hình `ag/gemini-3.1-flash-image` (khoảng 15 giây một ảnh). Khoá API chỉ nằm ở biến môi trường hay file cấu hình trong thư mục người dùng: không ghi khoá vào file nào trong repo hay trong `projects/`, không in ra, không xin người dùng dán khoá vào khung chat. Thiếu khoá thì chỉ người dùng tự đặt: `setx ANH_AI_KEY "<khoá>"` rồi mở lại cửa sổ lệnh.
 3. **Không có nguồn vẽ nào** (lỗi `cau-hinh` mà người dùng chưa đặt khoá được): thay nhịp `anh: ve:` bằng `chu`, `the`, `dau`, `so`, hoặc ảnh thật `tim:` khi sự vật có thật; báo người dùng một dòng rằng video chưa có ảnh AI và cách đặt khoá.
 
@@ -212,15 +212,15 @@ Lưu đệm và giới hạn:
 AI tự kiểm và tự sửa trước khi gửi, không chờ duyệt (trừ khi người dùng xin xem kịch bản trước). Lệnh chạy từ thư mục gốc repo.
 
 1. **Tự ước thời lượng** bằng quỹ từ ở mục "Nghề viết kịch bản Vox" và viết dòng nháp "lời nói gì — hình cho thấy gì" cho từng cảnh; sửa `video.md` tới khi khớp.
-2. **Ảnh**: `python tools\vi\anh_vox.py projects\_video\<tên_video>` (video không có nhịp `anh` thì bỏ bước này). Lỗi `parse` ở đây là lỗi `video.md`, cùng bộ đọc với `video_ma.py`.
-3. **Kiểm cú pháp và thời lượng**: `python tools\vi\video_ma.py projects\_video\<tên_video> --plan-only`. Đọc `thoi_luong_uoc` và cảnh báo `thoi-luong` trong `warnings` ("bớt khoảng N từ lời" hoặc "thêm khoảng N từ lời"): sửa lời hay bớt, thêm cảnh, rồi chạy lại từ bước 2 (chỉ ảnh có mô tả đổi mới vẽ lại). Chạy `--plan-only` khi chưa có ảnh thì dừng ở lỗi `canh` "chưa có ảnh đã xử lý": đó không phải lỗi kịch bản, chạy bước 2 trước.
+2. **Kiểm cú pháp và thời lượng**: `python tools\vi\video_ma.py projects\_video\<tên_video> --plan-only`. Đọc `thoi_luong_uoc` và cảnh báo `thoi-luong` trong `warnings` ("bớt khoảng N từ lời" hoặc "thêm khoảng N từ lời"): sửa lời hay bớt, thêm cảnh, rồi chạy lại bước này tới khi khớp. Bước này chưa cần ảnh: nhịp `anh` chưa có ảnh chỉ hiện cảnh báo "chưa có ảnh; chạy anh_vox.py trước --xem-truoc".
+3. **Ảnh**: `python tools\vi\anh_vox.py projects\_video\<tên_video>` (video không có nhịp `anh` thì bỏ bước này). Lỗi `parse` ở đây là lỗi `video.md`, cùng bộ đọc với `video_ma.py`. Sửa `video.md` sau bước này (đổi số cảnh, thứ tự nhịp, mô tả `ve:`, tuỳ chọn ảnh) thì chạy lại `anh_vox.py`: `video_ma.py` báo lỗi `canh` "chưa có ảnh đã xử lý" hoặc "ảnh … đã cũ so với video.md" cho tới khi chạy (chỉ ảnh có mô tả đổi mới vẽ lại).
 4. **Xem trước**: `python tools\vi\video_ma.py projects\_video\<tên_video> --xem-truoc`. Công cụ chụp mỗi cảnh hai ảnh vào `xem-truoc/`: `canh-N-giua.png` (giữa cảnh) và `canh-N.png` (cuối cảnh), không tạo giọng. Mở xem từng ảnh theo danh sách:
    - hình có khớp lời của cảnh đó không (phép thử tắt tiếng);
    - chữ có tràn ô, bị cắt hay dính nhau không;
    - vật có chồng lên nhau, che chữ hay che phụ đề không;
    - ảnh AI có chữ, chữ cái lạ, logo, viền xanh hay vật bị ăn mất không;
    - ảnh có sai ý, sai người, sai nơi, hay gây hiểu lầm không.
-   Lỗi nào thì sửa `video.md` (rút chữ, đổi ô, đổi bố cục, tả lại `ve:`), chạy lại từ bước 2, xem lại đúng các cảnh đã sửa.
+   Lỗi nào thì sửa `video.md` (rút chữ, đổi ô, đổi bố cục, tả lại `ve:`), chạy lại từ bước 3, xem lại đúng các cảnh đã sửa.
 5. **Dựng thật**: báo người dùng một dòng rằng dựng mất khoảng 1,5 lần thời lượng video trên máy 6 lõi (video 60 giây khoảng 90 giây; chưa kể vẽ ảnh và tạo giọng), rồi chạy `python tools\vi\video_ma.py projects\_video\<tên_video>`.
 6. **Gửi**: đường dẫn `video.mp4`, thời lượng thật (`thoi_luong_giay`), nội dung `video.md` dạng dễ đọc (lời từng cảnh), nguồn ảnh và số liệu, và đọc nguyên văn các dòng `warnings`. Nhắc người dùng muốn đổi chỗ nào thì nói, AI sửa `video.md` rồi dựng lại.
 
@@ -242,7 +242,7 @@ Dòng JSON của `video_ma.py`: `ready`, `files`, `so_canh`, `thoi_luong_giay`, 
 |---|---|
 | `input` | Chưa có thư mục hoặc `video.md`, hoặc sai tham số lệnh: viết file rồi chạy lại. |
 | `parse` | Sửa đúng dòng `error.message` nêu (cụm không có trong lời, nhịp sai thứ tự, ô sai với bố cục, chữ quá giới hạn, khoá không dùng với Vox) rồi chạy lại. |
-| `canh` | Cảnh sai khi kiểm hay khi xem trước: nhịp chưa có ảnh đã xử lý (chạy `anh_vox.py`), chữ của nhịp tràn ô, hai vật đè lên nhau quá nhiều, dòng nguồn tràn khung, hoặc lỗi file nhạc ("Cảnh 0: nhạc nền: …"). Sửa đúng cảnh đó theo `error.fix`. |
+| `canh` | Cảnh sai khi kiểm hay khi xem trước: nhịp chưa có ảnh đã xử lý hay ảnh đã cũ so với `video.md` (chạy lại `anh_vox.py`), chữ của nhịp tràn ô, hai vật đè lên nhau quá nhiều, dòng nguồn tràn khung, hoặc lỗi file nhạc ("Cảnh 0: nhạc nền: …"). Sửa đúng cảnh đó theo `error.fix`. |
 | `giong` | Không tạo được giọng máy (edge-tts cần mạng): kiểm mạng rồi chạy lại, tối đa một lần; hoặc đặt file giọng người dùng gửi đúng tên `error.message` nêu. |
 | `chromium` | Chưa cài Chromium: hỏi người dùng trước (tải 150–300 MB), rồi chạy `powershell -NoProfile -ExecutionPolicy Bypass -File tools\vi\pptmaster.ps1 -Action tool -Name chromium`. |
 | `ffmpeg` | Chưa có FFmpeg: cài theo mục "Công cụ tuỳ chọn" của `docs/vi/cai-dat-bang-ai.md`. |
@@ -256,9 +256,9 @@ Dòng JSON của `anh_vox.py`: `ready`, `files`, `so_anh`, `da_ve`, `dung_lai`, 
 |---|---|
 | `input` | Chưa có thư mục hay `video.md`, video không phải `phong-cach: vox`, thiếu file ảnh người dùng trong `anh/`, hoặc số ảnh cần vẽ quá giới hạn: làm theo `error.fix` (bớt nhịp `anh: ve:` hoặc thêm `--toi-da N`). |
 | `parse` | Sửa đúng dòng `error.message` nêu trong `video.md` rồi chạy lại. |
-| `cau-hinh` | Thiếu khoá, khoá bị từ chối (401), khoá có ký tự lạ, hoặc file cấu hình hỏng: nhờ người dùng tự đặt `ANH_AI_KEY` theo `error.fix`; chưa được thì làm theo nguồn 3 ở mục "Ảnh". |
+| `cau-hinh` | Khoá thiếu hoặc bị từ chối (401), khoá có ký tự lạ, hoặc file cấu hình hỏng hay sai dạng: nhờ người dùng tự đặt `ANH_AI_KEY` theo `error.fix`; chưa được thì làm theo nguồn 3 ở mục "Ảnh". |
 | `mang` | Không gọi được nguồn vẽ (9router chưa chạy, sai `ANH_AI_URL`) hoặc không tải được ảnh thật: kiểm rồi chạy lại, tối đa một lần; ảnh thật thì đổi từ khoá `tim:`. |
-| `nha-cung-cap` | Nguồn vẽ báo lỗi (hết hạn mức, từ chối câu lệnh, mô hình không có) hoặc ảnh thật chưa có nguồn: đọc nguyên văn lỗi; câu lệnh bị từ chối thì tả lại `ve:`, hết hạn mức thì báo người dùng (có thể đổi `ANH_AI_MO_HINH`). |
+| `nha-cung-cap` | Nguồn vẽ báo lỗi (hết hạn mức, từ chối câu lệnh, mô hình không có), trả dữ liệu không phải ảnh, hoặc ảnh thật chưa có nguồn: đọc nguyên văn lỗi; câu lệnh bị từ chối thì tả lại `ve:`, hết hạn mức thì báo người dùng (có thể đổi `ANH_AI_MO_HINH`). |
 | `tach-nen` | Máy chưa có FFmpeg: cài theo mục "Công cụ tuỳ chọn" của `docs/vi/cai-dat-bang-ai.md`. FFmpeg không tách nền được một ảnh hoặc ảnh gốc hỏng: xoá ảnh đó trong `anh/ai/goc/` để vẽ lại, hoặc thêm `khung` cho nhịp đó. |
 | `write` | Không ghi được file: đóng file đang mở, kiểm ổ đĩa rồi chạy lại. |
 | `internal` | Lỗi ngoài dự kiến: dán nguyên `error.message` để báo người bảo trì, không tự đoán cách sửa. |

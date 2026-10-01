@@ -2057,7 +2057,7 @@ class ExplainerVi12DocsTest(unittest.TestCase):
     def test_agents_vi_allows_the_platform_image_tool_and_keeps_the_bans(self):
         body = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
         for phrase in ("dùng công cụ tạo ảnh của chính nền tảng để vẽ ảnh trong `anh/ai/goc/` theo `ke-hoach.json`",
-                       r"python tools\vi\anh_vox.py", "--chi-ke-hoach", "không chạm `skills/`",
+                       r"python tools\vi\anh_vox.py", "--chi-ke-hoach", "--cong-cu", "--mo-hinh", "không chạm `skills/`",
                        "Không viết HTML hay ảnh cảnh bằng tay", "nguon.json", "vox.json"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
@@ -2068,9 +2068,13 @@ class ExplainerVi12DocsTest(unittest.TestCase):
         body = section(rule, "## Video giải thích")
         # Mục Vox của luật gọn, dưới 1 000 byte (CRLF), để cả file còn chỗ dưới giới hạn của Antigravity.
         self.assertLessEqual(len(body.replace("\n", "\r\n").encode("utf-8")), 1000)
-        for phrase in ("anh_vox.py", "--plan-only", "--xem-truoc", "ANH_AI_KEY", "Không viết HTML", "không có chữ"):
+        for phrase in ("anh_vox.py", "--plan-only", "--xem-truoc", "ANH_AI_KEY", "Không viết HTML", "không có chữ",
+                       "--mo-hinh"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
+        # Thứ tự: --plan-only trước anh_vox.py, rồi --xem-truoc.
+        self.assertLess(body.index("--plan-only"), body.index("anh_vox.py"))
+        self.assertLess(body.index("anh_vox.py"), body.index("--xem-truoc"))
 
     def test_new_trigger_phrases_route_to_the_explainer(self):
         agents = read("AGENTS.vi.md")
@@ -2224,6 +2228,11 @@ class VoxGuideTest(unittest.TestCase):
         self.assertTrue(54 <= thoi_luong.uoc_tinh(video) <= 66)
         self.assertEqual({s.truong["bo-cuc"][0] for s in video.canh} >= {"mot", "hai-ben", "dan-hang", "toan-canh"}, True)
         self.assertTrue(any(n.cum == "@dau" for s in video.canh for n in s.nhip))
+        # Luật của chính hướng dẫn: hai cảnh liền nhau không cùng bố cục và cùng kiểu vật.
+        for a, b in zip(video.canh, video.canh[1:]):
+            with self.subTest(canh=(a.so, b.so)):
+                cung_vat = {n.vat for n in a.nhip} & {n.vat for n in b.nhip}
+                self.assertFalse(a.truong["bo-cuc"] == b.truong["bo-cuc"] and cung_vat, cung_vat)
         # Mỗi câu của lời có ít nhất một nhịp (cụm từ nằm trong câu đó).
         from video_ma_parts import vox
 
@@ -2253,6 +2262,7 @@ class VoxGuideTest(unittest.TestCase):
         body = section(read(self.GUIDE), "## Ảnh")
         for phrase in ("ANH_AI_URL", "ANH_AI_KEY", "ANH_AI_MO_HINH", nguon_ve.URL_MAC_DINH, nguon_ve.MO_HINH_MAC_DINH,
                        r"%USERPROFILE%\.2anh-studio\anh-ai.json", "--chi-ke-hoach", "anh/ai/ke-hoach.json",
+                       "--cong-cu", "--mo-hinh",
                        "anh/ai/goc/<ma>.png", "Antigravity", "Codex", "Claude Code", "9router", "tim:", "image_search.py",
                        "20 ảnh", "--toi-da", "khung", "setx ANH_AI_KEY"):
             with self.subTest(phrase=phrase):
@@ -2260,11 +2270,17 @@ class VoxGuideTest(unittest.TestCase):
 
     def test_self_check_loop_names_both_preview_images(self):
         body = section(read(self.GUIDE), "## Vòng tự kiểm")
-        for phrase in ("canh-N-giua.png", "canh-N.png", "thoi_luong_uoc", "chưa có ảnh đã xử lý", "1,5 lần"):
+        for phrase in ("canh-N-giua.png", "canh-N.png", "thoi_luong_uoc", "chưa có ảnh đã xử lý", "1,5 lần",
+                       "chưa có ảnh; chạy anh_vox.py trước --xem-truoc", "đã cũ so với video.md"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
-        self.assertLess(body.index("anh_vox.py"), body.index("--plan-only"))
-        self.assertLess(body.index("--plan-only"), body.index("--xem-truoc"))
+        # Thứ tự: --plan-only (sửa thời lượng, chưa cần ảnh) → anh_vox.py → --xem-truoc → dựng thật.
+        ke_hoach = body.index(r"video_ma.py projects\_video\<tên_video> --plan-only")
+        anh = body.index(r"python tools\vi\anh_vox.py projects\_video\<tên_video>`")
+        xem = body.index(r"video_ma.py projects\_video\<tên_video> --xem-truoc")
+        self.assertLess(ke_hoach, anh)
+        self.assertLess(anh, xem)
+        self.assertNotIn("chạy bước 2 trước", body)
 
     def test_video_ma_error_steps_documented_in_the_guide(self):
         body = section(read(self.GUIDE), "## Đầu ra")
@@ -2290,6 +2306,15 @@ class VoxGuideTest(unittest.TestCase):
         xu_ly_loi = read("docs/vi/xu-ly-loi.md")
         headings = h2_headings(xu_ly_loi)
         self.assertEqual(headings.index("## Tạo ảnh cho video Vox thất bại"), headings.index("## Tìm nhạc nền thất bại") + 1)
+
+    def test_agents_section_15_runs_plan_only_before_the_images(self):
+        s = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
+        ke_hoach = s.index(r"video_ma.py projects\_video\<tên_video> --plan-only")
+        anh = s.index(r"python tools\vi\anh_vox.py projects\_video\<tên_video>`")
+        self.assertLess(ke_hoach, anh)
+        self.assertLess(anh, s.index(r"video_ma.py projects\_video\<tên_video> --xem-truoc"))
+        self.assertNotIn("chạy bước 3 trước", s)
+        self.assertNotIn("chưa có ảnh đã xử lý\": chạy", s)
 
     def test_agents_section_15_is_vox_only(self):
         s = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
@@ -2351,6 +2376,17 @@ class VoxGuideTest(unittest.TestCase):
                        "Ảnh AI có thể có chữ hoặc sai ý", "tài khoản"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body.replace("Kịch bản cũ", "kịch bản cũ"))
+        # `--plan-only` chạy được trước khi có ảnh: rủi ro cũ "dừng ở lỗi canh" không còn.
+        self.assertNotIn("nên chưa ước được thời lượng trước khi vẽ ảnh", body)
+
+    def test_error_docs_cover_the_vox_cases(self):
+        for doc in (EXPLAINER_GUIDE, "docs/vi/xu-ly-loi.md"):
+            with self.subTest(doc=doc):
+                self.assertIn("hoặc bị từ chối (401)", read(doc))
+        xu_ly_loi = read("docs/vi/xu-ly-loi.md")
+        parse_dong = next(l for l in xu_ly_loi.splitlines() if l.startswith("- `parse`: `error.message` nêu đúng số **Dòng** trong `video.md`"))
+        self.assertIn("không có trong lời", parse_dong)
+        self.assertIn("cổng 20128", read(TEACHER_EXPLAINER_DOC))
 
 
 AGENTS_VI_ADMIN_HEADING = "## 16. Soạn văn bản hành chính theo Nghị định 30"

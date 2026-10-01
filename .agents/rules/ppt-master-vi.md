@@ -68,7 +68,7 @@ Video MP4 kiểu Vox, không phải PPTX; cho mọi ngành, không theo khuôn b
 
 - Quỹ từ theo `thoi-luong` (60 giây ≈ 130 từ). Không bịa số liệu: số nào cũng có `nguon`.
 - Hình phải khớp lời đọc: mỗi câu ít nhất một nhịp, chữ trên hình ≤ 6 từ, ảnh AI không có chữ.
-- `anh_vox.py` → `video_ma.py --plan-only` (sửa thời lượng) → `--xem-truoc` tự xem, tự sửa → dựng thật. Không viết HTML, ảnh cảnh bằng tay. Khoá ảnh chỉ qua `ANH_AI_KEY`, không ghi vào repo.
+- `video_ma.py --plan-only` (sửa thời lượng, chưa cần ảnh) → `anh_vox.py` (ảnh tự vẽ: thêm `--cong-cu`, `--mo-hinh`) → `--xem-truoc` tự xem, tự sửa → dựng thật. Không viết HTML, ảnh cảnh bằng tay. Khoá ảnh chỉ qua `ANH_AI_KEY`, không ghi vào repo.
 - Nhạc nền chỉ khi được xin: `tim_nhac.py`, ghi `nhac-nen`, nhắc nghe thử (`mang`: chạy lại một lần).
 
 ## Văn bản hành chính

@@ -50,7 +50,7 @@ AI viết lời theo mạch của các video giải thích trên mạng: mở b�
 
 - Trên **Antigravity** hoặc **Codex**: AI tự vẽ bằng công cụ vẽ ảnh của nền tảng, không cần cài gì thêm.
 - Trên **Claude Code** (và nền tảng không tự vẽ được): bộ công cụ gọi một dịch vụ tạo ảnh qua **9router** chạy trên máy (mặc định ở cổng 20128, mô hình `ag/gemini-3.1-flash-image`, khoảng 15 giây một ảnh). Cần một lần cài đặt:
-  1. Cài và mở 9router, đăng nhập tài khoản có mô hình vẽ ảnh.
+  1. Cài 9router theo hướng dẫn của người cung cấp, mở ở cổng 20128 (`http://localhost:20128`), đăng nhập tài khoản có mô hình vẽ ảnh. Bộ công cụ không tự cài 9router.
   2. Tạo khoá API trong trang quản trị 9router.
   3. Mở cửa sổ lệnh (PowerShell hoặc Command Prompt), chạy `setx ANH_AI_KEY "<khoá vừa tạo>"`, rồi đóng và mở lại cửa sổ lệnh cùng ứng dụng AI.
 
