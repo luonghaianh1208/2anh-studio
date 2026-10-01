@@ -109,8 +109,8 @@ def doc(canh: str, dau: str = DAU):
 CANH_HAI_BEN = ("## Cảnh 1\nbo-cuc: hai-ben\n"
                 "loi: Bạn nói \"để mai tính\", đồng nghiệp lại hiểu là \"không làm\".\n"
                 "nhip: để mai tính | anh: ve: nhân viên nhún vai | trai\n"
-                "nhip: không làm | anh: ve: đồng nghiệp khoanh tay | phai\n"
-                "nhip: hiểu | dau: HIỂU LẦM\n")
+                "nhip: hiểu | dau: HIỂU LẦM | giua\n"
+                "nhip: không làm | anh: ve: đồng nghiệp khoanh tay | phai\n")
 
 
 class MetaTest(unittest.TestCase):
@@ -158,9 +158,14 @@ class NhipTest(unittest.TestCase):
         c = doc(CANH_HAI_BEN).canh[0]
         self.assertEqual(c.loai, "vox")
         self.assertEqual([(n.cum, n.vat, n.o) for n in c.nhip],
-                         [("để mai tính", "anh", "trai"), ("không làm", "anh", "phai"), ("hiểu", "dau", None)])
+                         [("để mai tính", "anh", "trai"), ("hiểu", "dau", "giua"), ("không làm", "anh", "phai")])
         self.assertEqual(c.nhip[0].noi_dung, "ve: nhân viên nhún vai")
         self.assertEqual(c.nhip[2].chi_so, 2)
+
+    def test_unslotted_caption_must_also_follow_the_narration_order(self):
+        with self.assertRaises(parse.ParseError) as c:
+            doc("## Cảnh 1\nbo-cuc: hai-ben\nloi: Một hai ba.\nnhip: ba | chu: Ba | trai\nnhip: hai | dau: HAI\n")
+        self.assertIn("thứ tự", str(c.exception))
 
     def test_options(self):
         c = doc("## Cảnh 1\nbo-cuc: mot\nloi: Đây là Hà Nội.\nnhip: Hà Nội | anh: tim: hanoi old quarter | giua | khung duotone\n").canh[0]

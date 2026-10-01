@@ -64,8 +64,8 @@ Với `phong-cach: vox`, `mon` và `lop` không bắt buộc (mọi phong cách 
 bo-cuc: hai-ben
 loi: Bạn nói "để mai tính", đồng nghiệp lại hiểu là "không làm".
 nhip: để mai tính | anh: ve: nhân viên văn phòng nhún vai, tay cầm cốc cà phê | trai
+nhip: hiểu | dau: HIỂU LẦM | giua
 nhip: không làm | anh: ve: đồng nghiệp khoanh tay, nhíu mày | phai
-nhip: hiểu | dau: HIỂU LẦM
 ```
 
 - `loi`: 1–3 câu, viết trên một dòng.
