@@ -14,6 +14,7 @@ import dataclasses
 import importlib.util
 import json
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -144,9 +145,24 @@ def _trang(video, cac_lich, models, thu_muc: Path, nhac=None) -> list:
     return [trang.dung_trang(du, models.get(du["so"])) for du in _cac_du(video, cac_lich, models, thu_muc, nhac)]
 
 
+def _kiem_tran_vox(canh, tran: list) -> None:
+    for muc in tran:
+        m = re.match(r"^chong:(.+),(.+)$", muc)
+        if m:
+            raise kiem.CanhError(canh.so, f"hai vật {m.group(1)} và {m.group(2)} đè lên nhau quá nhiều.",
+                                 "Đổi ô của một nhịp, đổi `bo-cuc` (ví dụ `chong` cho nhiều vật) hoặc bớt nhịp.")
+        m = re.match(r"^nhip-(\d+)$", muc)
+        if m:
+            raise kiem.CanhError(canh.so, f"chữ của nhịp {int(m.group(1)) + 1} tràn ô.",
+                                 "Rút gọn chữ của nhịp đó (ý dài để ở lời) hoặc đổi sang ô rộng hơn.")
+
+
 def _kiem_tran_tat_ca(page, video, trang_html) -> None:
     for canh, html in zip(video.canh, trang_html):
         tran = chup.kiem_tran(page, html)
+        if canh.loai == "vox":
+            _kiem_tran_vox(canh, tran)
+            continue
         phan = [muc[len("phan:"):] for muc in tran if muc.startswith("phan:")]
         if phan:
             raise kiem.CanhError(canh.so, f'phần công thức "{phan[0]}" quá dài cho khổ này', FIX_PHAN)
@@ -207,6 +223,12 @@ def _xem_truoc(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> 
         _kiem_tran_tat_ca(page, video, trang_html)
         for canh, html in zip(video.canh, trang_html):
             chup.chup_cuoi(page, html, ra / f"canh-{canh.so}.png")
+            if canh.loai == "vox":
+                thoi_luong = page.evaluate("() => window.THI_VIDEO.thoiDiemCuoi()")
+                page.evaluate("(t) => window.datThoiDiem(t)", thoi_luong / 2)
+                giua = ra / f"canh-{canh.so}-giua.png"
+                page.screenshot(path=str(giua), type="png")
+                files.append(f"xem-truoc/canh-{canh.so}-giua.png")
             files.append(f"xem-truoc/canh-{canh.so}.png")
     return {"files": files, "so_canh": len(video.canh), "thoi_luong_giay": None,
             "phong_cach": video.meta["phong-cach"], "giong": None}
