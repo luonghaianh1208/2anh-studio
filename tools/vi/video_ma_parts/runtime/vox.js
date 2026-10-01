@@ -7,11 +7,13 @@
   // (anh_vox.py), nên trang không thêm filter nào theo khung, trừ nhoè hướng 0,35 giây đầu của chuyển `lia`.
   // Phần trên `khoiDong` là hàm thuần (chạy được trong Node, test ở tests/js/test_vox.js).
   var NS = 'http://www.w3.org/2000/svg';
-  // Độ sâu (điểm CSS, âm là xa) và tâm xoay của camera: lớp lệch ngang (dọc) z·sin(rotateY (rotateX)) so với tâm
-  // xoay ở lớp giữa; đẩy vào: lớp gần phóng đủ, lớp giữa 75 %, lớp xa đứng yên (như ở rất xa).
+  // Độ sâu (điểm CSS, âm là xa) và tâm xoay của camera (ở lớp gần): khi camera xoay, lớp lệch ngang (dọc)
+  // z·sin(rotateY (rotateX)), lớp càng xa càng lệch nhiều (thị sai). Không lớp nào phóng: lớp đổi tỉ lệ liên tục thì
+  // Chromium vẽ chữ, ảnh và bộ lọc qua bộ đệm dựng từ tỉ lệ của các khung trước, nên cùng t mà khung khác nhau tuỳ
+  // đã vẽ những khung nào trước đó (đo được: lệch tới 192/255 ở dấu chữ Việt). Mọi lớp chỉ dời theo bước điểm ảnh
+  // thiết bị, nên khung là hàm thuần của t; đẩy vào `camera().s` vì thế không áp lên trang.
   var SAU = { gan: 0, giua: -80, xa: -220 };
-  var TAM_XOAY = -80;
-  var DAY_VAO = { gan: 1, giua: 0.75, xa: 0 };
+  var TAM_XOAY = 0;
   var CHUYEN = 0.35;
   var DAI = { 'anh-cat': 0.55, 'anh-khung': 0.5, 'anh-phu': 0.6, the: 0.4, nhan: 0.3, dau: 0.35, chu: 0.45, so: 0.45, 'mui-ten': 0.5 };
   var DAP = 0.45;        // cú đập (tiếng và rung) sau khi ảnh cắt / con dấu bắt đầu vào
@@ -91,13 +93,14 @@
     return { dx: lam(kq.dx), dy: lam(kq.dy), s: lam(kq.s), goc: lam(kq.goc), a: lam(kq.a) };
   }
 
-  // Biến đổi 2D của một lớp sâu z theo camera và rung (hàm thuần): {s, x, y}. Chiếu phối cảnh tính bằng tay thay
-  // cho CSS perspective/preserve-3d (ghép lớp phối cảnh trong Chromium không GPU chậm ~2 lần): lớp phẳng chỉ cần
-  // phóng và dời, nên mỗi khung chỉ ghép ảnh đã raster sẵn.
-  function lopCamera(ten, cam, rg) {
+  // Độ dời của một lớp sâu theo camera và rung (hàm thuần): {x, y}, theo bước điểm ảnh thiết bị `dpr`. Thay cho CSS
+  // perspective/preserve-3d (ghép lớp phối cảnh trong Chromium không GPU chậm ~2 lần).
+  function lopCamera(ten, cam, rg, dpr) {
     var d = SAU[ten] - TAM_XOAY;
     var rad = Math.PI / 180;
-    return { s: lam(1 + (cam.s - 1) * DAY_VAO[ten]), x: lam(d * Math.sin(cam.ry * rad) + rg.x), y: lam(-d * Math.sin(cam.rx * rad) + rg.y) };
+    var k = dpr || 1;
+    function buoc(x) { return Math.round(x * k) / k + 0; }
+    return { x: buoc(d * Math.sin(cam.ry * rad) + rg.x), y: buoc(-d * Math.sin(cam.rx * rad) + rg.y) };
   }
 
   // Camera: đẩy 1 → 1,06 theo smoothstep suốt cảnh, xoay rotateY tối đa ±4° (pha theo hạt), rotateX = 0,4 × rotateY.
@@ -166,9 +169,16 @@
     var k = Math.max(kho.rong / rong, kho.cao / cao) * 1.04;
     return { x: (kho.rong - rong * k) / 2, y: (kho.cao - cao * k) / 2, w: rong * k, h: cao * k };
   }
+  // Hộp ảnh bitmap khớp lưới điểm ảnh thiết bị: canvas cùng cỡ chép 1:1, không lọc (khung không phụ thuộc lịch sử vẽ).
+  function luoi(b) {
+    var k = (typeof root.devicePixelRatio === 'number' && root.devicePixelRatio) || 1;
+    function g(x) { return Math.round(x * k) / k + 0; }
+    var x0 = g(b.x), y0 = g(b.y);
+    return { x: x0, y: y0, w: g(b.x + b.w) - x0, h: g(b.y + b.h) - y0 };
+  }
   function datHop(el, b) {
-    el.style.left = lam(b.x) + 'px'; el.style.top = lam(b.y) + 'px';
-    el.style.width = lam(b.w) + 'px'; el.style.height = lam(b.h) + 'px';
+    el.style.left = b.x + 'px'; el.style.top = b.y + 'px';
+    el.style.width = b.w + 'px'; el.style.height = b.h + 'px';
   }
   function svgManh(points, mau, lopPhu, them) {
     return '<polygon points="' + points + '" fill="rgba(0,0,0,0.16)" transform="translate(3 5)"/>' +
@@ -203,7 +213,7 @@
     return [s, g + '</svg>'];
   }
   // Lớp giữa: 1–2 mảng giấy xé nhỏ (giấy kẻ ô sáng hoặc màu nhấn) ở vùng giữa khung.
-  function manhGiua(hat, kho) {
+  function manhGiua(hat, kho, mau) {
     var R = kho.rong, H = kho.cao;
     var r = C().prng(hat * 389 + 5);
     var n = 1 + Math.floor(r() * 2);
@@ -214,7 +224,7 @@
       var w = R * (0.22 + 0.12 * r()), h = H * (0.22 + 0.12 * r());
       var x = R * (0.15 + 0.6 * r()) - w / 2, y = H * (0.2 + 0.55 * r()) - h / 2;
       var giay = k === 0;
-      g += svgManh(C().giayXe(hat * 90 + k, x, y, w, h, 5), giay ? 'var(--ke)' : 'var(--manh' + (1 + (hat + k + 2) % 4) + ')',
+      g += svgManh(C().giayXe(hat * 90 + k, x, y, w, h, 5), giay ? mau.ke : mau.manh[(hat + k + 1) % 4],
         giay ? 'vox-ke2' : null);
     }
     return g + '</svg>';
@@ -232,39 +242,69 @@
     var cs = getComputedStyle(khung);
     // Màu bảng đọc từ vox.css (một nguồn); nền xa là ảnh SVG riêng, không thấy biến CSS của trang nên cần màu thật.
     function bien(ten, macDinh) { return cs.getPropertyValue(ten).trim() || macDinh; }
-    var mau = { giay: bien('--giay', '#F4ECD8'),
+    var mau = { giay: bien('--giay', '#F4ECD8'), ke: bien('--ke', '#EFE8D6'),
       manh: [bien('--manh1', '#2E86AB'), bien('--manh2', '#F2A541'), bien('--manh3', '#3B8B5A'), bien('--manh4', '#C8553D')] };
 
     // Sân khấu: .khung-3d (chỉ dời khi chuyển lia) > ba lớp phẳng xa / giữa / gần (.san bọc lớp giữa và gần).
-    // Mỗi lớp nhận biến đổi 2D riêng theo độ sâu (lopCamera), gốc phóng ở giữa vạch phụ đề để không vật nào trên vạch
-    // bị đẩy xuống vạch. Lớp xa (nền giấy) chỉ dời, không phóng: vẽ một lần thành bitmap đúng điểm ảnh khung.
+    // Mỗi lớp chỉ dời theo độ sâu (lopCamera).
     var k3 = tao('div', 'khung-3d', khung);
     var lop = { xa: tao('div', 'lop lop-xa', k3) };
     var san = tao('div', 'san', k3);
     lop.giua = tao('div', 'lop lop-giua', san);
     lop.gan = tao('div', 'lop lop-gan', san);
-    ['xa', 'giua', 'gan'].forEach(function (ten) { lop[ten].style.transformOrigin = (kho.rong / 2) + 'px ' + day(kho) + 'px'; });
-    // Lớp xa vẽ bằng ảnh SVG (vân giấy dùng feTurbulence, đắt), rồi ở khung đầu chép một lần sang canvas: mỗi khung
-    // sau chỉ còn chép một ảnh bitmap, không chạy lại bộ lọc.
-    var anhXa = nenXa(hat, kho, mau).map(function (svg) {
-      var im = tao('img', 'nen-anh', lop.xa);
+    // Mọi hình raster (nền giấy SVG có feTurbulence, mảng giấy có pattern, ảnh PNG) được "nướng" một lần, trước khi
+    // trang báo `san`, thành ảnh PNG đúng điểm ảnh thiết bị (vẽ qua canvas rồi toDataURL), đặt 1:1 trên lớp chỉ dời
+    // theo bước điểm ảnh. Lý do: (1) bộ lọc SVG không chạy lại mỗi khung; (2) khung là hàm thuần của t — ảnh lấy mẫu
+    // lại dưới tỉ lệ thay đổi đi qua bộ đệm giải mã theo tỉ lệ của các khung trước; còn <canvas> để trong trang thì
+    // thành lớp ghép riêng (`Canvas`), kéo các vật đè lên nó thành lớp `Overlap` giữ tỉ lệ raster cũ. Ảnh 1:1 trong lớp
+    // gốc thì mỗi khung vẽ lại đúng như nhau.
+    function anhSvg(svg, cha) {
+      var im = tao('img', 'nen-anh', cha);
       im.alt = '';
       im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
       return im;
-    });
-    function vaoCanvas() {
-      if (!anhXa.every(function (im) { return im.complete && im.naturalWidth > 0; })) { return; }
-      var k = root.devicePixelRatio || 1;
-      var cv = tao('canvas', 'nen-anh');
-      cv.width = Math.round(kho.rong * k);
-      cv.height = Math.round(kho.cao * k);
-      var ctx = cv.getContext('2d');
-      ctx.scale(k, k);
-      anhXa.forEach(function (im) { ctx.drawImage(im, 0, 0, kho.rong, kho.cao); lop.xa.removeChild(im); });
-      lop.xa.insertBefore(cv, lop.xa.firstChild);
     }
+    var anhXa = nenXa(hat, kho, mau).map(function (svg) { return anhSvg(svg, lop.xa); });
     var coNen = cacNhip.some(function (n) { return vatCua(n) === 'anh-phu'; });
-    if (!coNen) { lop.giua.insertAdjacentHTML('beforeend', manhGiua(hat, kho)); }
+    var anhGiua = coNen ? null : anhSvg(manhGiua(hat, kho, mau), lop.giua);
+    function giaiMa(im) {
+      return im.decode ? im.decode().then(function () { return im; }) : Promise.resolve(im);
+    }
+    // Ảnh PNG cỡ CSS (w × h), điểm ảnh = w·dpr × h·dpr, vẽ các ảnh `ds` phủ kín; trả Promise của <img> đã giải mã.
+    function nuong(ds, w, h, lop0) {
+      var k = root.devicePixelRatio || 1;
+      var cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(w * k));
+      cv.height = Math.max(1, Math.round(h * k));
+      var ctx = cv.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ds.forEach(function (im) { ctx.drawImage(im, 0, 0, cv.width, cv.height); });
+      var ra = new Image();
+      ra.className = lop0;
+      ra.alt = '';
+      ra.src = cv.toDataURL('image/png');
+      return giaiMa(ra);
+    }
+    function nuongHet() {
+      var viec = [];
+      viec.push(Promise.all(anhXa.map(giaiMa)).then(function () { return nuong(anhXa, kho.rong, kho.cao, 'nen-anh'); })
+        .then(function (ra) {
+          anhXa.forEach(function (im) { lop.xa.removeChild(im); });
+          lop.xa.insertBefore(ra, lop.xa.firstChild);
+        }));
+      if (anhGiua) {
+        viec.push(giaiMa(anhGiua).then(function () { return nuong([anhGiua], kho.rong, kho.cao, 'nen-anh'); })
+          .then(function (ra) { lop.giua.replaceChild(ra, anhGiua); }));
+      }
+      cacVat.forEach(function (v) {
+        var im = v.el.querySelector('img.anh');
+        if (!im || !v.b) { return; }
+        viec.push(giaiMa(im).then(function () { return nuong([im], v.b.w, v.b.h, 'anh'); })
+          .then(function (ra) { v.el.replaceChild(ra, im); }));
+      });
+      // Ảnh hỏng thì giữ ảnh gốc (vẫn hiện, chỉ chậm hơn), không chặn trang.
+      return Promise.all(viec.map(function (p) { return p.catch(function () { return null; }); }));
+    }
 
     function hopO(n, k) {
       if (/^chong-/.test(n.o || '')) { return xepChong(Number(n.o.slice(6)), cacNhip.filter(function (m) { return /^chong-/.test(m.o || ''); }).length, hat, kho); }
@@ -285,7 +325,7 @@
       if (n.vat === 'anh') {
         var a = n.anh || { dataUrl: '', rong: 4, cao: 3 };
         var chua = a.nguon && !v.nen ? 20 : 0;
-        var b = v.nen ? phuKin(a.rong, a.cao, kho) : vuaO(o, a.rong, a.cao, chua);
+        var b = luoi(v.nen ? phuKin(a.rong, a.cao, kho) : vuaO(o, a.rong, a.cao, chua));
         datHop(el, b);
         v.b = b;
         var img = tao('img', 'anh', el);
@@ -389,7 +429,6 @@
     function tranNgang(el) { return el.scrollWidth > el.clientWidth + 1; }
     function doCo() {
       daDo = true;
-      vaoCanvas();
       cacVat.forEach(function (v) {
         var el = v.noi;
         if (v.vat === 'chu' || v.vat === 'so') {
@@ -491,21 +530,16 @@
         nenTruoc.style.transform = '';
         // THI_CHUYEN trả toạ độ không đơn vị ("x y"), CSS polygon() bỏ qua cả giá trị đó: thêm px ở đây.
         nenTruoc.style.clipPath = s.clipPath.replace(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g, '$1px $2px');
-        nenTruoc.style.filter = s.filter || '';
+        // Bóng đổ của THI_CHUYEN đặt trên chính ảnh đã cắt thì bị cắt mất mà vẫn tốn cả khung: bỏ.
+        nenTruoc.style.filter = '';
         if (s.opacity <= 0) { nenTruoc.style.display = 'none'; }
       }
     }
 
     function datCamera(cam, rg) {
       ['xa', 'giua', 'gan'].forEach(function (ten) {
-        var l = lopCamera(ten, cam, rg);
-        // Lớp xa dời theo bước điểm ảnh thiết bị (chép, không lấy mẫu lại).
-        if (ten === 'xa') {
-          var dpr = root.devicePixelRatio || 1;
-          l.x = Math.round(l.x * dpr) / dpr + 0;
-          l.y = Math.round(l.y * dpr) / dpr + 0;
-        }
-        lop[ten].style.transform = l.x || l.y || l.s !== 1 ? 'translate(' + l.x + 'px,' + l.y + 'px) scale(' + l.s + ')' : 'none';
+        var l = lopCamera(ten, cam, rg, root.devicePixelRatio || 1);
+        lop[ten].style.transform = l.x || l.y ? 'translate(' + l.x + 'px,' + l.y + 'px)' : 'none';
       });
     }
 
@@ -522,7 +556,10 @@
         el.style.visibility = 'visible';
         var a = vao(v.vat, p);
         el.style.opacity = a.a >= 1 ? '' : String(a.a);
-        el.style.transform = 'translate(' + a.dx + 'px,' + a.dy + 'px) rotate(' + lam(v.goc0 + a.goc) + 'deg) scale(' + a.s + ')';
+        var goc = lam(v.goc0 + a.goc);
+        // Đứng yên đúng chỗ thì không để biến đổi nào (cùng cây thuộc tính vẽ như khi nhảy thẳng tới t).
+        el.style.transform = a.dx || a.dy || goc || a.s !== 1 ?
+          'translate(' + a.dx + 'px,' + a.dy + 'px) rotate(' + goc + 'deg) scale(' + a.s + ')' : '';
         if (v.vat === 'mui-ten') {
           if (!v.duong) { return; }
           v.duong.style.strokeDashoffset = String(lam(1 - p));
@@ -607,7 +644,8 @@
     root.THI_VIDEO.kiemTran = kiemTran;
     root.THI_VIDEO.suKien = suKien;
     dat(0);
-    root.THI_VIDEO.san = true;
+    // `san` chỉ bật sau khi mọi ảnh đã nướng xong (chup.mo_trang chờ cờ này).
+    nuongHet().then(function () { dat(0); root.THI_VIDEO.san = true; });
   }
 
   root.THI_VOX = {

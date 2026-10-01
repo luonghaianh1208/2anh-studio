@@ -77,6 +77,41 @@ class VoxTrangTest(unittest.TestCase):
             b = chup._anh_khung(page)
         self.assertEqual(a, b)
 
+    def test_frame_does_not_depend_on_render_history(self):
+        # Khung là hàm thuần của t: trang mới nhảy thẳng tới t và trang đã vẽ các khung trước đó phải ra cùng byte.
+        # Hỏng khi lớp giữ tỉ lệ raster cũ (will-change: transform), hay khi lớp đổi tỉ lệ liên tục (chữ, ảnh, bộ lọc
+        # vẽ qua bộ đệm dựng từ tỉ lệ của khung trước). Khung cuối cảnh là ảnh nền chuyển cảnh của cảnh sau, dựng lại
+        # bằng cách nhảy thẳng trong tiến trình khác, nên cũng phải đúng từng byte.
+        canh = [
+            du_vox(["@dau | anh: ve: cốc | giua", "hai | nhan: Hai | tren", "ba | chu: Ba chữ | duoi"], "mot",
+                   anh_tn={0: anh("cat")}),
+            du_vox(["@dau | anh: ve: phố | nen", f"hai | chu: {CHU40} | giua", f"ba | dau: {DAU16} | duoi"], "toan-canh",
+                   anh_tn={0: anh("phu", 800, 500)}),
+        ]
+        for du in canh:
+            html = trang.dung_trang(du)
+            fps = lich.FPS
+            n_cuoi = round((du["thoiLuong"] - 1 / fps) * fps)
+            with self.subTest(bo_cuc=du["boCuc"]):
+                with chup.trang_chup(Kho("ngang", 720)) as page:
+                    chup.mo_trang(page, html)
+                    page.evaluate("() => window.datThoiDiem(3.2)")
+                    thang_32 = chup._anh_khung(page)
+                    page.evaluate("(t) => window.datThoiDiem(t)", n_cuoi / fps)
+                    thang_cuoi = chup._anh_khung(page)
+                with chup.trang_chup(Kho("ngang", 720)) as page:
+                    chup.mo_trang(page, html)
+                    for t in (0.0, 1.0, 2.0, 3.0, 3.2):
+                        page.evaluate("(t) => window.datThoiDiem(t)", t)
+                        noi_32 = chup._anh_khung(page)
+                self.assertEqual(thang_32, noi_32, "0, 1, 2, 3 rồi 3,2")
+                with chup.trang_chup(Kho("ngang", 720)) as page:
+                    chup.mo_trang(page, html)
+                    for i in range(n_cuoi + 1):
+                        page.evaluate("(t) => window.datThoiDiem(t)", i / fps)
+                        noi_cuoi = chup._anh_khung(page)
+                self.assertEqual(thang_cuoi, noi_cuoi, "mọi khung từ 0 tới khung cuối")
+
     def test_object_hidden_before_its_beat_and_visible_after(self):
         du = du_vox(["@dau | nhan: Mở đầu | tren", "ba | chu: Hai dòng chữ | giua"], "mot")
         bd = du["nhip"][1]["batDau"]

@@ -57,18 +57,22 @@ test('camera đẩy vào chậm, tối đa 1,06 và ±4°', function () {
   assert.ok(Object.is(c0.ry, 0) && Object.is(c0.tx, 0), 'không có -0');
 });
 
-test('lớp sâu lệch nhau theo độ sâu: gần phóng đủ, xa không phóng, xa và gần dời ngược chiều', function () {
+test('lớp sâu chỉ dời (không phóng) theo độ sâu, theo bước điểm ảnh thiết bị', function () {
   var cam = V.camera(8, 8, 2);
   var khong = { x: 0, y: 0 };
-  var gan = V.lopCamera('gan', cam, khong), giua = V.lopCamera('giua', cam, khong), xa = V.lopCamera('xa', cam, khong);
-  assert.ok(Math.abs(gan.s - cam.s) < 1e-9);
-  assert.ok(giua.s > 1 && giua.s < gan.s);
-  assert.strictEqual(xa.s, 1);
+  var gan = V.lopCamera('gan', cam, khong, 1.5), giua = V.lopCamera('giua', cam, khong, 1.5), xa = V.lopCamera('xa', cam, khong, 1.5);
+  // Không lớp nào phóng: phóng liên tục làm khung phụ thuộc lịch sử vẽ (bộ đệm chữ/ảnh của Chromium).
+  [gan, giua, xa].forEach(function (l) { assert.deepStrictEqual(Object.keys(l).sort(), ['x', 'y']); });
   assert.ok(cam.ry !== 0);
-  assert.ok(gan.x * xa.x < 0, 'thị sai: lớp gần và lớp xa dời ngược chiều khi camera xoay');
-  assert.deepStrictEqual(V.lopCamera('giua', V.camera(0, 8, 2), khong), { s: 1, x: 0, y: 0 });
+  assert.strictEqual(gan.x, 0);
+  assert.ok(Math.abs(xa.x) > Math.abs(giua.x) && Math.abs(giua.x) > 0, 'thị sai: lớp càng xa càng dời nhiều');
+  assert.ok(xa.x * giua.x > 0);
+  [gan, giua, xa].forEach(function (l) {
+    assert.ok(Math.abs(l.x * 1.5 - Math.round(l.x * 1.5)) < 1e-9 && Math.abs(l.y * 1.5 - Math.round(l.y * 1.5)) < 1e-9);
+  });
+  assert.deepStrictEqual(V.lopCamera('giua', V.camera(0, 8, 2), khong, 1), { x: 0, y: 0 });
   // Rung máy dời mọi lớp như nhau.
-  assert.strictEqual(V.lopCamera('gan', V.camera(0, 8, 2), { x: 3, y: -2 }).x, 3);
+  assert.strictEqual(V.lopCamera('gan', V.camera(0, 8, 2), { x: 3, y: -2 }, 1).x, 3);
 });
 
 test('số chạy: hàng nghìn dấu chấm, thập phân dấu phẩy', function () {
