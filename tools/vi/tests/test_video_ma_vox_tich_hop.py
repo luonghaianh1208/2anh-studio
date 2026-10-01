@@ -1,7 +1,7 @@
 """Tích hợp Vox: xem trước (khung giữa + khung cuối mỗi cảnh), dựng thật ra video.mp4 đúng thời lượng, kiểm tràn
-Vox (`chong:`, `nhip-k`) nêu lỗi đúng cảnh, ảnh chưa xử lý dừng trước khi chụp, kịch bản cũ (viet-tay) không đổi.
-Ảnh xử lý sẵn tạo bằng Pillow, không gọi `anh_vox.py` / mạng. Giọng giả bằng FFmpeg `sine` (như test tích hợp
-hiện có). Tự bỏ qua nếu máy thiếu Chromium/playwright hoặc FFmpeg/ffprobe."""
+Vox (`chong:`, `nhip-k`, `nguon-nhip-k`, `nguon`, `nhac-nguon`, mã lạ) nêu lỗi đúng cảnh, ảnh chưa xử lý dừng trước
+khi chụp, kịch bản cũ (viet-tay) không đổi. Ảnh xử lý sẵn tạo bằng Pillow, không gọi `anh_vox.py` / mạng. Giọng giả
+bằng FFmpeg `sine`/`anullsrc` (như test tích hợp hiện có). Các test cần Chromium/FFmpeg tự bỏ qua nếu máy thiếu."""
 
 import contextlib
 import io
@@ -11,12 +11,13 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 TOOLS_VI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_VI))
 
 import video_ma  # noqa: E402
-from video_ma_parts import lich  # noqa: E402
+from video_ma_parts import kiem, lich  # noqa: E402
 from tests.test_video_ma_tich_hop import ANH_MAU, VIDEO_MD, chay_video_ma, tao_tieng, thong_so  # noqa: E402
 
 CO = video_ma.co_chromium() and video_ma.co_ffmpeg()
@@ -38,6 +39,21 @@ bo-cuc: mot
 loi: Ngân hàng trung ương kiểm soát điều đó.
 nhip: @dau | anh: ve: ngân hàng | giua
 nhip: kiểm soát | chu: Kiểm soát | duoi
+"""
+
+# Dòng nguồn cảnh không có khoảng trắng (một "từ" dài): không thể xuống dòng nên luôn tràn khung dù trong giới hạn
+# 90 ký tự của `nguon` (vox.NGUON_DAI) — cách tin cậy để kích hoạt mã `nguon` của kiemTran() mà không cần sửa parse.
+VIDEO_MD_VOX_NGUON = """---
+tieu-de: T
+phong-cach: vox
+kho: doc
+---
+
+## Cảnh 1
+bo-cuc: mot
+nguon: {nguon}
+loi: Xin chào các bạn.
+nhip: @dau | chu: Xin chào | giua
 """
 
 
@@ -69,6 +85,71 @@ def _chay(thu_muc: Path, *co: str) -> tuple:
         code = video_ma.main([str(thu_muc), *co])
     lines = [l for l in out.getvalue().splitlines() if l.strip()]
     return code, json.loads(lines[-1])
+
+
+class VoxKiemTranKhongChromiumTest(unittest.TestCase):
+    """Đơn vị, không cần Chromium: `_kiem_tran_vox` ánh xạ đúng từng mã của `kiemTran()` sang CanhError."""
+
+    def loi(self, tran: list) -> kiem.CanhError:
+        canh = SimpleNamespace(so=3)
+        with self.assertRaises(kiem.CanhError) as c:
+            video_ma._kiem_tran_vox(canh, tran)
+        self.assertEqual(c.exception.so, 3)
+        return c.exception
+
+    def test_overlap_pair(self):
+        exc = self.loi(["chong:nhip-0,nhip-1"])
+        self.assertIn("nhip-0", exc.message)
+        self.assertIn("nhip-1", exc.message)
+        self.assertIn("đè lên nhau", exc.message)
+
+    def test_text_overflow_names_the_one_based_beat(self):
+        exc = self.loi(["nhip-2"])
+        self.assertIn("nhịp 3", exc.message)
+        self.assertIn("tràn ô", exc.message)
+
+    def test_image_source_overflow_names_the_one_based_beat(self):
+        exc = self.loi(["nguon-nhip-4"])
+        self.assertIn("nhịp 5", exc.message)
+        self.assertIn("nguồn ảnh", exc.message)
+        self.assertIn("Đổi ảnh", exc.fix)
+
+    def test_scene_source_line_overflow(self):
+        exc = self.loi(["nguon"])
+        self.assertIn("nguon", exc.message)
+        self.assertIn("90 ký tự", exc.fix)
+
+    def test_end_credit_source_overflow_reuses_old_style_fix(self):
+        exc = self.loi(["nhac-nguon"])
+        self.assertEqual(exc.fix, video_ma.FIX_NGUON_NHAC)
+        self.assertIn("nhạc nền", exc.message)
+
+    def test_unknown_id_raises_a_generic_scene_error_instead_of_passing_silently(self):
+        exc = self.loi(["mot-ma-la-chua-biet"])
+        self.assertIn("mot-ma-la-chua-biet", exc.message)
+        self.assertIn("tràn khung", exc.message)
+
+    def test_first_id_in_the_list_wins(self):
+        # `kiemTran()` trả nhiều mã cùng lúc; nêu đúng lỗi đầu tiên (thứ tự vox.js đẩy vào), không gộp hay bỏ sót.
+        exc = self.loi(["nhip-0", "chong:nhip-1,nhip-2"])
+        self.assertIn("nhịp 1", exc.message)
+
+
+class VieTayPlanOnlyTest(unittest.TestCase):
+    """Không cần Chromium/FFmpeg (`--plan-only` không chạm tới): kịch bản viet-tay cũ không đổi."""
+
+    def test_old_styles_render_unchanged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            thu_muc = Path(tmp) / "viet-tay"
+            thu_muc.mkdir()
+            (thu_muc / "video.md").write_text(VIDEO_MD.format(phu_de="hinh"), encoding="utf-8")
+            (thu_muc / "anh").mkdir()
+            shutil.copyfile(ANH_MAU, thu_muc / "anh" / "con-lac.png")
+            code, data = _chay(thu_muc, "--plan-only")
+        self.assertEqual(code, 0, data)
+        self.assertEqual(data["so_canh"], 3)
+        self.assertEqual(data["warnings"], [])
+        self.assertAlmostEqual(data["thoi_luong_uoc"], 14.8, delta=0.05)
 
 
 @unittest.skipUnless(CO, NEED)
@@ -115,17 +196,18 @@ class VoxTichHopTest(unittest.TestCase):
         self.assertEqual(data["error"]["step"], "canh")
         self.assertIn("anh_vox.py", data["error"]["fix"])
 
-    def test_old_styles_render_unchanged(self):
-        thu_muc = self.goc / "viet-tay"
+    def test_scene_source_line_overflow_stops_with_a_canh_error(self):
+        # Dòng `nguon` không khoảng trắng (một "từ" 85 ký tự, trong giới hạn 90 của vox.NGUON_DAI) không thể xuống
+        # dòng nên luôn tràn khung dọc hẹp; `kiemTran()` phải trả mã `nguon` và video_ma phải dừng trước khi dựng.
+        thu_muc = self.goc / "nguon-tran"
         thu_muc.mkdir()
-        (thu_muc / "video.md").write_text(VIDEO_MD.format(phu_de="hinh"), encoding="utf-8")
-        (thu_muc / "anh").mkdir()
-        shutil.copyfile(ANH_MAU, thu_muc / "anh" / "con-lac.png")
-        code, data = _chay(thu_muc, "--plan-only")
-        self.assertEqual(code, 0, data)
-        self.assertEqual(data["so_canh"], 3)
-        self.assertEqual(data["warnings"], [])
-        self.assertAlmostEqual(data["thoi_luong_uoc"], 14.8, delta=0.05)
+        (thu_muc / "video.md").write_text(VIDEO_MD_VOX_NGUON.format(nguon="X" * 85), encoding="utf-8")
+        code, data = _chay(thu_muc, "--xem-truoc")
+        self.assertEqual(code, 1, data)
+        self.assertFalse(data["ready"])
+        self.assertEqual(data["error"]["step"], "canh")
+        self.assertIn("nguon", data["error"]["message"])
+        self.assertIn("90 ký tự", data["error"]["fix"])
 
 
 if __name__ == "__main__":

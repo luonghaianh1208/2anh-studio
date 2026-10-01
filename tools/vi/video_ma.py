@@ -145,16 +145,34 @@ def _trang(video, cac_lich, models, thu_muc: Path, nhac=None) -> list:
     return [trang.dung_trang(du, models.get(du["so"])) for du in _cac_du(video, cac_lich, models, thu_muc, nhac)]
 
 
+_RE_CHONG = re.compile(r"^chong:(.+),(.+)$")
+_RE_NGUON_NHIP = re.compile(r"^nguon-nhip-(\d+)$")
+_RE_NHIP = re.compile(r"^nhip-(\d+)$")
+FIX_NGUON_CANH = "Rút gọn dòng `nguon` của cảnh (tối đa 90 ký tự hiện)."
+FIX_NGUON_NHIP = "Đổi ảnh có nguồn ngắn hơn, hoặc đổi sang ô rộng hơn."
+
+
 def _kiem_tran_vox(canh, tran: list) -> None:
     for muc in tran:
-        m = re.match(r"^chong:(.+),(.+)$", muc)
+        m = _RE_CHONG.match(muc)
         if m:
             raise kiem.CanhError(canh.so, f"hai vật {m.group(1)} và {m.group(2)} đè lên nhau quá nhiều.",
                                  "Đổi ô của một nhịp, đổi `bo-cuc` (ví dụ `chong` cho nhiều vật) hoặc bớt nhịp.")
-        m = re.match(r"^nhip-(\d+)$", muc)
+        m = _RE_NGUON_NHIP.match(muc)
+        if m:
+            raise kiem.CanhError(canh.so, f"nguồn ảnh của nhịp {int(m.group(1)) + 1} quá dài, tràn khung.",
+                                 FIX_NGUON_NHIP)
+        m = _RE_NHIP.match(muc)
         if m:
             raise kiem.CanhError(canh.so, f"chữ của nhịp {int(m.group(1)) + 1} tràn ô.",
                                  "Rút gọn chữ của nhịp đó (ý dài để ở lời) hoặc đổi sang ô rộng hơn.")
+        if muc == "nguon":
+            raise kiem.CanhError(canh.so, "dòng nguồn (`nguon`) của cảnh tràn khung.", FIX_NGUON_CANH)
+        if muc == "nhac-nguon":
+            raise kiem.CanhError(canh.so, "dòng nguồn nhạc nền (hiện cuối video, cùng dòng hình AI nếu có) dài quá, tràn khung.",
+                                 FIX_NGUON_NHAC)
+        if muc:
+            raise kiem.CanhError(canh.so, f"chữ ở mục `{muc}` tràn khung. Rút ngắn nội dung hoặc chia thành hai cảnh.")
 
 
 def _kiem_tran_tat_ca(page, video, trang_html) -> None:
