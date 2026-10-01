@@ -91,6 +91,7 @@ Xem dòng kết quả AI đọc được, phần `error`:
 
 - `input`: chưa có thư mục video hoặc file `video.md`. Nhờ AI viết file theo docs/vi/tro-ly/video-giai-thich.md rồi chạy lại.
 - `parse`: `error.message` nêu đúng số **Dòng** trong `video.md` cần sửa, ví dụ thiếu `loai:` hay `loi:`, cảnh đánh số không liên tiếp, hoặc có địa chỉ web.
+- `canh` với video kiểu Vox: nhịp chưa có ảnh đã xử lý (nhờ AI chạy `anh_vox.py` trước), chữ của một nhịp tràn ô, hai vật đè lên nhau quá nhiều, hoặc dòng nguồn quá dài. AI rút chữ, đổi ô hay đổi bố cục của cảnh đó.
 - `canh`: nội dung một cảnh không vừa khung. `error.message` nêu số cảnh: chữ dài quá giới hạn, **chữ tràn khung** khi dựng thử, mã thí nghiệm không có trong danh mục, hoặc mốc thời gian của thí nghiệm dài hơn lời đọc. AI rút gọn chữ hoặc tách thành hai cảnh; lời giảng và số liệu của thầy cô giữ nguyên. Lỗi `canh` về hình và ảnh:
   - **tên biểu tượng không có**: tên biểu tượng phải là tiếng Anh; lỗi chỉ tới bảng tra biểu tượng và gợi ý tối đa 5 tên (tên tiếng Việt được đối chiếu với bảng tra). AI chọn một tên trong đó hoặc tra bảng.
   - **ảnh nặng quá 8 MB**: AI dùng bản thu nhỏ mà lệnh tải ảnh để sẵn trong `anh\.review\`.
@@ -119,6 +120,21 @@ Lệnh `tools\vi\tim_nhac.py` tìm và tải nhạc nền giấy phép mở (CC0
 - `write`: không ghi được thư mục `nhac\` hay file nhạc: kiểm ổ đĩa còn chỗ, đóng file đang mở rồi chạy lại.
 
 Lệnh không bao giờ ghi đè file nhạc đã có; bản tải về không phải mp3 hoặc quá 40 MB thì bị bỏ qua và có một dòng `warnings`.
+
+## Tạo ảnh cho video Vox thất bại
+
+Lệnh `tools\vi\anh_vox.py` vẽ ảnh AI (qua 9router hoặc dịch vụ kiểu OpenAI), tải ảnh thật và xử lý ảnh cho video kiểu Vox. Xem dòng kết quả AI đọc được, phần `error`:
+
+- `input`: chưa có thư mục video hoặc `video.md`, video không phải kiểu Vox, thiếu file ảnh đã nêu trong `anh\`, hoặc số ảnh cần vẽ vượt giới hạn 20 ảnh một lần (AI bớt ảnh hoặc chạy lại với `--toi-da`).
+- `parse`: `error.message` nêu đúng **Dòng** trong `video.md` cần sửa.
+- `cau-hinh`: chưa có khoá, khoá bị từ chối hoặc file cấu hình `%USERPROFILE%\.2anh-studio\anh-ai.json` hỏng. Tạo khoá trong trang quản trị 9router, chạy `setx ANH_AI_KEY "<khoá>"` trong cửa sổ lệnh, rồi đóng và mở lại cửa sổ lệnh cùng ứng dụng AI. Không dán khoá vào khung chat. Chưa có khoá thì AI vẫn làm được video bằng ảnh thật, thẻ, chữ, con dấu.
+- `mang`: không gọi được 9router (chưa mở, hoặc sai địa chỉ `ANH_AI_URL`; mặc định `http://localhost:20128/v1`), hoặc không tải được ảnh thật. Mở 9router, kiểm mạng rồi nhờ AI chạy lại.
+- `nha-cung-cap`: dịch vụ vẽ báo lỗi, `error.message` chép nguyên văn: hết hạn mức (chờ, hoặc đổi mô hình bằng `ANH_AI_MO_HINH`), câu lệnh bị từ chối (AI tả lại ảnh), mô hình không có; hoặc ảnh thật chưa có nguồn.
+- `tach-nen`: máy chưa có FFmpeg, hoặc một ảnh hỏng không tách nền được. Cài FFmpeg theo `docs/vi/cai-dat-bang-ai.md`, hoặc nhờ AI xoá ảnh hỏng để vẽ lại.
+- `write`: không ghi được file; đóng file đang mở, kiểm ổ đĩa còn chỗ rồi chạy lại.
+- `internal`: lỗi ngoài dự kiến. Dán nguyên dòng `error.message` gửi người bảo trì.
+
+Các dòng `warnings` không chặn: "ảnh tách nền không sạch, đã chuyển sang `khung`" (thường do vật có màu xanh lá trùng nền xanh dùng để tách), hoặc "ảnh do nền tảng vẽ, chưa rõ mô hình" khi AI của Antigravity hay Codex tự vẽ ảnh.
 
 ## Tạo thí nghiệm ảo thất bại
 

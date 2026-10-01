@@ -109,16 +109,16 @@ Làm thí nghiệm ảo chuyển dịch cân bằng N2O4 ⇌ 2NO2 cho Hoá 11, g
 
 ## Video giải thích
 
-Video viết tay có cảnh thí nghiệm ảo:
+Video kiểu Vox từ một chủ đề:
 
 ```
-Làm video giải thích bài Con lắc đơn bằng kiểu viết tay
+Tạo video vox 60 giây về giao tiếp với đồng nghiệp
 ```
 
-Video viết tay từ nội dung thầy cô dán vào:
+Video khổ dọc từ nội dung có sẵn:
 
 ```
-Làm video viết tay giải thích phản ứng trao đổi ion, giọng nam, phụ đề để file riêng. Nội dung: (dán dàn ý bài vào đây)
+Làm video giải thích kiểu vox 90 giây, khổ dọc, giọng nam, về phản ứng trao đổi ion. Nội dung: (dán dàn ý vào đây)
 ```
 
 ## Tạo nhanh

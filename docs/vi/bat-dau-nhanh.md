@@ -64,7 +64,7 @@ Cần một mô phỏng để học sinh đổi tham số, đo và vẽ đồ th
 
 ## Làm video giải thích
 
-Cần một video ngắn giải thích bài học bằng chữ và hình viết dần ra, kèm giọng đọc và phụ đề, nhắn `Làm video giải thích bài Con lắc đơn bằng kiểu viết tay`. Thầy cô chỉ cần đưa nội dung hoặc dàn ý bài; AI hỏi vài câu, chia bài thành cảnh rồi dựng thành file `video.mp4`. Nói "làm video" không rõ loại thì AI hỏi lại: video từ slide có sẵn hay video giải thích mới. Chi tiết trong [Làm video giải thích](video-giai-thich.md).
+Cần một video ngắn kiểu Vox giải thích một chủ đề, kèm giọng đọc, ảnh minh hoạ và phụ đề, nhắn `Tạo video vox 60 giây về <chủ đề>`. Có chủ đề là đủ: AI tự viết kịch bản, tạo ảnh, xem trước và sửa, rồi gửi file `video.mp4` kèm kịch bản. Ảnh AI trên Claude Code cần 9router và một khoá API, xem trang hướng dẫn. Nói "làm video" không rõ loại thì AI hỏi lại: video từ slide có sẵn hay video giải thích mới. Chi tiết trong [Làm video giải thích](video-giai-thich.md).
 
 ## Soạn văn bản hành chính
 

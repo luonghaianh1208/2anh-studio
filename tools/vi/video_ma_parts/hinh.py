@@ -10,8 +10,8 @@ from pathlib import Path
 
 THU_MUC = Path(__file__).resolve().parents[3] / "skills" / "ppt-master" / "templates" / "icons" / "tabler-outline"
 # Bảng tra khái niệm tiếng Việt -> tên biểu tượng: một nguồn duy nhất, đọc thẳng từ tài liệu cho AI.
-BANG_TRA = Path(__file__).resolve().parents[3] / "docs" / "vi" / "tro-ly" / "canh-video.md"
-BANG_TRA_TEN = "docs/vi/tro-ly/canh-video.md"
+BANG_TRA = Path(__file__).resolve().parents[3] / "docs" / "vi" / "tham-khao" / "canh-video.md"
+BANG_TRA_TEN = "docs/vi/tham-khao/canh-video.md"
 
 NHAN_TOI_DA = 30
 _TIEN_TO = "tabler-outline/"

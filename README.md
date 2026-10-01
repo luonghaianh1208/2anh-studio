@@ -36,7 +36,7 @@ macOS/Linux: chạy `sh tools/vi/setup.sh`.
 - Soạn **đề kiểm tra** KHTN/Vật lí/Hoá học/Sinh học bằng tiếng Anh, từ đề tiếng Việt có sẵn hoặc từ đầu, xuất ra file Word.
 - Soạn **giáo án** kế hoạch bài dạy theo Công văn 5512, tích hợp năng lực số và năng lực AI, xuất ra file Word.
 - Tạo **thí nghiệm ảo** Toán, Vật lí, Hoá học: một file HTML chạy không cần mạng, có bảng số liệu, đồ thị và phiếu học tập Word; 8 mô hình đã kiểm bằng số.
-- Dựng **video giải thích** kiểu viết tay từ nội dung bài: chữ, công thức, đồ thị và thí nghiệm ảo được viết dần ra theo giọng đọc tiếng Việt, có phụ đề.
+- Dựng **video giải thích** kiểu Vox từ một chủ đề hay đoạn nội dung, cho mọi ngành: giấy cắt dán nhiều lớp, ảnh AI cắt rời, thẻ số liệu có nguồn và chữ hiện đúng lúc giọng đọc tiếng Việt nói tới, có phụ đề, đúng thời lượng yêu cầu.
 - Soạn **văn bản hành chính** (công văn, tờ trình, quyết định, thông báo, giấy mời, biên bản…) ra file Word đúng thể thức Nghị định 30, có bộ kiểm thể thức; thông tin chưa có để ô cần bổ sung, không tự bịa.
 
 ## Ba file bấm đúp
@@ -59,7 +59,7 @@ macOS/Linux: chạy `sh tools/vi/setup.sh`.
 | [Soạn đề tiếng Anh](docs/vi/soan-de-tieng-anh.md) | Từ đề tiếng Việt hoặc từ đầu, ra ba file Word (hai file nếu không cần bản song ngữ) |
 | [Soạn giáo án](docs/vi/soan-giao-an.md) | Kế hoạch bài dạy 5512 tích hợp năng lực số và AI |
 | [Làm thí nghiệm ảo](docs/vi/thi-nghiem-ao.md) | File HTML tương tác chạy không cần mạng, kèm phiếu học tập |
-| [Làm video giải thích](docs/vi/video-giai-thich.md) | Video viết tay có giọng đọc và phụ đề, dựng từ nội dung bài |
+| [Làm video giải thích](docs/vi/video-giai-thich.md) | Video kiểu Vox có giọng đọc, ảnh AI và phụ đề, dựng từ một chủ đề |
 | [Soạn văn bản hành chính](docs/vi/van-ban-hanh-chinh.md) | Công văn, tờ trình, quyết định… ra Word đúng thể thức Nghị định 30 |
 
 Tài liệu gốc (tiếng Anh) của dự án nằm trong [docs/](docs/).

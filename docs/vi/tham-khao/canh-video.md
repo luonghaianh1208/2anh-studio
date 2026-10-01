@@ -1,6 +1,8 @@
 # Cảnh video giải thích: danh mục mười lăm loại cảnh
 
-File dành cho AI. Đọc cùng `docs/vi/tro-ly/video-giai-thich.md`. Mỗi cảnh trong `video.md` có `loai:`, `loi:` và các trường của loại cảnh dưới đây; trường không có trong danh sách của loại cảnh là lỗi `parse`. Mọi loại cảnh có thêm trường tuỳ chọn `chuyen:` (kiểu chuyển cảnh riêng của cảnh đó, xem mục "Chuyển cảnh").
+Kiểu cũ (viết tay, cắt dán theo loại cảnh). Chỉ dùng khi sửa `video.md` cũ; video mới làm theo `docs/vi/tro-ly/video-giai-thich.md` (kiểu Vox).
+
+File dành cho AI. Đọc cùng `docs/vi/tham-khao/video-viet-tay.md`. Mỗi cảnh trong `video.md` có `loai:`, `loi:` và các trường của loại cảnh dưới đây; trường không có trong danh sách của loại cảnh là lỗi `parse`. Mọi loại cảnh có thêm trường tuỳ chọn `chuyen:` (kiểu chuyển cảnh riêng của cảnh đó, xem mục "Chuyển cảnh").
 
 Quy ước chung:
 
@@ -14,11 +16,11 @@ Quy ước chung:
 - Năm loại `tieu-de`, `khai-niem`, `cong-thuc`, `y-tung-y`, `ke-chuyen` có thêm hai trường tuỳ chọn: `the` (thẻ thông tin ba tầng `<nhãn> | <giá trị> | <chú thích>`: nhãn 24, giá trị 16, chú thích 60 ký tự, chú thích bỏ trống được; giá trị là một khối không ngắt dòng, nhận số chạy `{{…}}` nhưng không nhận dấu nhấn) và `tai-lieu` (dòng tài liệu tham khảo nhỏ ở góc phải dưới, 90 ký tự, chữ thường không định dạng; tự thêm "Nguồn: " nếu chưa ghi). `the` sai dạng (thiếu nhãn hay giá trị, hơn ba phần) là lỗi `parse`. `tai-lieu` khác `nguon`: `nguon` là nguồn của ảnh, `tai-lieu` là nguồn của nội dung. Thẻ hiện 0,3 giây sau khi mục chữ đầu tiên của cảnh viết xong; khổ ngang ở góc phải trên, khổ dọc ngay dưới tiêu đề.
 - Tên biểu tượng là tiếng Anh, không có tiền tố thư viện: tra ở mục "Bảng tra biểu tượng" cuối file. Viết `tabler-outline/flask`, `Flask` hay `flask.svg` vẫn được nhận; tên sai hay tên tiếng Việt là lỗi `canh`: lỗi nhắc tên phải là tiếng Anh, chỉ tới bảng tra, và gợi ý tối đa 5 tên (tên tiếng Việt được đối chiếu với cột khái niệm của bảng tra trước; không bao giờ gợi ý biểu tượng thương hiệu `brand-*`).
 - Ảnh thật do AI tải về `anh/` của thư mục video bằng `image_search.py` trước khi dựng: xem mục "Ảnh thật".
-- Mỗi hình được vẽ dần từng nét như bút vẽ trên bảng; bàn tay cầm bút đi theo nét và chữ đang viết, máy quay phóng vào phần đang nói rồi thu về toàn cảnh trước khi hết cảnh. Tắt được bằng khoá đầu `ban-tay`, `may-quay`, `chuyen-canh`; chữ nảy, tiếng hiệu ứng và phụ đề karaoke tắt bằng `chu-dong`, `am-thanh`, `phu-de` (xem `docs/vi/tro-ly/video-giai-thich.md`).
+- Mỗi hình được vẽ dần từng nét như bút vẽ trên bảng; bàn tay cầm bút đi theo nét và chữ đang viết, máy quay phóng vào phần đang nói rồi thu về toàn cảnh trước khi hết cảnh. Tắt được bằng khoá đầu `ban-tay`, `may-quay`, `chuyen-canh`; chữ nảy, tiếng hiệu ứng và phụ đề karaoke tắt bằng `chu-dong`, `am-thanh`, `phu-de` (xem `docs/vi/tham-khao/video-viet-tay.md`).
 - Khổ dọc (`kho: doc`): mọi loại cảnh có bố cục dọc; cột phải (hình, ảnh, nhân vật) thành khối dưới nội dung, hai cột của `so-sanh` xếp chồng. Vài trường có giới hạn thấp hơn khổ ngang (mục "Giới hạn theo khổ và phong cách"). Phụ đề khổ dọc luôn có khung nền.
 - Phong cách cắt dán (`phong-cach: cat-dan`): cùng các loại cảnh và trường, chỉ đổi "da": nền giấy, mảng giấy xé, chấm lưới; tiêu đề cảnh là nhãn chữ hoa trên băng dính màu; hình và ảnh dạng sticker viền trắng; chữ trượt vào và hiện dần thay cho bút viết; các lớp hiện theo thứ tự nền, hình chính, chữ và thẻ, dòng tài liệu. Font Be Vietnam Pro rộng hơn Itim nên vài trường có giới hạn thấp hơn một chút. Không ghi `ban-tay` thì không có bàn tay; không ghi `chuyen-canh` thì chuyển cảnh `xe-giay`. Phụ đề có khung nền.
 - Khoá đầu `loat: <tên loạt>` (tối đa 30 ký tự): mỗi cảnh hiện tên loạt ở góc trái trên và số cảnh "03/08" ở góc phải trên, đứng yên khi máy quay chạy và khi chuyển cảnh.
-- Khoá đầu thêm từ vi.11: `chu-dong` và `am-thanh` (mặc định `co`), `phu-de` thêm giá trị `karaoke` (mặc định), `chuyen-canh` thêm bốn kiểu và `luan-phien` (mục "Chuyển cảnh"), `nhac-nen` và `nguon-nhac` cho nhạc nền. Nhạc nền đặt trong `nhac/` của video; AI tải bằng `tim_nhac.py` theo mục "Đầu ra" của `docs/vi/tro-ly/video-giai-thich.md`. Tiếng hiệu ứng gắn với cảnh tự động: tiếng bút khi viết và vẽ, "ting" khi một ý, bước, nhánh, mốc, cột hay lựa chọn hiện ra, tiếng chuyển cảnh, tích tắc và chuông ở cảnh `cau-hoi`, tiếng nhỏ khi nhấn ý; không cần ghi gì trong cảnh.
+- Khoá đầu thêm từ vi.11: `chu-dong` và `am-thanh` (mặc định `co`), `phu-de` thêm giá trị `karaoke` (mặc định), `chuyen-canh` thêm bốn kiểu và `luan-phien` (mục "Chuyển cảnh"), `nhac-nen` và `nguon-nhac` cho nhạc nền. Nhạc nền đặt trong `nhac/` của video; AI tải bằng `tim_nhac.py` theo mục "Đầu ra" của `docs/vi/tham-khao/video-viet-tay.md`. Tiếng hiệu ứng gắn với cảnh tự động: tiếng bút khi viết và vẽ, "ting" khi một ý, bước, nhánh, mốc, cột hay lựa chọn hiện ra, tiếng chuyển cảnh, tích tắc và chuông ở cảnh `cau-hoi`, tiếng nhỏ khi nhấn ý; không cần ghi gì trong cảnh.
 
 ## Nhấn ý chính và số chạy
 
@@ -530,7 +532,7 @@ Bốn dạng của `nen`:
 
 - `nen: mau/<tên>`: một trong tám nền mẫu ở bảng dưới, vẽ bằng mã nên không cần file, không cần mạng, không vướng giấy phép, dùng được trên mọi nền tảng. Vùng giữa khung luôn dịu màu để chữ và nhân vật nổi. Tên sai là lỗi `parse`, gợi ý tên gần nhất.
 - `nen: <file>`: ảnh thật trong `anh/` (`.jpg`, `.jpeg`, `.png`, `.webp`, tối đa 8 MB), cần nguồn trong `anh/image_sources.json` như ảnh thật; dòng nguồn hiện ở góc phải dưới.
-- `nen: ve: <mô tả>`: nền do AI của nền tảng vẽ theo mô tả (tối đa 200 ký tự), file `anh/ai/nen-<số cảnh>.jpg` do `tools/vi/anh_ai.py nhan` ghi (mục "Hình do AI vẽ" của `docs/vi/tro-ly/video-giai-thich.md`). Video có ảnh AI hiện dòng "Hình minh hoạ tạo bằng AI (<mô hình>)" trong 4 giây cuối. Thiếu file AI thì lỗi `canh` liệt kê mọi file còn thiếu.
+- `nen: ve: <mô tả>`: nền do AI của nền tảng vẽ theo mô tả (tối đa 200 ký tự), file `anh/ai/nen-<số cảnh>.jpg` do `tools/vi/anh_ai.py nhan` ghi (mục "Hình do AI vẽ" của `docs/vi/tham-khao/video-viet-tay.md`). Video có ảnh AI hiện dòng "Hình minh hoạ tạo bằng AI (<mô hình>)" trong 4 giây cuối. Thiếu file AI thì lỗi `canh` liệt kê mọi file còn thiếu.
 - `nen: nhu-canh <số>`: dùng lại nền của một cảnh `ke-chuyen` đứng trước (như video mẫu dùng lại một khung cảnh). Cảnh đó cũng là `nhu-canh` thì nền được lần về cảnh gốc. Trỏ tới chính nó, cảnh sau hay cảnh không phải `ke-chuyen` là lỗi `parse` nêu đúng dòng.
 
 | Nền mẫu | Hình |
@@ -559,7 +561,7 @@ Khoá đầu `nhan-vat` chọn nhân vật cho cả video:
 
 - `nhan-vat: khong` (mặc định): không có nhân vật; ghi `tu-the` hay `vi-tri` ở cảnh nào cũng là lỗi `parse`.
 - `nhan-vat: nguoi-que`: người que vẽ bằng mã (nét đen, đầu tròn trắng, áo màu theo khoá đầu `mau-ao`: `vang` mặc định, `do`, `xanh-duong`, `xanh-la`, `cam`, `tim`, `hong`, `xam`). Có sẵn trên mọi nền tảng, không cần file. Nhún thở, chớp mắt, bật vào cảnh và cử động tay theo tư thế trong 1,2 giây đầu.
-- `nhan-vat: ve: <mô tả>`: nhân vật do AI của nền tảng vẽ theo mô tả (tối đa 200 ký tự), mỗi tư thế đã dùng một ảnh `anh/ai/tu-the-<tên>.png` trong suốt (mục "Hình do AI vẽ" của `docs/vi/tro-ly/video-giai-thich.md`). Ảnh nhân vật bật vào cảnh, không lật, không xoay.
+- `nhan-vat: ve: <mô tả>`: nhân vật do AI của nền tảng vẽ theo mô tả (tối đa 200 ký tự), mỗi tư thế đã dùng một ảnh `anh/ai/tu-the-<tên>.png` trong suốt (mục "Hình do AI vẽ" của `docs/vi/tham-khao/video-viet-tay.md`). Ảnh nhân vật bật vào cảnh, không lật, không xoay.
 
 Nhân vật xuất hiện ở mọi cảnh `ke-chuyen` (không ghi `tu-the` thì đứng `dung`) và ở cảnh `tieu-de`, `khai-niem`, `y-tung-y` có ghi `tu-the` (đứng ở cột phải, thay chỗ `hinh`/`anh`). Ở `ke-chuyen`, `vi-tri: trai|giua|phai` đặt chỗ đứng; không ghi thì cảnh lẻ đứng trái, cảnh chẵn đứng phải. Cùng một bộ mười tư thế cho người que và nhân vật AI, nên đổi từ người que sang nhân vật AI (hay ngược lại) chỉ là đổi khoá đầu. Chọn tư thế khớp lời của cảnh.
 

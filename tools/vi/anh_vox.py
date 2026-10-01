@@ -5,7 +5,7 @@ bảng `anh/ai/vox.json` cho video_ma.
 
   python tools/vi/anh_vox.py <thư_mục> [--chi-ke-hoach] [--toi-da N]
 
-stdout đúng một dòng JSON. Hướng dẫn: docs/vi/tro-ly/video-vox.md
+stdout đúng một dòng JSON. Hướng dẫn: docs/vi/tro-ly/video-giai-thich.md
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ FIX_NGUON_THAT = ("Xoá ảnh đó trong `anh/` rồi chạy lại để tìm �
 TOI_DA_MAC_DINH = 20
 SO_LUONG_SONG_SONG = 3
 SO_LAN_THU_LAI = 3
-FIX_INPUT = "Viết video.md trong thư mục dự án (xem docs/vi/tro-ly/video-vox.md) rồi chạy lại."
+FIX_INPUT = "Viết video.md trong thư mục dự án (xem docs/vi/tro-ly/video-giai-thich.md) rồi chạy lại."
 FIX_INTERNAL = "Lỗi ngoài dự kiến; dán nguyên thông báo này cho người bảo trì."
 CONG_CU_NEN_TANG = "nen-tang"
 MO_HINH_NEN_TANG = "không rõ"

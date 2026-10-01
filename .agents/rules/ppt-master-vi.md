@@ -10,13 +10,14 @@ Antigravity không chép file nhắc bằng `@`, nên điểm bắt buộc ghi t
 
 ## Hỏi thầy cô trước khi làm
 
-Người dùng viết tiếng Việt, yêu cầu thuộc một trong 11 loại việc ở bảng dưới (trường học, Đoàn; văn bản hành chính cả UBND xã, phòng ban): trước mọi lệnh tạo bài, làm đúng ba bước.
+Người dùng viết tiếng Việt, yêu cầu thuộc một trong 11 loại việc ở bảng dưới (trường học, Đoàn; văn bản hành chính cả UBND xã, phòng ban; video giải thích mọi ngành): trước mọi lệnh tạo bài, làm đúng ba bước.
 
 1. Đọc `docs/vi/tro-ly/quy-trinh-hoi.md`, rồi file hướng dẫn của loại việc.
 2. Gửi thầy cô một tin nhắn hỏi theo hai file đó.
 3. Dừng và chờ thầy cô trả lời. Lúc chờ không chạy `project_manager.py init`, không tra cứu, không tìm hay tạo ảnh, không viết SVG hay file Word.
 
 - Lượt hỏi không trái `SKILL.md`: chỉ thêm brief; bước xác nhận của upstream giữ nguyên.
+- Video giải thích là ngoại lệ: có chủ đề thì không hỏi, không chờ (mục Video giải thích).
 - Turbo Mode, Always Proceed hay quyền chạy lệnh không phải yêu cầu tạo nhanh, không bỏ được lượt hỏi.
 - "không cần hỏi lại", "không hỏi gì": không hỏi câu nào. Chỉ "tạo nhanh", "làm nhanh": vẫn hỏi các câu còn thiếu. Cả hai theo mục "Tạo nhanh" của `quy-trinh-hoi.md` và ghi brief.
 - Trước khi hỏi, chạy `tools/vi/doctor.py --no-smoke --json` (`AGENTS.vi.md` mục 9), báo máy chưa cài xong nếu cần.
@@ -38,7 +39,7 @@ Người dùng viết tiếng Việt, yêu cầu thuộc một trong 11 loại v
 | Soạn đề KHTN tiếng Anh | "soạn đề", "đề kiểm tra", "đề tiếng Anh", "đề KHTN", "chuyển đề sang tiếng Anh" | `docs/vi/tro-ly/de-khtn-tieng-anh.md` |
 | Soạn giáo án tích hợp năng lực số và AI | "kế hoạch bài dạy", "KHBD", "giáo án Word", "giáo án 5512" | `docs/vi/tro-ly/giao-an.md` |
 | Thí nghiệm ảo | "thí nghiệm ảo", "mô phỏng thí nghiệm", "mô phỏng tương tác" | `docs/vi/tro-ly/thi-nghiem-ao.md` |
-| Video giải thích dựng bằng mã | "video giải thích", "video viết tay", "video whiteboard", "video hoạt hình chữ", "video kể chuyện", "video dọc", "video cắt dán" | `docs/vi/tro-ly/video-giai-thich.md` |
+| Video giải thích dựng bằng mã | "video giải thích", "video vox", "kiểu vox", "video viết tay", "video whiteboard", "video hoạt hình chữ", "video kể chuyện", "video dọc", "video cắt dán" | `docs/vi/tro-ly/video-giai-thich.md` |
 | Soạn văn bản hành chính (Nghị định 30) | "công văn", "tờ trình", "quyết định", "thông báo", "giấy mời", "biên bản", "văn bản hành chính", "Nghị định 30", "ND30", "đúng thể thức" | `docs/vi/tro-ly/van-ban-hanh-chinh.md` |
 
 ## Ảnh minh hoạ
@@ -63,13 +64,12 @@ HTML chạy không cần mạng và phiếu Word, không phải PPTX. Đọc `do
 
 ## Video giải thích
 
-Video MP4 dựng từ nội dung chữ, không phải PPTX. Đọc `docs/vi/tro-ly/video-giai-thich.md` và `canh-video.md`, hỏi một lượt, viết `video.md` trong `projects/_video/<tên>/`.
+Video MP4 kiểu Vox, không phải PPTX; cho mọi ngành, không theo khuôn bài giảng. Đọc `docs/vi/tro-ly/video-giai-thich.md` và `nhip-vox.md`. Chỉ hỏi khi thiếu chủ đề hay nội dung; không dừng chờ duyệt, trừ khi được xin xem kịch bản trước.
 
-- Chạy `tools\vi\video_ma.py <thư_mục> --plan-only`, rồi `--xem-truoc` xem từng cảnh, rồi mới dựng thật; báo trước mất khoảng bằng thời lượng video (cắt dán khoảng 1,5 lần). Không viết HTML, ảnh cảnh bằng tay, không tự chạy FFmpeg. `chromium` thì hỏi trước khi tải (150–300 MB).
-- Ảnh thật, nhạc nền chỉ khi thầy cô đồng ý: ảnh bằng `image_search.py … -o projects\_video\<tên>\anh`; nhạc bằng `tools\vi\tim_nhac.py "<từ khoá>" -o …\nhac` rồi ghi `nhac-nen`, gửi thầy cô nghe thử (`mang` thì kiểm mạng, chạy lại một lần). Không dùng ảnh, nhạc không rõ nguồn.
-- Ảnh AI (`nen: ve:`, `nhan-vat: ve:`): chạy `anh_ai.py ke-hoach`, dùng công cụ tạo ảnh của Antigravity (được phép) vẽ từng mục vào `anh/ai/goc/` (nhân vật mẫu trước, nền #00FF00 thuần), rồi `anh_ai.py nhan --mo-hinh "<mô hình>"` và `--xem-truoc` cho thầy cô duyệt; không tự viết `nguon.json`. Không có công cụ vẽ thì dùng `nen: mau/<tên>`, `nhan-vat: nguoi-que`.
-- Hình phải khớp lời đọc: tắt tiếng vẫn đoán được cảnh nói gì; `ke-chuyen` nền mẫu phải có `the`; không quá hai `ke-chuyen` liền nhau. Chữ không bao giờ nằm trong ảnh.
-- Câu hỏi, đáp án cảnh `cau-hoi` phải được thầy cô duyệt.
+- Quỹ từ theo `thoi-luong` (60 giây ≈ 130 từ). Không bịa số liệu: số nào cũng có `nguon`.
+- Hình phải khớp lời đọc: mỗi câu ít nhất một nhịp, chữ trên hình ≤ 6 từ, ảnh AI không có chữ.
+- `anh_vox.py` → `video_ma.py --plan-only` (sửa thời lượng) → `--xem-truoc` tự xem, tự sửa → dựng thật. Không viết HTML, ảnh cảnh bằng tay. Khoá ảnh chỉ qua `ANH_AI_KEY`, không ghi vào repo.
+- Nhạc nền chỉ khi được xin: `tim_nhac.py`, ghi `nhac-nen`, nhắc nghe thử (`mang`: chạy lại một lần).
 
 ## Văn bản hành chính
 

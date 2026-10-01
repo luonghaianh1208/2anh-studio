@@ -381,7 +381,7 @@ class VietnameseIconSuggestionTest(unittest.TestCase):
         thong_bao = str(caught.exception)
         self.assertIn("tiếng Anh", thong_bao)
         self.assertIn("Bảng tra biểu tượng", thong_bao)
-        self.assertIn("docs/vi/tro-ly/canh-video.md", thong_bao)
+        self.assertIn("docs/vi/tham-khao/canh-video.md", thong_bao)
 
     def test_nam_cham_suggests_magnet_first(self):
         self.assertEqual(_goi_y("nam châm")[0], "magnet")

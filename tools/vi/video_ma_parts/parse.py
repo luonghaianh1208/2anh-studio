@@ -1,4 +1,4 @@
-"""Đọc video.md thành dữ liệu; lỗi luôn kèm số dòng. Ngữ pháp ở docs/vi/tro-ly/video-giai-thich.md. Chỉ dùng thư viện chuẩn."""
+"""Đọc video.md thành dữ liệu; lỗi luôn kèm số dòng. Ngữ pháp ở docs/vi/tro-ly/nhip-vox.md (Vox) và docs/vi/tham-khao/ (kiểu cũ). Chỉ dùng thư viện chuẩn."""
 
 from __future__ import annotations
 

@@ -1580,8 +1580,14 @@ class ExperimentUserDocsTest(unittest.TestCase):
 
 
 AGENTS_VI_EXPLAINER_HEADING = "## 15. Làm video giải thích"
+# Hướng dẫn Vox (mọi video giải thích mới) giữ đường dẫn cũ; hướng dẫn kiểu viết tay và danh mục loại cảnh chuyển sang
+# docs/vi/tham-khao/ (chỉ dùng khi sửa video.md cũ). Các test kiểu cũ đọc OLD_GUIDE và SCENE_GUIDE.
 EXPLAINER_GUIDE = "docs/vi/tro-ly/video-giai-thich.md"
-SCENE_GUIDE = "docs/vi/tro-ly/canh-video.md"
+VOX_BEAT_GUIDE = "docs/vi/tro-ly/nhip-vox.md"
+OLD_GUIDE = "docs/vi/tham-khao/video-viet-tay.md"
+SCENE_GUIDE = "docs/vi/tham-khao/canh-video.md"
+OLD_STYLE_NOTE = ("Kiểu cũ (viết tay, cắt dán theo loại cảnh). Chỉ dùng khi sửa `video.md` cũ; video mới làm theo "
+                  "`docs/vi/tro-ly/video-giai-thich.md` (kiểu Vox).")
 EXPLAINER_COMMAND = r"python tools\vi\video_ma.py"
 EXPLAINER_GUIDE_HEADINGS = (
     "## Khi nào dùng",
@@ -1653,18 +1659,18 @@ def _kiem_kich_ban(test: unittest.TestCase, block: str) -> None:
 
 class ExplainerVideoGuideTest(unittest.TestCase):
     def test_guide_has_its_own_sections_in_order(self):
-        self.assertEqual(h2_headings(read(EXPLAINER_GUIDE)), list(EXPLAINER_GUIDE_HEADINGS))
+        self.assertEqual(h2_headings(read(OLD_GUIDE)), list(EXPLAINER_GUIDE_HEADINGS))
 
     def test_guide_questions_are_limited_and_have_suggestions(self):
-        items = numbered_items(section(read(EXPLAINER_GUIDE), "## Câu hỏi bắt buộc"))
+        items = numbered_items(section(read(OLD_GUIDE), "## Câu hỏi bắt buộc"))
         self.assertTrue(1 <= len(items) <= 7, f"{len(items)} câu")
         for item in items:
             self.assertIn("Gợi ý:", item)
-        quick = numbered_items(section(read(EXPLAINER_GUIDE), "## Tạo nhanh"))
+        quick = numbered_items(section(read(OLD_GUIDE), "## Tạo nhanh"))
         self.assertTrue(2 <= len(quick) <= 3, f"{len(quick)} câu")
 
     def test_guide_example_parses_with_the_real_reader(self):
-        body = section(read(EXPLAINER_GUIDE), "## Cấu trúc video.md")
+        body = section(read(OLD_GUIDE), "## Cấu trúc video.md")
         blocks = re.findall(r"```[a-z]*\n(---\n.*?)```", body, re.S)
         self.assertGreaterEqual(len(blocks), 1)
         for block in blocks:
@@ -1673,7 +1679,7 @@ class ExplainerVideoGuideTest(unittest.TestCase):
     def test_guide_example_shows_pictures_photos_and_motion_keys(self):
         from video_ma_parts import parse
 
-        body = section(read(EXPLAINER_GUIDE), "## Cấu trúc video.md")
+        body = section(read(OLD_GUIDE), "## Cấu trúc video.md")
         videos = [parse.parse(block) for block in re.findall(r"```[a-z]*\n(---\n.*?)```", body, re.S)]
         scenes = [scene for video in videos for scene in video.canh]
         self.assertTrue(any(s.loai == "minh-hoa" for s in scenes))
@@ -1701,17 +1707,18 @@ class ExplainerVideoGuideTest(unittest.TestCase):
         self.assertIn('rg --files skills/ppt-master/templates/icons/tabler-outline -g "*', body)
 
     def test_docs_cover_pictures_photos_and_motion(self):
-        guide = read(EXPLAINER_GUIDE)
+        guide = read(OLD_GUIDE)
         for phrase in ("minh-hoa", "image_search.py", "ban-tay", "may-quay", "chuyen-canh", "Itim", "--xem-truoc",
                        "anh\\.review\\", "8 MB", "1,5 lần"):
-            with self.subTest(file=EXPLAINER_GUIDE, phrase=phrase):
+            with self.subTest(file=OLD_GUIDE, phrase=phrase):
                 self.assertIn(phrase, guide)
         scenes = read(SCENE_GUIDE)
         for phrase in ("image_search.py", "image_sources.json", "anh/.review/", "8 MB", "`nguon`"):
             with self.subTest(file=SCENE_GUIDE, phrase=phrase):
                 self.assertIn(phrase, scenes)
         agents = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
-        for phrase in ("image_search.py", "--xem-truoc", "anh\\.review\\", "1,5 lần", "ban-tay"):
+        # Mục 15 chỉ dạy Vox: ảnh thật `tim:` do anh_vox.py tải bằng image_search.py.
+        for phrase in ("image_search.py", "--xem-truoc", "1,5 lần", "tim:"):
             with self.subTest(file="AGENTS.vi.md", phrase=phrase):
                 self.assertIn(phrase, agents)
         teachers = read("docs/vi/video-giai-thich.md")
@@ -1734,34 +1741,41 @@ class ExplainerVideoGuideTest(unittest.TestCase):
             self.assertIn(phrase, text)
 
     def test_guide_states_the_grammar_and_limits(self):
-        body = section(read(EXPLAINER_GUIDE), "## Cấu trúc video.md")
+        body = section(read(OLD_GUIDE), "## Cấu trúc video.md")
         for phrase in ("tieu-de", "mon", "lop", "phong-cach", "giong", "toc-do", "phu-de", "## Cảnh", "loai:", "loi:",
                        "canh-1.mp3", "Không chèn địa chỉ web", "H~2~SO~4~"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
 
     def test_guide_names_outputs_and_forbids_hand_editing_frames(self):
-        body = section(read(EXPLAINER_GUIDE), "## Đầu ra")
+        for name in (OLD_GUIDE, EXPLAINER_GUIDE):
+            body = section(read(name), "## Đầu ra")
+            for phrase in (EXPLAINER_COMMAND, "video.mp4", "phu-de.srt", "xem-truoc", "projects\\_video\\",
+                           "Không tự chạy FFmpeg", "Không viết HTML"):
+                with self.subTest(file=name, phrase=phrase):
+                    self.assertIn(phrase, body)
+        body = section(read(OLD_GUIDE), "## Đầu ra")
         for phrase in (EXPLAINER_COMMAND, "video.mp4", "phu-de.srt", "xem-truoc", "--xem-truoc", "--plan-only",
                        "projects\\_video\\", "Không tự chạy FFmpeg", "Không viết HTML"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
 
     def test_guide_skips_the_pptx_only_steps(self):
-        body = section(read(EXPLAINER_GUIDE), "## Ghi vào brief")
+        body = section(read(OLD_GUIDE), "## Ghi vào brief")
         for phrase in ("projects/_video/", "brief.md", "import-sources", "dòng chốt"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
 
     def test_guides_have_no_markdown_links(self):
-        for name in (EXPLAINER_GUIDE, SCENE_GUIDE):
+        for name in (EXPLAINER_GUIDE, VOX_BEAT_GUIDE, OLD_GUIDE, SCENE_GUIDE):
             self.assertEqual(LINK_RE.findall(read(name)), [], name)
 
     def test_agents_vi_section_15_comes_before_16_and_routes_the_word_video(self):
         headings = h2_headings(read("AGENTS.vi.md"))
         self.assertEqual(headings[-2], AGENTS_VI_EXPLAINER_HEADING)
         body = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
-        for phrase in (f"({EXPLAINER_GUIDE})", f"({SCENE_GUIDE})", EXPLAINER_COMMAND, "--plan-only", "--xem-truoc",
+        for phrase in (f"({EXPLAINER_GUIDE})", f"({VOX_BEAT_GUIDE})", f"({OLD_GUIDE})", f"({SCENE_GUIDE})",
+                       EXPLAINER_COMMAND, "--plan-only", "--xem-truoc",
                        "`ready`", "error.step", "Không chạy `project_manager.py init`", "không tạo SVG", "không chạm `skills/`",
                        "không commit gì trong `projects/`", "Không tự cài phần mềm", "chromium", "edge-tts"):
             with self.subTest(phrase=phrase):
@@ -1792,7 +1806,7 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
     """Tài liệu vi.11: nhấn ý, số chạy, bốn loại cảnh mới, chuyển cảnh, karaoke, tiếng hiệu ứng, nhạc nền."""
 
     def test_guides_name_every_effect(self):
-        for name in (EXPLAINER_GUIDE, SCENE_GUIDE):
+        for name in (OLD_GUIDE, SCENE_GUIDE):
             text = read(name)
             for phrase in EFFECT_PHRASES:
                 with self.subTest(file=name, phrase=phrase):
@@ -1801,15 +1815,21 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
     def test_guide_meta_table_lists_every_key_and_value(self):
         from video_ma_parts import parse
 
-        body = section(read(EXPLAINER_GUIDE), "## Cấu trúc video.md")
+        # Bảng khoá kiểu cũ ở file tham khảo; `phong-cach: vox` và `thoi-luong` thuộc hướng dẫn Vox
+        # (test_meta_table_lists_vox_keys).
+        body = section(read(OLD_GUIDE), "## Cấu trúc video.md")
         rows = {line.split(" | ")[0]: line for line in body.splitlines() if line.startswith("| `")}
         bang = "\n".join(rows)
         for key in (*parse.META_REQUIRED, *parse.META_CHOICES, *parse.META_FREE):
+            if key == "thoi-luong":
+                continue
             with self.subTest(key=key):
                 self.assertIn(f"`{key}`", bang)
         for key, values in parse.META_CHOICES.items():
             row = rows.get(f"| `{key}`", "")
             for value in values:
+                if (key, value) == ("phong-cach", "vox"):
+                    continue
                 with self.subTest(key=key, value=value):
                     self.assertIn(f"`{value}`", row)
         self.assertIn("`karaoke` (mặc định", rows["| `phu-de`"])
@@ -1837,7 +1857,7 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
 
     def test_every_example_script_passes_the_real_reader(self):
         found = 0
-        for name in (EXPLAINER_GUIDE, SCENE_GUIDE, TEACHER_EXPLAINER_DOC):
+        for name in (OLD_GUIDE, SCENE_GUIDE, TEACHER_EXPLAINER_DOC):
             for block in _KICH_BAN_RE.findall(read(name)):
                 found += 1
                 with self.subTest(file=name, block=block[:60]):
@@ -1859,7 +1879,7 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
     def test_guide_example_uses_the_new_effects(self):
         from video_ma_parts import parse
 
-        body = section(read(EXPLAINER_GUIDE), "## Cấu trúc video.md")
+        body = section(read(OLD_GUIDE), "## Cấu trúc video.md")
         videos = [parse.parse(block) for block in _KICH_BAN_RE.findall(body)]
         scenes = [scene for video in videos for scene in video.canh]
         chu = "\n".join(value for scene in scenes for values in scene.truong.values() for value in values)
@@ -1874,12 +1894,12 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
         self.assertTrue(any(v.meta.get("chuyen-canh") == "luan-phien" for v in videos))
 
     def test_guide_asks_about_quiz_effects_and_music(self):
-        items = numbered_items(section(read(EXPLAINER_GUIDE), "## Câu hỏi bắt buộc"))
+        items = numbered_items(section(read(OLD_GUIDE), "## Câu hỏi bắt buộc"))
         joined = "\n".join(items)
         for phrase in ("câu hỏi nhanh", "nhạc nền", "tiếng hiệu ứng", "giọng thu sẵn", "tô vàng"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, joined)
-        output = section(read(EXPLAINER_GUIDE), "## Đầu ra")
+        output = section(read(OLD_GUIDE), "## Đầu ra")
         for phrase in (r"python tools\vi\tim_nhac.py", r"projects\_video\<tên_video>\nhac", "nhac/nguon.json",
                        "nghe thử", "`mang`", "`input`", "`write`", "am-thanh: khong", "canh-N-giai.mp3"):
             with self.subTest(phrase=phrase):
@@ -1888,11 +1908,11 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
     def test_agents_rule_and_troubleshooting_cover_the_music_finder(self):
         agents = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
         for phrase in (r"python tools\vi\tim_nhac.py", "nhac-nen", "nguon-nhac", "nghe thử", "`mang`", "am-thanh: khong",
-                       "karaoke", "luan-phien", "cau-hoi", "canh-N-giai.mp3", "nhac/nguon.json"):
+                       "karaoke", "nhac/nguon.json"):
             with self.subTest(file="AGENTS.vi.md", phrase=phrase):
                 self.assertIn(phrase, agents)
         rule = read(".agents/rules/ppt-master-vi.md")
-        for phrase in ("tim_nhac.py", "nhac-nen", "nghe thử", "`mang`", "cau-hoi"):
+        for phrase in ("tim_nhac.py", "nhac-nen", "nghe thử", "`mang`"):
             with self.subTest(file="rule", phrase=phrase):
                 self.assertIn(phrase, rule)
         self.assertLess(len(rule), ANTIGRAVITY_RULE_LIMIT)
@@ -1918,10 +1938,10 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
 
     def test_teacher_doc_explains_the_effects(self):
         text = read(TEACHER_EXPLAINER_DOC)
-        self.assertIn("## Hiệu ứng giúp học sinh nhớ bài", h2_headings(text))
-        body = section(text, "## Hiệu ứng giúp học sinh nhớ bài")
-        for phrase in ("Nhấn ý chính", "Số chạy", "Biểu đồ", "Sơ đồ tư duy", "dòng thời gian", "Câu hỏi nhanh", "Chuyển cảnh",
-                       "karaoke", "Tiếng hiệu ứng", "Nhạc nền", "Openverse", "CC0", "CC BY", "nghe thử", "4 giây cuối"):
+        self.assertIn("## Hiệu ứng", h2_headings(text))
+        body = section(text, "## Hiệu ứng")
+        for phrase in ("đập xuống", "Số chạy", "Chiều sâu", "Chuyển cảnh", "Bảng màu", "karaoke", "Tiếng hiệu ứng",
+                       "Nhạc nền", "Openverse", "CC0", "CC BY", "nghe thử", "4 giây cuối"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
         self.assertNotIn("không có nhạc nền", text)
@@ -1945,12 +1965,13 @@ class ExplainerVi12DocsTest(unittest.TestCase):
     """Tài liệu vi.12: khổ dọc, cắt dán, nhân vật, cảnh kể chuyện, ảnh AI theo nền tảng (spec Q15)."""
 
     def test_guides_require_pictures_that_match_the_narration_and_one_subtitle_line(self):
-        guide = read("docs/vi/tro-ly/video-giai-thich.md")
+        guide = read(OLD_GUIDE)
         for phrase in ("Hình phải khớp lời đọc", "lời nói gì — hình cho thấy gì", "phải có `the`",
                        "Không quá hai cảnh `ke-chuyen` liền nhau", "một dòng một lúc"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, guide)
-        self.assertIn("một dòng một lần hiện", read("docs/vi/tro-ly/canh-video.md"))
+        self.assertIn("lời nói gì — hình cho thấy gì", read(EXPLAINER_GUIDE))
+        self.assertIn("một dòng một lần hiện", read(SCENE_GUIDE))
         self.assertIn("Hình phải khớp lời đọc", read(".agents/rules/ppt-master-vi.md"))
         self.assertIn("Hình phải khớp lời đọc", read("AGENTS.vi.md"))
 
@@ -2000,7 +2021,7 @@ class ExplainerVi12DocsTest(unittest.TestCase):
                 self.assertIn(phrase, body)
 
     def test_guide_asks_format_style_character_and_series_within_seven_questions(self):
-        items = numbered_items(section(read(EXPLAINER_GUIDE), "## Câu hỏi bắt buộc"))
+        items = numbered_items(section(read(OLD_GUIDE), "## Câu hỏi bắt buộc"))
         self.assertTrue(1 <= len(items) <= 7, f"{len(items)} câu")
         joined = "\n".join(items)
         for phrase in ("ngang để chiếu lớp hay dọc để đăng TikTok/Reels", "viết tay hay cắt dán",
@@ -2011,13 +2032,13 @@ class ExplainerVi12DocsTest(unittest.TestCase):
     def test_guide_example_has_a_story_scene(self):
         from video_ma_parts import parse
 
-        body = section(read(EXPLAINER_GUIDE), "## Cấu trúc video.md")
+        body = section(read(OLD_GUIDE), "## Cấu trúc video.md")
         videos = [parse.parse(block) for block in _KICH_BAN_RE.findall(body)]
         self.assertTrue(any(s.loai == "ke-chuyen" for v in videos for s in v.canh))
         self.assertTrue(any(v.meta["nhan-vat"] == "nguoi-que" for v in videos))
 
     def test_guide_ai_section_covers_both_platform_paths(self):
-        body = section(read(EXPLAINER_GUIDE), AI_GUIDE_HEADING)
+        body = section(read(OLD_GUIDE), AI_GUIDE_HEADING)
         for phrase in ("anh_ai.py ke-hoach", "anh_ai.py nhan", "--xem-truoc", "Claude Code", "nguoi-que", "Antigravity",
                        "Codex", "--cong-cu", "--mo-hinh", "anh/ai/goc/", "anh/ai/ke-hoach.json", "anh/ai/nguon.json",
                        "nhan-vat-mau.png", "#00FF00", "nen: mau/", "không có chữ", "nguon.json", "3–4 ảnh"):
@@ -2027,18 +2048,17 @@ class ExplainerVi12DocsTest(unittest.TestCase):
     def test_ai_error_steps_in_docs_match_the_tool(self):
         steps = _anh_ai_steps()
         self.assertEqual(steps, {"input", "parse", "thieu", "tach-nen", "ffmpeg", "write", "internal"})
-        guide = section(read(EXPLAINER_GUIDE), AI_GUIDE_HEADING)
-        agents = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
-        for name, body in ((EXPLAINER_GUIDE, guide), ("AGENTS.vi.md", agents)):
-            for step in steps:
-                with self.subTest(file=name, step=step):
-                    self.assertIn(f"| `{step}` |", body)
+        # anh_ai.py chỉ dùng cho nền và nhân vật AI của kiểu cũ; bảng lỗi của nó ở file tham khảo.
+        guide = section(read(OLD_GUIDE), AI_GUIDE_HEADING)
+        for step in steps:
+            with self.subTest(file=OLD_GUIDE, step=step):
+                self.assertIn(f"| `{step}` |", guide)
 
     def test_agents_vi_allows_the_platform_image_tool_and_keeps_the_bans(self):
         body = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
         for phrase in ("dùng công cụ tạo ảnh của chính nền tảng để vẽ ảnh trong `anh/ai/goc/` theo `ke-hoach.json`",
-                       "Hình do AI vẽ", r"python tools\vi\anh_ai.py", "không chạm `skills/`", "Không viết HTML hay ảnh cảnh bằng tay",
-                       "nguon.json", "nguoi-que"):
+                       r"python tools\vi\anh_vox.py", "--chi-ke-hoach", "không chạm `skills/`",
+                       "Không viết HTML hay ảnh cảnh bằng tay", "nguon.json", "vox.json"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
 
@@ -2046,7 +2066,9 @@ class ExplainerVi12DocsTest(unittest.TestCase):
         rule = read(".agents/rules/ppt-master-vi.md")
         self.assertLess(len(rule), ANTIGRAVITY_RULE_LIMIT)
         body = section(rule, "## Video giải thích")
-        for phrase in ("anh_ai.py ke-hoach", "anh_ai.py nhan", "--xem-truoc", "không bao giờ nằm trong ảnh"):
+        # Mục Vox của luật gọn, dưới 1 000 byte (CRLF), để cả file còn chỗ dưới giới hạn của Antigravity.
+        self.assertLessEqual(len(body.replace("\n", "\r\n").encode("utf-8")), 1000)
+        for phrase in ("anh_vox.py", "--plan-only", "--xem-truoc", "ANH_AI_KEY", "Không viết HTML", "không có chữ"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
 
@@ -2056,8 +2078,8 @@ class ExplainerVi12DocsTest(unittest.TestCase):
         intro = section(agents, AGENTS_VI_EXPLAINER_HEADING).strip().split("\n\n")[0]
         rows = [r for r in task_table_rows(read("docs/vi/tro-ly/quy-trinh-hoi.md")) if r[2] == "video-giai-thich.md"]
         self.assertEqual(len(rows), 1)
-        for phrase in ("video giải thích", "video viết tay", "video whiteboard", "video hoạt hình chữ",
-                       "video kể chuyện", "video dọc", "video cắt dán"):
+        for phrase in ("video giải thích", "video vox", "kiểu vox", "video viết tay", "video whiteboard",
+                       "video hoạt hình chữ", "video kể chuyện", "video dọc", "video cắt dán"):
             with self.subTest(phrase=phrase):
                 self.assertIn(f'"{phrase}"', triggers)
                 self.assertIn(phrase, intro)
@@ -2082,6 +2104,253 @@ class ExplainerVi12DocsTest(unittest.TestCase):
         for phrase in ("Be Vietnam Pro", "Itim", "OFL", "cmap", "SHA-256"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, bao_tri)
+
+
+VOX_GUIDE_HEADINGS = (
+    "## Khi nào dùng",
+    "## Hỏi gì",
+    "## Nghề viết kịch bản Vox",
+    "## Hình khớp thoại",
+    "## Chọn bố cục",
+    "## Cấu trúc video.md",
+    "## Ảnh",
+    "## Vòng tự kiểm",
+    "## Đầu ra",
+    "## Ghi vào brief",
+)
+_KHOI_MA_RE = re.compile(r"```[a-z]*\n(.*?)```", re.S)
+
+
+class VoxGuideTest(unittest.TestCase):
+    """Hướng dẫn Vox (vi.15): AI viết kịch bản cho mọi ngành, đúng thời lượng, hình khớp lời, ảnh qua anh_vox.py."""
+
+    GUIDE = EXPLAINER_GUIDE
+    NHIP = VOX_BEAT_GUIDE
+
+    def test_guide_has_its_sections_in_order(self):
+        self.assertEqual(h2_headings(read(self.GUIDE)), list(VOX_GUIDE_HEADINGS))
+
+    def test_guide_teaches_the_vox_craft(self):
+        g = read(self.GUIDE)
+        for phrase in ("Vox", "móc", "lật", "chốt", "130 từ", "phép thử tắt tiếng", "Không bịa số liệu",
+                       "6 từ", "thoi-luong", "anh_vox.py", "--xem-truoc", "--plan-only", "ANH_AI_KEY",
+                       "nhip-vox.md", "Hôm nay chúng ta"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, g)
+        for cam in ("Môn, lớp", "học sinh cần hiểu", "mười lăm loại cảnh"):
+            with self.subTest(cam=cam):
+                self.assertNotIn(cam, g)
+
+    def test_vox_docs_do_not_assume_a_school(self):
+        # Vox dùng cho mọi ngành: hướng dẫn gọi người đọc là "người dùng", không giả định thầy cô hay học sinh.
+        for name in (self.GUIDE, self.NHIP):
+            text = read(name).lower()
+            for cam in ("thầy cô", "học sinh", "giáo viên"):
+                with self.subTest(file=name, cam=cam):
+                    self.assertNotIn(cam, text)
+
+    def test_guide_states_the_word_budget_the_estimator_uses(self):
+        from video_ma_parts import thoi_luong
+
+        g = read(self.GUIDE)
+        self.assertEqual(thoi_luong.TOC_DO, {"cham": 2.4, "vua": 2.7, "nhanh": 3.1})
+        self.assertEqual(thoi_luong.MOI_CANH, 1.1)
+        for phrase in ("2,7 từ", "1,1 giây", "2,4", "3,1", "+15%", "−25%", "65 từ", "270 từ", "410 từ"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, g)
+
+    def test_beat_reference_lists_every_object_layout_and_slot(self):
+        from video_ma_parts import vox
+
+        n = read(self.NHIP)
+        for vat in vox.VAT:
+            self.assertIn(f"`{vat}`", n)
+        for bo_cuc, o in vox.BO_CUC.items():
+            self.assertIn(f"`{bo_cuc}`", n)
+            for ten in set(o["ngang"]) | set(o["doc"]):
+                self.assertIn(f"`{ten}`", n)
+        for t in vox.TUY_CHON:
+            self.assertIn(f"`{t}`", n)
+
+    def test_beat_reference_states_the_limits_in_code(self):
+        from video_ma_parts import vox
+
+        n = read(self.NHIP)
+        self.assertEqual((vox.NHIP_TOI_DA, vox.CHU_TOI_DA, vox.CHONG_TOI_DA, vox.NGUON_DAI), (6, 2, 5, 90))
+        self.assertEqual(vox.GIOI_HAN_THE, (24, 16, 60))
+        self.assertEqual((vox.VAT["chu"], vox.VAT["nhan"], vox.VAT["dau"], vox.VAT["so"], vox.ANH_MO_TA), (40, 30, 16, 24, 300))
+        self.assertEqual(vox.THOI_LUONG, (15, 600))
+        for phrase in ("1–6 nhịp", "tối đa 2 nhịp `chu`", "tối đa 5 vật", "nhãn 24, giá trị 16, chú thích 60",
+                       "| 40 ký tự", "| 30 ký tự", "| 16 ký tự", "| 24 ký tự", "300 ký tự", "90 ký tự", "15–600",
+                       "`@dau`", "| khung duotone", "#00FF00", "30%"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, n)
+
+    def test_every_vox_example_passes_the_reader(self):
+        # Mọi khối mã có "phong-cach: vox" trong hai file đọc được bằng bộ đọc thật và qua vox.kiem_canh; khối có
+        # `thoi-luong` thì ước tính nằm trong ±10% mục tiêu; cảnh có số trong lời hay vật `so` phải có `nguon`.
+        from video_ma_parts import parse, thoi_luong, vox
+
+        so_khoi = co_muc_tieu = 0
+        for name in (self.GUIDE, self.NHIP):
+            for block in _KHOI_MA_RE.findall(read(name)):
+                if "phong-cach: vox" not in block:
+                    continue
+                so_khoi += 1
+                with self.subTest(file=name, block=block[:60]):
+                    video = parse.parse(block)
+                    for scene in video.canh:
+                        self.assertEqual(scene.loai, "vox")
+                        vox.kiem_canh(scene, video.meta["kho"])
+                        if re.search(r"\d", scene.loi) or any(n.vat == "so" for n in scene.nhip):
+                            self.assertIn("nguon", scene.truong, f"Cảnh {scene.so} có số liệu mà không có `nguon`")
+                    if "thoi-luong" in video.meta:
+                        co_muc_tieu += 1
+                        muc_tieu = int(video.meta["thoi-luong"])
+                        uoc = thoi_luong.uoc_tinh(video)
+                        self.assertLessEqual(abs(uoc - muc_tieu), muc_tieu * 0.1, f"ước {uoc:.1f} giây")
+        self.assertGreaterEqual(so_khoi, 7)
+        self.assertGreaterEqual(co_muc_tieu, 1)
+
+    def test_worked_example_is_the_sixty_second_office_video(self):
+        from video_ma_parts import parse, thoi_luong
+
+        blocks = [b for b in _KHOI_MA_RE.findall(section(read(self.GUIDE), "## Cấu trúc video.md"))
+                  if "tieu-de: Giao tiếp với đồng nghiệp" in b]
+        self.assertEqual(len(blocks), 1)
+        video = parse.parse(blocks[0])
+        self.assertEqual((video.meta["phong-cach"], video.meta["thoi-luong"], video.meta["kho"]), ("vox", "60", "ngang"))
+        self.assertTrue(5 <= len(video.canh) <= 7)
+        self.assertTrue(54 <= thoi_luong.uoc_tinh(video) <= 66)
+        self.assertEqual({s.truong["bo-cuc"][0] for s in video.canh} >= {"mot", "hai-ben", "dan-hang", "toan-canh"}, True)
+        self.assertTrue(any(n.cum == "@dau" for s in video.canh for n in s.nhip))
+        # Mỗi câu của lời có ít nhất một nhịp (cụm từ nằm trong câu đó).
+        from video_ma_parts import vox
+
+        for scene in video.canh:
+            cau = [c for c in re.split(r"(?<=[.!?])\s+", scene.loi) if c.strip()]
+            for c in cau:
+                with self.subTest(canh=scene.so, cau=c):
+                    self.assertTrue(any(n.cum != "@dau" and vox.tim_cum(vox.khoa_tu(c), n.cum, 0) >= 0 for n in scene.nhip))
+
+    def test_meta_table_lists_vox_keys(self):
+        from video_ma_parts import vox
+
+        g = read(self.GUIDE)
+        for key, values in vox.VOX_META_CHOICES.items():
+            row = next(l for l in g.splitlines() if l.startswith(f"| `{key}`"))
+            for v in values:
+                with self.subTest(key=key, value=v):
+                    self.assertIn(f"`{v}`", row)
+        self.assertIn("| `thoi-luong`", g)
+        self.assertIn("`vox`", next(l for l in g.splitlines() if l.startswith("| `phong-cach`")))
+        for key in vox.VOX_CAM:
+            self.assertIn(f"`{key}`", g)
+
+    def test_guide_names_the_image_sources_and_their_settings(self):
+        from anh_vox_parts import nguon_ve
+
+        body = section(read(self.GUIDE), "## Ảnh")
+        for phrase in ("ANH_AI_URL", "ANH_AI_KEY", "ANH_AI_MO_HINH", nguon_ve.URL_MAC_DINH, nguon_ve.MO_HINH_MAC_DINH,
+                       r"%USERPROFILE%\.2anh-studio\anh-ai.json", "--chi-ke-hoach", "anh/ai/ke-hoach.json",
+                       "anh/ai/goc/<ma>.png", "Antigravity", "Codex", "Claude Code", "9router", "tim:", "image_search.py",
+                       "20 ảnh", "--toi-da", "khung", "setx ANH_AI_KEY"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+
+    def test_self_check_loop_names_both_preview_images(self):
+        body = section(read(self.GUIDE), "## Vòng tự kiểm")
+        for phrase in ("canh-N-giua.png", "canh-N.png", "thoi_luong_uoc", "chưa có ảnh đã xử lý", "1,5 lần"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body)
+        self.assertLess(body.index("anh_vox.py"), body.index("--plan-only"))
+        self.assertLess(body.index("--plan-only"), body.index("--xem-truoc"))
+
+    def test_video_ma_error_steps_documented_in_the_guide(self):
+        body = section(read(self.GUIDE), "## Đầu ra")
+        for step in ("input", "parse", "canh", "giong", "chromium", "ffmpeg", "dung", "write", "internal"):
+            with self.subTest(step=step):
+                self.assertIn(f"| `{step}` |", body)
+
+    def test_anh_vox_error_steps_documented(self):
+        import anh_vox
+
+        self.assertEqual(anh_vox.ERROR_STEPS, ("input", "parse", "cau-hinh", "mang", "nha-cung-cap", "tach-nen", "write",
+                                               "internal"))
+        for doc in ("AGENTS.vi.md", "docs/vi/xu-ly-loi.md"):
+            t = read(doc)
+            for step in anh_vox.ERROR_STEPS:
+                with self.subTest(doc=doc, step=step):
+                    self.assertIn(f"`{step}`", t)
+        for name, body in ((EXPLAINER_GUIDE, section(read(EXPLAINER_GUIDE), "## Đầu ra")),
+                           ("AGENTS.vi.md", section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING))):
+            for step in anh_vox.ERROR_STEPS:
+                with self.subTest(file=name, step=step):
+                    self.assertIn(f"| `{step}` |", body)
+        xu_ly_loi = read("docs/vi/xu-ly-loi.md")
+        headings = h2_headings(xu_ly_loi)
+        self.assertEqual(headings.index("## Tạo ảnh cho video Vox thất bại"), headings.index("## Tìm nhạc nền thất bại") + 1)
+
+    def test_agents_section_15_is_vox_only(self):
+        s = section(read("AGENTS.vi.md"), AGENTS_VI_EXPLAINER_HEADING)
+        for phrase in ("Vox", "anh_vox.py", "thoi-luong", "không dừng chờ duyệt", "ANH_AI_KEY", "Không bịa số liệu",
+                       "Hình phải khớp lời đọc"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, s)
+        for cam in ("nen: mau/", "anh_ai.py", "thầy cô"):
+            with self.subTest(cam=cam):
+                self.assertNotIn(cam, s)
+
+    def test_rule_file_has_the_vox_steps_and_stays_under_the_cap(self):
+        r = read(".agents/rules/ppt-master-vi.md")
+        for phrase in ("Vox", "anh_vox.py", "thoi-luong", "Không bịa số liệu"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, r)
+        self.assertNotIn("nen: mau/", r)
+        self.assertLessEqual(len(r.replace("\n", "\r\n").encode("utf-8")), ANTIGRAVITY_RULE_LIMIT)
+
+    def test_intake_rules_ask_only_for_a_missing_topic(self):
+        common = read("docs/vi/tro-ly/quy-trinh-hoi.md")
+        line = next(l for l in common.splitlines() if l.startswith('- Loại việc "Video giải thích dựng bằng mã"'))
+        for phrase in ("thiếu chủ đề", "không chờ duyệt", "xem kịch bản trước"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, line)
+        self.assertIn('"Video giải thích dựng bằng mã" áp dụng cho mọi ngành', section(common, "## Khi nào áp dụng"))
+        self.assertIn("Riêng Video giải thích chỉ hỏi khi câu lệnh thiếu chủ đề",
+                      section(read("AGENTS.vi.md"), AGENTS_VI_ASSISTANT_HEADING))
+
+    def test_old_style_guides_moved_to_reference_with_a_note(self):
+        self.assertFalse((REPO_ROOT / "docs" / "vi" / "tro-ly" / "canh-video.md").exists())
+        for name in (OLD_GUIDE, SCENE_GUIDE):
+            with self.subTest(file=name):
+                self.assertIn(OLD_STYLE_NOTE, read(name).split("\n\n")[1])
+        from video_ma_parts import hinh
+
+        self.assertEqual(hinh.BANG_TRA_TEN, SCENE_GUIDE)
+        self.assertTrue(hinh.BANG_TRA.is_file())
+
+    def test_tools_point_to_guides_that_exist(self):
+        for script in ("video_ma.py", "anh_vox.py", "anh_ai.py"):
+            text = (REPO_ROOT / "tools" / "vi" / script).read_text(encoding="utf-8")
+            for path in set(re.findall(r"docs/vi/[a-z0-9/_-]+\.md", text)):
+                with self.subTest(script=script, path=path):
+                    self.assertTrue((REPO_ROOT / path).is_file())
+
+    def test_user_doc_teaches_the_vox_request_and_the_image_key(self):
+        text = read(TEACHER_EXPLAINER_DOC)
+        for phrase in ("Vox", "Tạo video vox 60 giây về", "9router", "setx ANH_AI_KEY", "khoá API", "1,5 lần",
+                       "Kịch bản cũ vẫn dựng được", "không hỏi thêm", "cho xem kịch bản trước", "Không bịa số liệu"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
+
+    def test_changelog_has_the_vox_entry(self):
+        body = section(read("CHANGELOG-VI.md"), "## 6.3.2-vi.15 — (chưa phát hành)")
+        for heading in ("### Thêm", "### Đổi", "### Không đổi", "### Rủi ro"):
+            self.assertIn(heading, body)
+        for phrase in ("Vox", "nhip", "anh_vox.py", "thoi-luong", "`mon` và `lop` không bắt buộc", "kịch bản cũ",
+                       "Ảnh AI có thể có chữ hoặc sai ý", "tài khoản"):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, body.replace("Kịch bản cũ", "kịch bản cũ"))
 
 
 AGENTS_VI_ADMIN_HEADING = "## 16. Soạn văn bản hành chính theo Nghị định 30"

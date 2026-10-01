@@ -4,7 +4,7 @@
   python tools/vi/anh_ai.py <thư_mục> ke-hoach
   python tools/vi/anh_ai.py <thư_mục> nhan [--cong-cu <tên>] [--mo-hinh <tên>]
 
-stdout đúng một dòng JSON. Hướng dẫn: docs/vi/tro-ly/video-giai-thich.md
+stdout đúng một dòng JSON. Hướng dẫn: docs/vi/tham-khao/video-viet-tay.md
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from anh_ai_parts import cau_lenh, xu_ly  # noqa: E402
 from video_ma_parts import parse  # noqa: E402
 
-FIX_INPUT = "Viết video.md trong thư mục dự án (xem docs/vi/tro-ly/video-giai-thich.md) rồi chạy lại."
+FIX_INPUT = "Viết video.md trong thư mục dự án (xem docs/vi/tham-khao/video-viet-tay.md) rồi chạy lại."
 FIX_INTERNAL = "Lỗi ngoài dự kiến; dán nguyên thông báo này cho người bảo trì."
 KE_HOACH_TEN = "ke-hoach.json"
 KHONG_AI = "Video không dùng ảnh AI."
