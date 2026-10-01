@@ -314,6 +314,13 @@ class CliTest(unittest.TestCase):
                 self.assertTrue((Path(tmp) / "anh" / v["file"]).is_file())
             self.assertEqual({v["mo_hinh"] for v in bang.values()}, {"m1"})
             self.assertIn("anh/ai/vox.json", out["files"])
+            # Bảng ghi mục kế hoạch gốc để video_ma nhận ra ảnh cũ khi video.md đổi.
+            video = parse.parse((Path(tmp) / "video.md").read_text(encoding="utf-8"))
+            for m in ke_hoach.lap(video):
+                v = bang[f"{m.canh}-{m.chi_so}"]
+                self.assertEqual((v["ma_ke_hoach"], v["tuy_chon"], v["loai_nguon"]), (m.ma, list(m.tuy_chon), m.nguon))
+            from video_ma_parts import kiem
+            self.assertEqual(kiem.kiem(video, Path(tmp), doc_nhac_nen=False), [])
 
     def _video_mot_cat(self, tmp, cong_cu="api"):
         video = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n"
@@ -368,6 +375,7 @@ class CliTest(unittest.TestCase):
             bang = json.loads((Path(tmp) / "anh" / "ai" / "vox.json").read_text(encoding="utf-8"))
             self.assertEqual(bang["1-0"]["kieu"], "cat")
             self.assertNotEqual(bang["1-0"]["ma"], m.ma)
+            self.assertEqual(bang["1-0"]["ma_ke_hoach"], m.ma)
             nguon = json.loads((Path(tmp) / "anh" / "ai" / "nguon.json").read_text(encoding="utf-8"))
             self.assertIn(bang["1-0"]["ma"], {n["ma"] for n in nguon})
             # Chạy lại: dùng lại ảnh vẽ lại, không gọi API nữa.

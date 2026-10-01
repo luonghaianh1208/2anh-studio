@@ -305,7 +305,7 @@ def chay(thu_muc: Path, plan_only: bool, xem_truoc: bool, warnings: list) -> dic
         raise media.MediaError("input", f"Không thấy {md}.", FIX_INPUT)
     video = parse.parse(md.read_text(encoding="utf-8-sig"))
     nhac = kiem.doc_nhac(video, thu_muc)
-    warnings.extend(kiem.kiem(video, thu_muc, doc_nhac_nen=False))
+    warnings.extend(kiem.kiem(video, thu_muc, doc_nhac_nen=False, chi_canh_bao=plan_only))
     warnings.extend(kiem.canh_bao_hinh_khop_loi(video))
     uoc = thoi_luong.uoc_tinh(video)
     if "thoi-luong" in video.meta:

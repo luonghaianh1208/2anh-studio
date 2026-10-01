@@ -439,13 +439,14 @@ def canh_bao_hinh_khop_loi(video: Video) -> list:
     return ket
 
 
-def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
-    """`doc_nhac_nen=False`: người gọi đã đọc nhạc nền (`doc_nhac`) rồi, không đo lại bằng ffprobe."""
+def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True, chi_canh_bao: bool = False) -> list:
+    """`doc_nhac_nen=False`: người gọi đã đọc nhạc nền (`doc_nhac`) rồi, không đo lại bằng ffprobe.
+    `chi_canh_bao` (`--plan-only`, chỉ kiểu Vox): ảnh nhịp chưa có hay đã cũ là cảnh báo thay vì lỗi."""
     warnings: list = []
     if doc_nhac_nen:
         doc_nhac(video, thu_muc)
     if video.meta["phong-cach"] == "vox":
-        return warnings + vox.kiem(video, thu_muc)
+        return warnings + vox.kiem(video, thu_muc, chi_canh_bao=chi_canh_bao)
     _kiem_ai(video, thu_muc)
     da_doc: dict = {}
     da_bao: set = set()

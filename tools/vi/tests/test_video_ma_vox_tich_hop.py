@@ -72,10 +72,14 @@ def du_an_vox(goc: Path, ten: str, thoi_luong: str = "") -> Path:
         VIDEO_MD_VOX.format(thoi_luong=f"thoi-luong: {thoi_luong}\n" if thoi_luong else ""), encoding="utf-8")
     _anh_xu_ly(thu_muc, "canh1-anh.png")
     _anh_xu_ly(thu_muc, "canh2-anh.png")
-    (thu_muc / "anh" / "ai" / "vox.json").write_text(json.dumps({
-        "1-0": {"file": "ai/xu-ly/canh1-anh.png", "kieu": "cat", "ma": "c1", "mo_hinh": "mo-hinh-thu", "nguon": None},
-        "2-0": {"file": "ai/xu-ly/canh2-anh.png", "kieu": "cat", "ma": "c2", "mo_hinh": "mo-hinh-thu", "nguon": None},
-    }, ensure_ascii=False), encoding="utf-8")
+    from anh_vox_parts import ke_hoach
+    from video_ma_parts import parse
+    bang = {}
+    for m in ke_hoach.lap(parse.parse((thu_muc / "video.md").read_text(encoding="utf-8"))):
+        bang[f"{m.canh}-{m.chi_so}"] = {"file": f"ai/xu-ly/canh{m.canh}-anh.png", "kieu": m.kieu, "ma": m.ma,
+                                        "ma_ke_hoach": m.ma, "tuy_chon": list(m.tuy_chon), "loai_nguon": m.nguon,
+                                        "mo_hinh": "mo-hinh-thu", "nguon": None}
+    (thu_muc / "anh" / "ai" / "vox.json").write_text(json.dumps(bang, ensure_ascii=False), encoding="utf-8")
     return thu_muc
 
 
@@ -150,6 +154,33 @@ class VieTayPlanOnlyTest(unittest.TestCase):
         self.assertEqual(data["so_canh"], 3)
         self.assertEqual(data["warnings"], [])
         self.assertAlmostEqual(data["thoi_luong_uoc"], 14.8, delta=0.05)
+
+
+class VoxThieuAnhTest(unittest.TestCase):
+    """Không cần Chromium: `--plan-only` chạy được trước `anh_vox.py` (thiếu ảnh chỉ là cảnh báo), còn `--xem-truoc`
+    và dựng thật dừng ở lỗi `canh` trước khi mở trình duyệt."""
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.thu_muc = du_an_vox(Path(tmp.name), "thieu-anh", thoi_luong="15")
+        (self.thu_muc / "anh" / "ai" / "vox.json").unlink()
+
+    def test_plan_only_works_before_the_images_exist(self):
+        code, data = _chay(self.thu_muc, "--plan-only")
+        self.assertEqual(code, 0, data)
+        self.assertTrue(data["ready"], data)
+        self.assertIsNotNone(data["thoi_luong_uoc"])
+        for so in (1, 2):
+            self.assertIn(f"Cảnh {so}: nhịp 1 chưa có ảnh; chạy anh_vox.py trước --xem-truoc.", data["warnings"])
+
+    def test_preview_and_render_stop_with_a_canh_error(self):
+        for co in (("--xem-truoc",), ()):
+            with self.subTest(co=co):
+                code, data = _chay(self.thu_muc, *co)
+                self.assertEqual(code, 1, data)
+                self.assertEqual(data["error"]["step"], "canh")
+                self.assertIn("anh_vox.py", data["error"]["fix"])
 
 
 @unittest.skipUnless(CO, NEED)

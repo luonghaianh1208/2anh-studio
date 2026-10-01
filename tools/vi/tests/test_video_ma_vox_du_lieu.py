@@ -141,17 +141,69 @@ class KiemTest(unittest.TestCase):
                 kiem.kiem(parse.parse(md), Path(tmp))
         self.assertIn("anh_vox.py", c.exception.fix)
 
-    def test_resources_read_from_the_index(self):
-        from PIL import Image
+    def test_missing_image_is_only_a_warning_in_plan_only(self):
         md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
               "nhip: Cốc | anh: ve: cốc sứ | giua\n")
         with tempfile.TemporaryDirectory() as tmp:
-            d = Path(tmp) / "anh" / "ai" / "xu-ly"
-            d.mkdir(parents=True)
-            Image.new("RGBA", (40, 30), (1, 2, 3, 255)).save(d / "a-100-cat.png")
-            (Path(tmp) / "anh" / "ai" / "vox.json").write_text(json.dumps(
-                {"1-0": {"file": "ai/xu-ly/a-100-cat.png", "kieu": "cat", "ma": "a", "mo_hinh": "m", "nguon": None}}),
-                encoding="utf-8")
+            w = kiem.kiem(parse.parse(md), Path(tmp), chi_canh_bao=True)
+        self.assertEqual(w, ["Cảnh 1: nhịp 1 chưa có ảnh; chạy anh_vox.py trước --xem-truoc."])
+
+    def _bang(self, tmp, md, **sua):
+        """vox.json đúng như anh_vox.py ghi cho `md` (ảnh giả), rồi sửa các trường `sua` của mục 1-0."""
+        from PIL import Image
+        from anh_vox_parts import ke_hoach
+        m = ke_hoach.lap(parse.parse(md))[0]
+        d = Path(tmp) / "anh" / "ai" / "xu-ly"
+        d.mkdir(parents=True, exist_ok=True)
+        Image.new("RGBA", (40, 30), (1, 2, 3, 255)).save(d / "a-100-cat.png")
+        muc = {"file": "ai/xu-ly/a-100-cat.png", "kieu": m.kieu, "ma": m.ma, "ma_ke_hoach": m.ma,
+               "tuy_chon": list(m.tuy_chon), "loai_nguon": m.nguon, "mo_hinh": "m", "nguon": None, **sua}
+        (Path(tmp) / "anh" / "ai" / "vox.json").write_text(json.dumps({"1-0": muc}), encoding="utf-8")
+
+    def test_stale_image_is_a_scene_error(self):
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+              "nhip: Cốc | anh: ve: cốc sứ | giua\n")
+        doi = {"mô tả ve: đổi": md.replace("cốc sứ", "cốc thuỷ tinh"),
+               "thêm duotone": md.replace("| giua\n", "| giua | duotone\n"),
+               "đổi sang ảnh thật": md.replace("ve: cốc sứ", "tim: cup")}
+        for ten, md_moi in doi.items():
+            with self.subTest(ten=ten), tempfile.TemporaryDirectory() as tmp:
+                self._bang(tmp, md)
+                self.assertEqual(kiem.kiem(parse.parse(md), Path(tmp)), [])
+                with self.assertRaises(kiem.CanhError) as c:
+                    kiem.kiem(parse.parse(md_moi), Path(tmp))
+                self.assertIn("đã cũ so với video.md", str(c.exception))
+                self.assertIn("anh_vox.py", c.exception.fix)
+                w = kiem.kiem(parse.parse(md_moi), Path(tmp), chi_canh_bao=True)
+                self.assertTrue(any("đã cũ" in x for x in w), w)
+
+    def test_index_without_plan_fields_is_stale(self):
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+              "nhip: Cốc | anh: ve: cốc sứ | giua\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            self._bang(tmp, md, ma_ke_hoach=None)
+            with self.assertRaises(kiem.CanhError):
+                kiem.kiem(parse.parse(md), Path(tmp))
+
+    def test_cutout_fallen_back_to_a_frame_is_not_stale(self):
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+              "nhip: Cốc | anh: ve: cốc sứ | giua\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            self._bang(tmp, md, kieu="khung", ma="ma-ve-lai")
+            self.assertEqual(kiem.kiem(parse.parse(md), Path(tmp)), [])
+
+    def test_layer_options_do_not_make_the_image_stale(self):
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+              "nhip: Cốc | anh: ve: cốc sứ | giua\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            self._bang(tmp, md)
+            self.assertEqual(kiem.kiem(parse.parse(md.replace("| giua\n", "| giua | gan\n")), Path(tmp)), [])
+
+    def test_resources_read_from_the_index(self):
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+              "nhip: Cốc | anh: ve: cốc sứ | giua\n")
+        with tempfile.TemporaryDirectory() as tmp:
+            self._bang(tmp, md)
             v = parse.parse(md)
             self.assertEqual(kiem.kiem(v, Path(tmp)), [])
             tn = vox.tai_nguyen(v.canh[0], Path(tmp))

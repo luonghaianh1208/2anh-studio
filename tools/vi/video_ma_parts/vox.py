@@ -314,28 +314,63 @@ def du_lieu_canh(scene, cl, tai_nguyen: dict, meta: dict) -> dict:
     }
 
 
-def kiem(video, thu_muc) -> list:
-    """Kiểm cảnh Vox: mỗi nhịp `anh` phải có ảnh đã xử lý trong `anh/ai/vox.json` (Task 4); cảnh báo lời dài."""
-    from . import kiem as _kiem
+# Tuỳ chọn đổi chính ảnh đã xử lý (`xa`, `gan` chỉ đổi lớp, không làm ảnh cũ).
+TUY_CHON_ANH = ("khung", "duotone", "halftone")
+FIX_ANH = "Chạy `python tools\\vi\\anh_vox.py <thư mục video>` để tạo và xử lý ảnh, rồi chạy lại."
 
+
+def _doc_bang(thu_muc) -> dict:
     duong_bang = Path(thu_muc) / "anh" / "ai" / "vox.json"
     try:
         bang = json.loads(duong_bang.read_text(encoding="utf-8-sig"))
     except (OSError, ValueError):
-        bang = {}
-    if not isinstance(bang, dict):
-        bang = {}
+        return {}
+    return bang if isinstance(bang, dict) else {}
+
+
+def _con_moi(info: dict, m) -> bool:
+    """Bản ghi `vox.json` còn khớp mục kế hoạch `m` (anh_vox_parts.ke_hoach.Muc) lập từ video.md hiện tại: cùng mã
+    kế hoạch (mô tả, khổ, phong ảnh), cùng loại nguồn, cùng tuỳ chọn ảnh, cùng kiểu (ảnh `cat` đã tự chuyển sang
+    `khung` vẫn khớp)."""
+    if m is None:
+        return False
+    tuy = info.get("tuy_chon")
+    if not isinstance(tuy, list):
+        return False
+    return (info.get("ma_ke_hoach") == m.ma and info.get("loai_nguon") == m.nguon
+            and sorted(t for t in tuy if t in TUY_CHON_ANH) == sorted(t for t in m.tuy_chon if t in TUY_CHON_ANH)
+            and (info.get("kieu") == m.kieu or (m.kieu == "cat" and info.get("kieu") == "khung")))
+
+
+def kiem(video, thu_muc, chi_canh_bao: bool = False) -> list:
+    """Kiểm cảnh Vox: mỗi nhịp `anh` phải có ảnh đã xử lý trong `anh/ai/vox.json`, còn khớp video.md hiện tại;
+    cảnh báo lời dài. `chi_canh_bao` (`--plan-only`): thiếu ảnh hay ảnh cũ chỉ là cảnh báo, để ước thời lượng được
+    trước khi chạy `anh_vox.py`."""
+    from anh_vox_parts import ke_hoach as _ke_hoach
+
+    from . import kiem as _kiem
+
+    bang = _doc_bang(thu_muc)
+    ke = {(m.canh, m.chi_so): m for m in _ke_hoach.lap(video)}
     warnings: list = []
     for scene in video.canh:
         for n in scene.nhip:
             if n.vat != "anh":
                 continue
             info = bang.get(f"{scene.so}-{n.chi_so}")
-            file_ok = info is not None and (Path(thu_muc) / "anh" / info.get("file", "")).is_file()
+            file_ok = isinstance(info, dict) and (Path(thu_muc) / "anh" / str(info.get("file", ""))).is_file()
             if not file_ok:
-                raise _kiem.CanhError(scene.so, f"nhịp {n.chi_so + 1} chưa có ảnh đã xử lý.",
-                                      "Chạy `python tools\\vi\\anh_vox.py <thư mục video>` để tạo và xử lý ảnh, "
-                                      "rồi chạy lại.")
+                if chi_canh_bao:
+                    warnings.append(f"Cảnh {scene.so}: nhịp {n.chi_so + 1} chưa có ảnh; chạy anh_vox.py trước --xem-truoc.")
+                    continue
+                raise _kiem.CanhError(scene.so, f"nhịp {n.chi_so + 1} chưa có ảnh đã xử lý.", FIX_ANH)
+            if not _con_moi(info, ke.get((scene.so, n.chi_so))):
+                if chi_canh_bao:
+                    warnings.append(f"Cảnh {scene.so}: ảnh của nhịp {n.chi_so + 1} đã cũ so với video.md; chạy lại "
+                                    "anh_vox.py trước --xem-truoc.")
+                    continue
+                raise _kiem.CanhError(scene.so, f"ảnh của nhịp {n.chi_so + 1} (cảnh {scene.so}) đã cũ so với video.md; "
+                                                "chạy lại anh_vox.py.", FIX_ANH)
         if len(scene.loi) > _kiem.LOI_DAI:
             warnings.append(f"Cảnh {scene.so}: lời dài {len(scene.loi)} ký tự (quá {_kiem.LOI_DAI}); nên tách "
                             "thành hai cảnh.")
@@ -347,13 +382,7 @@ def tai_nguyen(scene, thu_muc) -> dict:
     PNG đã xử lý trong `anh/ai/xu-ly/` (đã kiểm nguồn ở `anh_vox.py`; không qua `anh.doc`)."""
     from PIL import Image
 
-    duong_bang = Path(thu_muc) / "anh" / "ai" / "vox.json"
-    try:
-        bang = json.loads(duong_bang.read_text(encoding="utf-8-sig"))
-    except (OSError, ValueError):
-        bang = {}
-    if not isinstance(bang, dict):
-        bang = {}
+    bang = _doc_bang(thu_muc)
     ra: dict = {}
     for n in scene.nhip:
         if n.vat != "anh":

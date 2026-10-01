@@ -246,6 +246,7 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict
     bang = {}
     for m in ds:
         khoa = f"{m.canh}-{m.chi_so}"
+        ma_ke_hoach = m.ma   # mã trước khi vẽ lại: video_ma so với kế hoạch lập lại từ video.md để nhận ra ảnh cũ
         if m.kieu == "cat" and m.nguon == "ve" and not xu_ly.alpha_sach(xu_ly.tach_nen(ke_hoach.file_goc(thu_muc, m))):
             # Ảnh do nền tảng vẽ: không có API để vẽ lại, chuyển thẳng sang khung (xu_ly_muc ghi cảnh báo).
             if (nguon_ve_.get(m.ma) or {}).get("cong_cu") != CONG_CU_NEN_TANG:
@@ -266,6 +267,7 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict
         file_xl = ke_hoach.file_xu_ly(thu_muc, m)
         files.append(str(file_xl.relative_to(thu_muc).as_posix()))
         bang[khoa] = {"file": str(file_xl.relative_to(thu_muc / "anh").as_posix()), "kieu": m.kieu, "ma": m.ma,
+                      "ma_ke_hoach": ma_ke_hoach, "tuy_chon": list(m.tuy_chon), "loai_nguon": m.nguon,
                       "mo_hinh": mo_hinh, "nguon": nguon}
     duong_bang = thu_muc_ai / VOX_TEN
     duong_bang.parent.mkdir(parents=True, exist_ok=True)
