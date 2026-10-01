@@ -57,12 +57,22 @@ test('camera đẩy vào chậm, tối đa 1,06 và ±4°', function () {
   assert.ok(Object.is(c0.ry, 0) && Object.is(c0.tx, 0), 'không có -0');
 });
 
-test('lớp sâu chỉ dời (không phóng) theo độ sâu, theo bước điểm ảnh thiết bị', function () {
+test('lớp sâu: đẩy vào bằng zoom theo bước 0,002 (gần đủ, giữa 75 %, xa không), dời theo bước điểm ảnh', function () {
   var cam = V.camera(8, 8, 2);
   var khong = { x: 0, y: 0 };
   var gan = V.lopCamera('gan', cam, khong, 1.5), giua = V.lopCamera('giua', cam, khong, 1.5), xa = V.lopCamera('xa', cam, khong, 1.5);
-  // Không lớp nào phóng: phóng liên tục làm khung phụ thuộc lịch sử vẽ (bộ đệm chữ/ảnh của Chromium).
-  [gan, giua, xa].forEach(function (l) { assert.deepStrictEqual(Object.keys(l).sort(), ['x', 'y']); });
+  [gan, giua, xa].forEach(function (l) { assert.deepStrictEqual(Object.keys(l).sort(), ['x', 'y', 'z']); });
+  assert.ok(Math.abs(gan.z - 1.06) < 1e-9);
+  assert.ok(giua.z > 1 && giua.z < gan.z);
+  assert.strictEqual(xa.z, 1);
+  [0, 1.3, 2.7, 4.1, 6.6].forEach(function (t) {
+    var z = V.lopCamera('gan', V.camera(t, 8, 2), khong, 1.5).z;
+    assert.ok(Math.abs(z * 500 - Math.round(z * 500)) < 1e-6, 'bước 0,002: ' + z);
+  });
+  // Gốc đẩy vào ở giữa vạch phụ đề: điểm đó đứng yên (độ dời bù đúng phần phóng, sai không quá nửa điểm ảnh).
+  var NG = { ten: 'ngang', rong: 1280, cao: 720, day: 620 };
+  var l = V.lopCamera('gan', V.camera(8, 8, 2), khong, 1.5, NG);
+  assert.ok(Math.abs(l.x + 640 * l.z - 640) <= 1 / 3 + 1e-9 && Math.abs(l.y + 620 * l.z - 620) <= 1 / 3 + 1e-9);
   assert.ok(cam.ry !== 0);
   assert.strictEqual(gan.x, 0);
   assert.ok(Math.abs(xa.x) > Math.abs(giua.x) && Math.abs(giua.x) > 0, 'thị sai: lớp càng xa càng dời nhiều');
@@ -70,7 +80,7 @@ test('lớp sâu chỉ dời (không phóng) theo độ sâu, theo bước đi�
   [gan, giua, xa].forEach(function (l) {
     assert.ok(Math.abs(l.x * 1.5 - Math.round(l.x * 1.5)) < 1e-9 && Math.abs(l.y * 1.5 - Math.round(l.y * 1.5)) < 1e-9);
   });
-  assert.deepStrictEqual(V.lopCamera('giua', V.camera(0, 8, 2), khong, 1), { x: 0, y: 0 });
+  assert.deepStrictEqual(V.lopCamera('giua', V.camera(0, 8, 2), khong, 1), { x: 0, y: 0, z: 1 });
   // Rung máy dời mọi lớp như nhau.
   assert.strictEqual(V.lopCamera('gan', V.camera(0, 8, 2), { x: 3, y: -2 }, 1).x, 3);
 });

@@ -14,6 +14,11 @@
   // thiết bị, nên khung là hàm thuần của t; đẩy vào `camera().s` vì thế không áp lên trang.
   var SAU = { gan: 0, giua: -80, xa: -220 };
   var TAM_XOAY = 0;
+  // Đẩy vào (camera().s) áp bằng CSS `zoom` lên lớp gần (đủ) và lớp giữa (75 %), lớp xa đứng yên: zoom đi qua dàn
+  // trang, Chromium vẽ lại chữ và ảnh ở đúng tỉ lệ thật mỗi khung (không qua bộ đệm tỉ lệ như transform: scale).
+  // Tỉ lệ làm tròn theo bước BUOC_ZOOM; gốc đẩy vào (giữa vạch phụ đề) giữ yên bằng độ dời theo bước điểm ảnh.
+  var DAY_VAO = { gan: 1, giua: 0.75, xa: 0 };
+  var BUOC_ZOOM = 0.002;
   var CHUYEN = 0.35;
   var DAI = { 'anh-cat': 0.55, 'anh-khung': 0.5, 'anh-phu': 0.6, the: 0.4, nhan: 0.3, dau: 0.35, chu: 0.45, so: 0.45, 'mui-ten': 0.5 };
   var DAP = 0.45;        // cú đập (tiếng và rung) sau khi ảnh cắt / con dấu bắt đầu vào
@@ -95,13 +100,18 @@
 
   // Độ dời của một lớp sâu theo camera và rung (hàm thuần): {x, y}, theo bước điểm ảnh thiết bị `dpr`. Thay cho CSS
   // perspective/preserve-3d (ghép lớp phối cảnh trong Chromium không GPU chậm ~2 lần).
-  function lopCamera(ten, cam, rg, dpr) {
+  function lopCamera(ten, cam, rg, dpr, kho) {
     var d = SAU[ten] - TAM_XOAY;
     var rad = Math.PI / 180;
     var k = dpr || 1;
     function buoc(x) { return Math.round(x * k) / k + 0; }
-    return { x: buoc(d * Math.sin(cam.ry * rad) + rg.x), y: buoc(-d * Math.sin(cam.rx * rad) + rg.y) };
+    var z = Math.round((1 + (cam.s - 1) * DAY_VAO[ten]) / BUOC_ZOOM) * BUOC_ZOOM;
+    z = Math.round(z * 1000) / 1000;
+    var ox = kho ? kho.rong / 2 : 0, oy = kho ? day(kho) : 0;
+    return { x: buoc(d * Math.sin(cam.ry * rad) + rg.x - (z - 1) * ox), y: buoc(-d * Math.sin(cam.rx * rad) + rg.y - (z - 1) * oy),
+      z: z };
   }
+
 
   // Camera: đẩy 1 → 1,06 theo smoothstep suốt cảnh, xoay rotateY tối đa ±4° (pha theo hạt), rotateX = 0,4 × rotateY.
   function camera(t, T, hat) {
@@ -250,8 +260,11 @@
     var k3 = tao('div', 'khung-3d', khung);
     var lop = { xa: tao('div', 'lop lop-xa', k3) };
     var san = tao('div', 'san', k3);
-    lop.giua = tao('div', 'lop lop-giua', san);
-    lop.gan = tao('div', 'lop lop-gan', san);
+    // Lớp giữa và gần: khung ngoài nhận độ dời, khung trong nhận zoom (zoom trên cùng phần tử sẽ nhân cả độ dời).
+    var ngoai = { giua: tao('div', 'lop lop-giua', san), gan: tao('div', 'lop lop-gan', san) };
+    lop.giua = tao('div', 'lop-zoom', ngoai.giua);
+    lop.gan = tao('div', 'lop-zoom', ngoai.gan);
+    ngoai.xa = lop.xa;
     // Mọi hình raster (nền giấy SVG có feTurbulence, mảng giấy có pattern, ảnh PNG) được "nướng" một lần, trước khi
     // trang báo `san`, thành ảnh PNG đúng điểm ảnh thiết bị (vẽ qua canvas rồi toDataURL), đặt 1:1 trên lớp chỉ dời
     // theo bước điểm ảnh. Lý do: (1) bộ lọc SVG không chạy lại mỗi khung; (2) khung là hàm thuần của t — ảnh lấy mẫu
@@ -538,8 +551,9 @@
 
     function datCamera(cam, rg) {
       ['xa', 'giua', 'gan'].forEach(function (ten) {
-        var l = lopCamera(ten, cam, rg, root.devicePixelRatio || 1);
-        lop[ten].style.transform = l.x || l.y ? 'translate(' + l.x + 'px,' + l.y + 'px)' : 'none';
+        var l = lopCamera(ten, cam, rg, root.devicePixelRatio || 1, kho);
+        ngoai[ten].style.transform = l.x || l.y ? 'translate(' + l.x + 'px,' + l.y + 'px)' : 'none';
+        if (ten !== 'xa') { lop[ten].style.zoom = l.z === 1 ? '' : String(l.z); }
       });
     }
 

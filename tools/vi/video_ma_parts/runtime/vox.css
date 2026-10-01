@@ -17,6 +17,7 @@ html, body { margin: 0; padding: 0; background: #F4ECD8; }
 /* Không will-change: Chromium giữ tỉ lệ raster đầu tiên của lớp đó, khung sau phụ thuộc lịch sử vẽ (không còn
    là hàm thuần của t). */
 .lop { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); }
+.lop-zoom { position: absolute; left: 0; top: 0; width: var(--rong); height: var(--cao); }
 .lop > svg { position: absolute; left: 0; top: 0; display: block; }
 
 /* Vật của nhịp. */
