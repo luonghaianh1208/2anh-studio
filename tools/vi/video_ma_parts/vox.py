@@ -161,13 +161,6 @@ def kiem_canh(scene, kho: str) -> None:
                 raise _loi(n.dong, f"Mỗi cảnh tối đa {CHU_TOI_DA} dòng `chu`; ý còn lại để ở lời hoặc tách cảnh.")
         if n.cum == "@dau":
             continue
-        # Nhịp không gắn ô (`o is None`, công cụ tự chọn ô trống kế tiếp) không neo vào mốc thời gian của lời nên
-        # không bị bắt theo đúng thứ tự các nhịp có ô; chỉ cần cụm có mặt trong lời.
-        if n.o is None:
-            if tim_cum(tokens, n.cum, 0) < 0:
-                raise _loi(n.dong, f"Cụm \"{n.cum}\" không có trong lời của Cảnh {scene.so}: \"{scene.loi}\". "
-                                   "Chép đúng vài từ liền nhau trong lời.")
-            continue
         i = tim_cum(tokens, n.cum, vi_tri)
         if i < 0:
             co_truoc = tim_cum(tokens, n.cum, 0) >= 0
