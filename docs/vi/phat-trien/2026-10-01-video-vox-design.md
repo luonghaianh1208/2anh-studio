@@ -21,7 +21,7 @@ Chủ repo muốn bộ công cụ không gắn với ngành hay lĩnh vực nào
 | Câu hỏi | Chốt |
 |---|---|
 | Kiểu viết tay và các khuôn cảnh cũ | Vẫn dựng được (`video.md` cũ không hỏng, test cũ giữ nguyên) nhưng không còn trong hướng dẫn và luật. |
-| Nguồn ảnh | AI trước: công cụ vẽ của nền tảng → API 9router → Codex CLI. Người, địa danh, sự kiện có thật thì dùng ảnh thật giấy phép mở. |
+| Nguồn ảnh | AI trước: công cụ vẽ của nền tảng → API kiểu OpenAI (mặc định 9router, mô hình `ag/gemini-3.1-flash-image`). Người, địa danh, sự kiện có thật thì dùng ảnh thật giấy phép mở. Codex CLI bỏ khỏi chuỗi (máy chủ repo chưa cài, không kiểm được). |
 | Cách tả cảnh | Nhịp theo lời thoại: mỗi nhịp gắn một cụm từ trong lời và nói hiện vật gì ở ô nào. |
 | Hỏi và duyệt | Chỉ hỏi khi câu lệnh thiếu chủ đề hoặc nội dung. Không dừng chờ duyệt; AI tự xem trước, tự sửa, dựng rồi gửi video kèm kịch bản. Người dùng xin xem kịch bản trước thì mới dừng. |
 
@@ -135,12 +135,11 @@ Mọi khung là hàm thuần của thời điểm t (`datThoiDiem(t)`). Ngẫu n
 1. **Lập danh sách** từ mọi nhịp `anh: ve:` và `anh: tim:`. Ghi `anh/ai/ke-hoach.json`, gồm mã băm, câu lệnh đầy đủ, khổ và kiểu (cắt nền hay khung) của từng ảnh.
    - Khổ: cắt nền 1024×1024; khung và `toan-canh` 1536×1024 (ngang) hoặc 1024×1536 (dọc).
    - Câu lệnh = mô tả + đuôi `phong-anh` + với ảnh cắt nền "một vật duy nhất, nền xanh lá thuần #00FF00, không bóng, không viền" + luôn "không có chữ, không có chữ cái".
-2. **Lưu đệm:** mã băm = SHA-256 của (câu lệnh, mô hình, khổ). Đã có `anh/ai/goc/<mã>.png` thì không vẽ lại.
+2. **Lưu đệm:** mã băm = SHA-256 của (câu lệnh, khổ), để `video_ma.py` tính lại được tên file mà không cần đọc cấu hình. Đã có `anh/ai/goc/<mã>.png` vẽ bằng đúng mô hình đang cấu hình (so với `nguon.json`) thì không vẽ lại; đổi mô hình thì vẽ lại.
 3. **Chọn nguồn vẽ** (dừng ở nguồn đầu tiên dùng được):
    1. Ảnh do nền tảng vẽ sẵn: `anh/ai/goc/<mã>.png` đã có, do AI dùng công cụ vẽ của Antigravity hoặc Codex app lưu vào theo `ke-hoach.json`.
-   2. API kiểu OpenAI `POST {url}/images/generations`, thân `{model, prompt, size, n: 1}`, nhận `b64_json` hoặc `url`. Cấu hình lấy theo thứ tự: biến môi trường `ANH_AI_URL`, `ANH_AI_KEY`, `ANH_AI_MO_HINH`, rồi file `%USERPROFILE%\.2anh-studio\anh-ai.json`. Mặc định `http://localhost:20128/v1` (9router) và `gpt-image-2`. Khoá không bao giờ nằm trong repo, log hay JSON đầu ra.
-   3. Codex CLI: `codex exec` với câu lệnh vẽ và lưu ra đúng đường dẫn, khi `codex` có trong PATH.
-   4. Không có nguồn nào: lỗi `cau-hinh`, `fix` gợi ý dùng `anh: tim:` hoặc thay ảnh bằng `chu`, `the`.
+   2. API kiểu OpenAI `POST {url}/images/generations`, thân `{model, prompt, size, n: 1}`, nhận `b64_json` hoặc `url`. Cấu hình lấy theo thứ tự: biến môi trường `ANH_AI_URL`, `ANH_AI_KEY`, `ANH_AI_MO_HINH`, rồi file `%USERPROFILE%\.2anh-studio\anh-ai.json`. Mặc định `http://localhost:20128/v1` (9router) và `ag/gemini-3.1-flash-image`. Khoá không bao giờ nằm trong repo, log hay JSON đầu ra. Mô hình có thể trả khổ khác khổ xin: ảnh luôn được cắt phủ (cover) về đúng tỉ lệ ô.
+   3. Không có nguồn nào: lỗi `cau-hinh`, `fix` gợi ý đặt `ANH_AI_KEY` (khoá API của 9router), hoặc dùng `anh: tim:`, hoặc thay ảnh bằng `chu`, `the`.
 4. **Ảnh thật** (`tim:`): chạy `skills/ppt-master/scripts/image_search.py` (chỉ chạy, không sửa `skills/`) vào `anh/`, lấy nguồn từ `anh/image_sources.json`.
 5. **Tách nền** ảnh cắt nền: dùng lại bộ tách nền xanh của `anh_ai.py` (FFmpeg colorkey và despill, đo màu nền). Ảnh tách không sạch thì vẽ lại một lần với câu lệnh chặt hơn; vẫn hỏng thì chuyển nhịp đó sang `khung` và ghi cảnh báo.
 6. **Tính trước** viền xé, bóng đổ, duotone và halftone thành `anh/ai/xu-ly/<mã>-<kiểu>.png`, theo seed của nhịp.
@@ -149,11 +148,13 @@ Mọi khung là hàm thuần của thời điểm t (`datThoiDiem(t)`). Ngẫu n
 
 `error.step`: `input`, `parse`, `cau-hinh`, `mang`, `nha-cung-cap` (thông báo kèm nguyên văn lỗi của API: hết hạn mức, từ chối câu lệnh, mô hình không có), `tach-nen`, `write`, `internal`.
 
-**Kiểm đầu tiên khi làm** (Task 1 của kế hoạch, trước mọi phần khác):
-- 9router có nhận `/v1/images/generations` cho `gpt-image-2` không (mục mô hình đang ghi `imageOutput: false`).
-- `codex exec` có vẽ và lưu được ảnh ra file không.
+**Đã kiểm (2026-10-01, qua 9router trên máy chủ repo):**
+- `Stali/req/gpt-image-2`: nhà cung cấp chỉ có chat, không tạo ảnh.
+- `gemini/gemini-2.5-flash-image`: hạn mức gói miễn phí bằng 0.
+- `cx/*` (Codex qua ChatGPT): tài khoản không đủ quyền tạo ảnh.
+- `ag/gemini-3.1-flash-image` (Antigravity): **chạy được**, khoảng 15 giây mỗi ảnh, trả `b64_json` 1024×1024. Ảnh vật thể trên nền xanh tách sạch bằng bộ lọc `LOC_TACH` hiện có.
 
-Nguồn nào không chạy được thì báo chủ repo và bỏ khỏi chuỗi; không đoán.
+Codex CLI chưa cài trên máy chủ repo nên bỏ khỏi chuỗi.
 
 ## 7. Kiểm thời lượng
 
@@ -182,7 +183,7 @@ Nguồn nào không chạy được thì báo chủ repo và bỏ khỏi chuỗi
 - **Test đơn vị:**
   - đọc nhịp, khớp cụm từ, thứ tự nhịp, ô theo bố cục, giới hạn chữ;
   - ước tính thời lượng và cảnh báo;
-  - `anh_vox.py`: chuỗi nguồn với HTTP giả lập và `codex` giả lập, lưu đệm, khoá không lộ ra đầu ra, tách nền, các `error.step`.
+  - `anh_vox.py`: chuỗi nguồn với HTTP giả lập, lưu đệm, khoá không lộ ra đầu ra, tách nền, các `error.step`.
 - **Test Chromium:**
   - cùng t ra cùng byte;
   - vật hiện đúng mốc từ;
@@ -205,7 +206,7 @@ Nguồn nào không chạy được thì báo chủ repo và bỏ khỏi chuỗi
 
 ## 11. Rủi ro
 
-- 9router hoặc Codex không tạo được ảnh: Vox vẫn làm được bằng ảnh thật, `chu`, `the`, `dau`, nhưng kém sinh động. Task 1 kiểm trước.
+- Nguồn vẽ hết hạn mức hoặc tài khoản Antigravity bị khoá: Vox vẫn làm được bằng ảnh thật, `chu`, `the`, `dau`, nhưng kém sinh động. Đổi nguồn chỉ cần đổi `ANH_AI_MO_HINH` (hoặc `ANH_AI_URL`).
 - Ảnh AI có chữ hoặc sai ý: không kiểm tự động được; AI phải xem ở bước xem trước.
 - Chi phí tạo ảnh: giới hạn 20 ảnh mỗi lần chạy, lưu đệm theo mã băm.
 - Tách nền xanh hỏng với vật có màu xanh lá: tự chuyển sang `khung` và cảnh báo.
