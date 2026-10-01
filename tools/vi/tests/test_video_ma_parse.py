@@ -269,7 +269,7 @@ class NewFieldsTest(unittest.TestCase):
             ("chuyen-canh", ("lau-bang", "lat-trang", "truot", "phong", "mo-man", "luan-phien", "khong", "xe-giay")),
             ("kho", ("ngang", "doc")),
             ("do-phan-giai", ("1080", "720")),
-            ("phong-cach", ("viet-tay", "cat-dan")),
+            ("phong-cach", ("viet-tay", "cat-dan", "vox")),
         ):
             self.assertEqual(parse.META_CHOICES[key], choices)
         for key, default in (

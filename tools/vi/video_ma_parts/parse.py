@@ -6,10 +6,13 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 
+from . import vox
+from .vox import VOX_META_CHOICES
+
 META_REQUIRED = ("tieu-de", "mon", "lop")
 META_CHOICES = {
-    # Phong cách: viết tay trên bảng, hoặc cắt dán giấy kiểu Vox (runtime/cat-dan.css, cat-dan.js).
-    "phong-cach": ("viet-tay", "cat-dan"),
+    # Phong cách: viết tay trên bảng, cắt dán giấy kiểu Vox (runtime/cat-dan.css, cat-dan.js), hoặc Vox (nhịp).
+    "phong-cach": ("viet-tay", "cat-dan", "vox"),
     "giong": ("nu", "nam"),
     "toc-do": ("cham", "vua", "nhanh"),
     "phu-de": ("hinh", "file", "khong", "karaoke"),
@@ -27,7 +30,7 @@ META_CHOICES = {
 # Khoá đầu tự do (không có mặc định): nhạc nền là tên file trong nhac/; nguồn nhạc là chữ (chỉ dùng kèm `nhac-nen`);
 # `loat` là tên loạt video (≤ 30 ký tự), có thì hiện tên loạt và "0k/N" ở hai góc trên.
 # `nhan-vat`: `khong` (mặc định), `nguoi-que` hoặc `ve: <mô tả ≤ 200>` (nhân vật AI vẽ); kiểm ở _kiem_nhan_vat.
-META_FREE = ("nhac-nen", "nguon-nhac", "loat", "nhan-vat")
+META_FREE = ("nhac-nen", "nguon-nhac", "loat", "nhan-vat", "thoi-luong")
 # `ban-tay` và `chuyen-canh` không có mặt ở đây: mặc định của hai khoá này đổi theo `phong-cach` (lich.mac_dinh),
 # nên kịch bản không ghi thì để trống trong `meta` thay vì điền cứng "co"/"lau-bang".
 META_DEFAULTS = {
@@ -292,6 +295,8 @@ class Scene:
     dong_truong: dict
     # Cảnh ke-chuyen: nền đã giải (giai_nen); cảnh khác là None.
     nen: dict | None = None
+    # Cảnh vox: danh sách vox.Nhip đã đọc; cảnh khác là None.
+    nhip: list | None = None
 
 
 @dataclass
@@ -322,21 +327,31 @@ def _read_meta(lines: list, start: int) -> tuple:
             if match is None:
                 raise ParseError(i + 1, "Dòng thông tin phải có dạng `khoá: giá trị`.")
             key, value = match.group(1), match.group(2).strip()
-            if key not in META_REQUIRED and key not in META_CHOICES and key not in META_FREE:
+            if (key not in META_REQUIRED and key not in META_CHOICES and key not in META_FREE
+                    and key not in VOX_META_CHOICES):
                 raise ParseError(i + 1, f"Khoá `{key}` không có trong khối thông tin.")
             if key in meta:
                 raise ParseError(i + 1, f"Khoá `{key}` bị lặp.")
             _check_value(i + 1, key, value)
-            if key in META_CHOICES and value not in META_CHOICES[key]:
-                raise ParseError(i + 1, f"`{key}` phải là một trong: {', '.join(META_CHOICES[key])}.")
+            if key in META_CHOICES:
+                # `chuyen-canh` của phong-cach `vox` dùng VOX_META_CHOICES; kiểm sau vòng lặp, khi đã biết phong-cach.
+                if key != "chuyen-canh" and value not in META_CHOICES[key]:
+                    raise ParseError(i + 1, f"`{key}` phải là một trong: {', '.join(META_CHOICES[key])}.")
+            elif key in VOX_META_CHOICES and value not in VOX_META_CHOICES[key]:
+                raise ParseError(i + 1, f"`{key}` phải là một trong: {', '.join(VOX_META_CHOICES[key])}.")
             if key == "nhan-vat":
                 _kiem_nhan_vat(value, i + 1)
+            if key == "thoi-luong" and (not value.isascii() or not value.isdigit()
+                                         or not vox.THOI_LUONG[0] <= int(value) <= vox.THOI_LUONG[1]):
+                raise ParseError(i + 1, "`thoi-luong` là số giây của video, số nguyên từ 15 đến 600, "
+                                        "ví dụ `thoi-luong: 60`.")
             meta[key] = value
             dong_meta[key] = i + 1
         i += 1
     else:
         raise ParseError(start, "Khối thông tin chưa đóng bằng dòng `---`.")
-    for key in META_REQUIRED:
+    phong_cach = meta.get("phong-cach", META_DEFAULTS["phong-cach"])
+    for key in (("tieu-de",) if phong_cach == "vox" else META_REQUIRED):
         if key not in meta:
             raise ParseError(i + 1, f"Khối thông tin thiếu `{key}`.")
     if "nguon-nhac" in meta and "nhac-nen" not in meta:
@@ -344,17 +359,71 @@ def _read_meta(lines: list, start: int) -> tuple:
                                                   "thêm dòng `nhac-nen: <file trong nhac/>` hoặc bỏ dòng này.")
     if len(meta.get("loat", "")) > LOAT_DAI:
         raise ParseError(dong_meta["loat"], f"`loat` dài {len(meta['loat'])} ký tự, tối đa {LOAT_DAI}. Rút gọn tên loạt.")
+    for key in VOX_META_CHOICES:
+        if key != "chuyen-canh" and key in meta and phong_cach != "vox":
+            raise ParseError(dong_meta[key], f"`{key}` chỉ dùng với `phong-cach: vox`.")
+    if "chuyen-canh" in meta:
+        lua_chon = VOX_META_CHOICES["chuyen-canh"] if phong_cach == "vox" else META_CHOICES["chuyen-canh"]
+        if meta["chuyen-canh"] not in lua_chon:
+            raise ParseError(dong_meta["chuyen-canh"], f"`chuyen-canh` phải là một trong: {', '.join(lua_chon)}.")
+    if phong_cach == "vox":
+        for key in vox.VOX_CAM:
+            if key in meta:
+                raise ParseError(dong_meta[key], f"`{key}` là khoá của kiểu viết tay, không dùng với "
+                                                  "`phong-cach: vox`; bỏ dòng này.")
     for key, default in META_DEFAULTS.items():
         meta.setdefault(key, default)
+    if phong_cach == "vox":
+        for key, choices in VOX_META_CHOICES.items():
+            meta.setdefault(key, choices[0])
+        for key in vox.VOX_CAM:
+            meta.pop(key, None)
     return meta, dong_meta, i + 1
 
 
-def _finish(so: int, dong0: int, fields: list) -> Scene:
+_VOX_ALLOWED = {"loi", "bo-cuc", "nhip", "chuyen", "nguon"}
+
+
+def _finish_vox(so: int, dong0: int, truong: dict, dong_truong: dict, kho: str) -> Scene:
+    if "loai" in truong:
+        raise ParseError(dong_truong["loai"][0], "Cảnh Vox không có `loai`; tả cảnh bằng `bo-cuc` và các dòng `nhip`.")
+    for key in truong:
+        if key not in _VOX_ALLOWED:
+            raise ParseError(dong_truong[key][0], f"Cảnh Vox không có trường `{key}`.")
+    for key in ("loi", "bo-cuc"):
+        if key not in truong:
+            raise ParseError(dong0, f"Cảnh {so} thiếu `{key}`.")
+        if len(truong[key]) > 1:
+            raise ParseError(dong_truong[key][1], f"`{key}` bị lặp trong Cảnh {so}.")
+    count = len(truong.get("nhip", []))
+    if count < 1:
+        raise ParseError(dong0, f"Cảnh {so} (loại vox) cần ít nhất 1 dòng `nhip`.")
+    if count > vox.NHIP_TOI_DA:
+        raise ParseError(dong_truong["nhip"][vox.NHIP_TOI_DA],
+                          f"Cảnh loại vox chỉ có tối đa {vox.NHIP_TOI_DA} dòng `nhip`.")
+    for value, no in zip(truong.get("chuyen", []), dong_truong.get("chuyen", [])):
+        if so == 1:
+            raise ParseError(no, "Cảnh 1 mở đầu video, không có cảnh trước để chuyển; bỏ dòng `chuyen:`.")
+        if value not in vox.CHUYEN_CANH:
+            raise ParseError(no, f"`chuyen` phải là một trong: {', '.join(vox.CHUYEN_CANH)}.")
+    if "nguon" in truong and len(truong["nguon"][0]) > vox.NGUON_DAI:
+        raise ParseError(dong_truong["nguon"][0],
+                          f"`nguon` dài {len(truong['nguon'][0])} ký tự, tối đa {vox.NGUON_DAI}. Rút gọn nguồn.")
+    loi = truong.pop("loi")[0]
+    nhip = [vox.doc_nhip(v, no, k) for k, (v, no) in enumerate(zip(truong["nhip"], dong_truong["nhip"]))]
+    scene = Scene(so=so, dong=dong0, loai="vox", loi=loi, truong=truong, dong_truong=dong_truong, nhip=nhip)
+    vox.kiem_canh(scene, kho)
+    return scene
+
+
+def _finish(so: int, dong0: int, fields: list, vox_kho: str | None = None) -> Scene:
     truong: dict = {}
     dong_truong: dict = {}
     for key, value, no in fields:
         truong.setdefault(key, []).append(value)
         dong_truong.setdefault(key, []).append(no)
+    if vox_kho is not None:
+        return _finish_vox(so, dong0, truong, dong_truong, vox_kho)
     for key in ("loai", "loi"):
         if key not in truong:
             raise ParseError(dong0, f"Cảnh {so} thiếu `{key}`.")
@@ -441,6 +510,7 @@ def parse(text: str) -> Video:
     if i >= len(lines) or lines[i].strip() != "---":
         raise ParseError(i + 1, "video.md phải mở đầu bằng khối thông tin giữa hai dòng `---`.")
     meta, dong_meta, i = _read_meta(lines, i + 1)
+    vox_kho = meta["kho"] if meta["phong-cach"] == "vox" else None
     scenes: list = []
     current = None
     for index in range(i, len(lines)):
@@ -451,7 +521,7 @@ def parse(text: str) -> Video:
         heading = _SCENE_RE.match(raw)
         if heading:
             if current is not None:
-                scenes.append(_finish(*current))
+                scenes.append(_finish(*current, vox_kho))
             expected = len(scenes) + 1
             if int(heading.group(1)) != expected:
                 raise ParseError(no, f"Cảnh phải đánh số liên tiếp; ở đây phải là `## Cảnh {expected}`.")
@@ -466,10 +536,10 @@ def parse(text: str) -> Video:
         _check_value(no, key, value)
         current[2].append((key, value, no))
     if current is not None:
-        scenes.append(_finish(*current))
+        scenes.append(_finish(*current, vox_kho))
     if not scenes:
         raise ParseError(i + 1, "video.md chưa có cảnh nào; bắt đầu bằng `## Cảnh 1`.")
-    if meta["nhan-vat"] == "khong":
+    if meta.get("nhan-vat", "khong") == "khong":
         for scene in scenes:
             for key in ("tu-the", "vi-tri"):
                 if key in scene.truong:
