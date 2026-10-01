@@ -31,6 +31,11 @@ class _May(BaseHTTPRequestHandler):
     def do_POST(self):
         than = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         _May.goi.append({"auth": self.headers.get("Authorization"), **than})
+        if _May.tra in ("401", "500"):
+            self.send_response(int(_May.tra))
+            self.end_headers()
+            self.wfile.write(b'{"error":{"message":"tu choi"}}')
+            return
         if _May.tra == "loi":
             self.send_response(429)
             self.end_headers()
@@ -140,6 +145,7 @@ class VeTest(unittest.TestCase):
 
     def tearDown(self):
         self.srv.shutdown()
+        self.srv.server_close()
 
     def test_draw_sends_openai_request_with_key(self):
         anh = nguon_ve.ve(nguon_ve.CauHinh(self.url, KHOA, "m1"), "cốc", "1024x1024")
@@ -176,6 +182,7 @@ class CliTest(unittest.TestCase):
 
     def tearDown(self):
         self.srv.shutdown()
+        self.srv.server_close()
 
     def chay(self, thu_muc, *them, env=None):
         e = {**os.environ, "ANH_AI_URL": self.url, "ANH_AI_KEY": KHOA, "ANH_AI_MO_HINH": "m1", **(env or {})}
@@ -308,7 +315,7 @@ class CliTest(unittest.TestCase):
             self.assertEqual({v["mo_hinh"] for v in bang.values()}, {"m1"})
             self.assertIn("anh/ai/vox.json", out["files"])
 
-    def _video_mot_cat(self, tmp):
+    def _video_mot_cat(self, tmp, cong_cu="api"):
         video = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n"
                  "## Cảnh 1\nbo-cuc: hai-ben\nloi: Cốc cà phê.\n"
                  "nhip: Cốc cà phê | anh: ve: cốc cà phê sứ trắng | trai\n")
@@ -318,9 +325,37 @@ class CliTest(unittest.TestCase):
         goc.parent.mkdir(parents=True)
         goc.write_bytes(png_xanh(256, 256, (235, 235, 235)))   # nền xám: tách không sạch
         (goc.parent.parent / "nguon.json").write_text(json.dumps([
-            {"file": f"ai/goc/{m.ma}.png", "cong_cu": "api", "mo_hinh": "m1", "prompt": m.prompt,
+            {"file": f"ai/goc/{m.ma}.png", "cong_cu": cong_cu, "mo_hinh": "m1", "prompt": m.prompt,
              "ngay": "2026-10-01", "ma": m.ma}]), encoding="utf-8")
         return m
+
+    def _phai_thanh_khung(self, out):
+        self.assertTrue(out["ready"], out)
+        bang = json.loads((Path(self._tmp_hien) / "anh" / "ai" / "vox.json").read_text(encoding="utf-8"))
+        self.assertEqual(bang["1-0"]["kieu"], "khung")
+        self.assertTrue(any("khung" in w for w in out["warnings"]), out["warnings"])
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
+    def test_platform_drawn_unclean_cutout_becomes_a_frame_without_calling_the_api(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._tmp_hien = tmp
+            self._video_mot_cat(tmp, cong_cu="nen-tang")
+            _May.tra = "401"
+            self._phai_thanh_khung(self.chay(tmp))
+        self.assertEqual(_May.goi, [])
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
+    def test_failed_redraw_falls_back_to_a_frame(self):
+        for loi in ("401", "500"):
+            with self.subTest(loi=loi), tempfile.TemporaryDirectory() as tmp:
+                self._tmp_hien = tmp
+                self._video_mot_cat(tmp)
+                _May.goi.clear()
+                _May.tra = loi
+                out = self.chay(tmp)   # self.chay cũng kiểm khoá không lộ ra stdout/stderr
+                self._phai_thanh_khung(out)
+                self.assertTrue(any("không vẽ lại được" in w for w in out["warnings"]), out["warnings"])
+                self.assertGreaterEqual(len(_May.goi), 1)
 
     @unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
     def test_unclean_cutout_is_redrawn_once_with_a_stricter_prompt(self):

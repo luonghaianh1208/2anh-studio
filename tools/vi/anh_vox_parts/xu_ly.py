@@ -76,13 +76,17 @@ def tach_nen(goc: Path, run=subprocess.run) -> Image.Image:
         giu = np.clip((0.5 - troi) / 0.2, 0.0, 1.0)
         a[..., :3] = o
         a[..., 3] = np.minimum(a[..., 3], np.rint(255 * giu)).astype(np.int16)
-    # Gỡ ánh xanh (nền xanh hắt lên vật sáng), liên tục theo màu: G không vượt ngưỡng nằm giữa trung bình (R + B) / 2
+    # Gỡ ánh xanh ở mép, liên tục theo màu: G không vượt ngưỡng nằm giữa trung bình (R + B) / 2
     # (màu gần trung tính -> hết ám xanh) và max(R, B) (R, B chênh nhiều như vàng, cam, xanh ngọc -> giữ sắc).
     # Despill trung bình của FFmpeg làm vàng ngả cam nên không dùng màu của nó.
+    # Chỉ sửa theo độ trong suốt (điểm đục hẳn giữ đúng màu: ô liu, bạc hà, xanh ngọc), cộng dải mép 2 điểm ảnh sát
+    # vùng trong suốt — nơi quầng xanh còn sót dù alpha đã 255.
     r, g, b = (a[..., k].astype(np.float32) for k in range(3))
     w = np.clip(np.abs(r - b) / 60.0, 0.0, 1.0)
     nguong = (r + b) / 2 + w * np.abs(r - b) / 2
-    a[..., 1] = np.rint(np.minimum(g, nguong)).astype(np.int16)
+    trong = 1.0 - a[..., 3].astype(np.float32) / 255.0
+    trong[_gian(a[..., 3] < 128, 2) & (a[..., 3] >= 128)] = 1.0
+    a[..., 1] = np.rint(g - trong * np.maximum(0.0, g - nguong)).astype(np.int16)
     return Image.fromarray(a.clip(0, 255).astype(np.uint8), "RGBA")
 
 

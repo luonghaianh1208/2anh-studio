@@ -47,6 +47,20 @@ class TachNenTest(unittest.TestCase):
             ra = xu_ly.tach_nen(p)
         self.assertEqual(ra.getpixel((100, 100)), (250, 210, 60, 255))
 
+    def test_opaque_green_tinted_colours_are_kept(self):
+        im = Image.new("RGB", (240, 200), (0, 255, 0))
+        im.paste((120, 140, 60), (30, 40, 110, 160))     # ô liu
+        im.paste((200, 230, 210), (130, 40, 210, 160))   # bạc hà
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "g.png"
+            im.save(p)
+            ra = xu_ly.tach_nen(p)
+        for xy, mau in (((70, 100), (120, 140, 60)), ((170, 100), (200, 230, 210))):
+            px = ra.getpixel(xy)
+            self.assertEqual(px[3], 255)
+            for k in range(3):
+                self.assertLessEqual(abs(px[k] - mau[k]), 3, (xy, px, mau))
+
     def test_not_green_background_is_not_clean(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "g.png"

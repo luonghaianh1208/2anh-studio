@@ -247,9 +247,16 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict
     for m in ds:
         khoa = f"{m.canh}-{m.chi_so}"
         if m.kieu == "cat" and m.nguon == "ve" and not xu_ly.alpha_sach(xu_ly.tach_nen(ke_hoach.file_goc(thu_muc, m))):
-            m, ve_moi = _ve_lai(thu_muc, ch, m, nguon_ve_)
-            da_ve += ve_moi
-            files.append(str(ke_hoach.file_goc(thu_muc, m).relative_to(thu_muc).as_posix()))
+            # Ảnh do nền tảng vẽ: không có API để vẽ lại, chuyển thẳng sang khung (xu_ly_muc ghi cảnh báo).
+            if (nguon_ve_.get(m.ma) or {}).get("cong_cu") != CONG_CU_NEN_TANG:
+                try:
+                    m, ve_moi = _ve_lai(thu_muc, ch, m, nguon_ve_)
+                    da_ve += ve_moi
+                    files.append(str(ke_hoach.file_goc(thu_muc, m).relative_to(thu_muc).as_posix()))
+                except nguon_ve.VeError as exc:
+                    loi = _an_khoa_trong_loi({"message": exc.message, "fix": ""})["message"]
+                    warnings.append(f"Cảnh {m.canh}, nhịp {m.chi_so + 1}: không vẽ lại được ảnh tách nền chưa sạch "
+                                    f"({exc.step}: {loi}).")
         mo_hinh = nguon = None
         if m.nguon == "ve":
             mo_hinh = (nguon_ve_.get(m.ma) or {}).get("mo_hinh") or ch.mo_hinh
