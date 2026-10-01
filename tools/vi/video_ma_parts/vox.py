@@ -182,45 +182,61 @@ def kiem_canh(scene, kho: str) -> None:
 def moc_nhip(nhips: list, moc_tu: list, dan_dau: float) -> list:
     """Mốc bắt đầu (giây trong cảnh) của từng nhịp, theo mốc từ (`lich.CanhLich.moc_tu`) của cụm từ nhịp đó khớp
     trong lời; `@dau` luôn ở `dan_dau`. Cụm không khớp được (giọng chưa có mốc từ, hay không khớp) nối tiếp nhịp
-    trước, cách 0,6 giây."""
-    khoa = [w["khoa"] for w in moc_tu]
+    trước, cách đúng 0,6 giây (không rải theo vị trí từ).
+
+    `moc_tu[i]["khoa"]` (`lich.khoa_so_khop`) chỉ bỏ dấu câu, không tách từ ghép bằng dấu câu dính liền thành
+    nhiều token (`"85,5%"`, `"chu-kì"` vẫn là một mục); cụm của nhịp (`vox.khoa_tu`) thì tách "," "-" "%"… thành
+    khoảng trắng rồi `split()`. Để so đúng, khai triển từng mục `moc_tu` qua `khoa_tu` thành các token con (bỏ mục
+    rỗng, ví dụ một dấu gạch ngang đứng riêng), giữ chỉ số từ nguồn để lấy lại đúng giờ `t` của mục đó."""
+    khoa, nguon = [], []
+    for idx, w in enumerate(moc_tu):
+        for tok in khoa_tu(w["chu"]):
+            khoa.append(tok)
+            nguon.append(idx)
     ra, vi_tri = [], 0
     for n in nhips:
         if n.cum == "@dau":
             ra.append(dan_dau)
             continue
         can = khoa_tu(n.cum)
-        i = next((j for j in range(vi_tri, len(khoa) - len(can) + 1) if khoa[j:j + len(can)] == can), -1)
+        i = (next((j for j in range(vi_tri, len(khoa) - len(can) + 1) if khoa[j:j + len(can)] == can), -1)
+             if can else -1)
         if i < 0:
             ra.append((ra[-1] + 0.6) if ra else dan_dau)
             continue
-        ra.append(moc_tu[i]["t"])
+        ra.append(moc_tu[nguon[i]]["t"])
         vi_tri = i + len(can)
     return [max(dan_dau, t) for t in ra]
 
 
 def _o_cac_nhip(scene, kho_ten: str) -> list:
     """Ô của từng nhịp theo thứ tự: nhịp ghi ô thì dùng đúng ô đó; không ghi thì ô đầu tiên của `BO_CUC[bo_cuc][kho]`
-    (trừ `nen`) chưa có vật nào dùng, hết ô thì dùng lại ô cuối; bố cục `chong` không có ô, trả `"chong-<k>"`."""
+    (trừ `nen`) chưa có vật nào dùng (kể cả ô ghi tường minh ở một nhịp *sau* trong cùng cảnh — tránh đè lên ô mà
+    nhịp sau sẽ nhận), hết ô thì dùng ô cuối của bố cục (không bao giờ là `nen`: `nen` chỉ dành cho ảnh ghi tường
+    minh); bố cục `chong` không có ô, trả `"chong-<k>"`."""
     bo_cuc = scene.truong["bo-cuc"][0]
     o_hop_le = [o for o in BO_CUC[bo_cuc][kho_ten] if o != "nen"]
+    # Tiền nạp mọi ô đã ghi tường minh ở bất kỳ nhịp nào của cảnh (kể cả nhịp đứng sau), để nhịp tự chọn ô không
+    # bao giờ đè lên ô một nhịp khác sẽ dùng.
     da_dung: list = []
+    for n in scene.nhip:
+        if n.o is not None and n.o not in da_dung:
+            da_dung.append(n.o)
     chong_dem = 0
     ket = []
     for n in scene.nhip:
         if n.o is not None:
             ket.append(n.o)
-            if n.o not in da_dung:
-                da_dung.append(n.o)
             continue
         if bo_cuc == "chong":
             ket.append(f"chong-{chong_dem}")
             chong_dem += 1
             continue
         trong = [o for o in o_hop_le if o not in da_dung]
-        o = trong[0] if trong else (ket[-1] if ket else (o_hop_le[0] if o_hop_le else None))
+        o = trong[0] if trong else (o_hop_le[-1] if o_hop_le else None)
         ket.append(o)
-        da_dung.append(o)
+        if o not in da_dung:
+            da_dung.append(o)
     return ket
 
 

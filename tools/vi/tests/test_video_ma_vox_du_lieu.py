@@ -1,5 +1,5 @@
 """Dữ liệu trang của cảnh Vox: mốc nhịp theo mốc từ, ô tự chọn, chuyển cảnh xen kẽ, ảnh từ vox.json."""
-import base64, io, json, sys, tempfile, unittest
+import json, sys, tempfile, unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -27,9 +27,33 @@ class MocTest(unittest.TestCase):
 
     def test_unmatched_estimated_word_falls_back_to_order(self):
         c = parse.parse(VID).canh[0]
-        t = vox.moc_nhip(c.nhip, [], lich.DAN_DAU)   # chưa có mốc từ: rải đều theo vị trí từ trong lời
+        t = vox.moc_nhip(c.nhip, [], lich.DAN_DAU)   # chưa có mốc từ: nối tiếp nhau, mỗi nhịp cách đúng 0,6 giây
         self.assertEqual(len(t), 3)
         self.assertTrue(t[0] <= t[1] <= t[2])
+
+    def test_cue_matches_a_word_joined_by_punctuation(self):
+        # "chu-kì" là một mục `moc_tu` (khoa_so_khop không tách dấu gạch nối); cụm nhịp "chu kì" phải vẫn khớp.
+        v = parse.parse("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\n"
+                         "loi: Mỗi chu-kì kéo dài lâu.\nnhip: @dau | chu: X\nnhip: chu kì | chu: Y\n")
+        c = v.canh[0]
+        t = vox.moc_nhip(c.nhip, moc(c.loi), lich.DAN_DAU)
+        self.assertEqual(t[1], lich.DAN_DAU + 0.4)
+
+    def test_cue_matches_a_comma_separated_number(self):
+        # "85,5%" là một mục `moc_tu`; cụm nhịp "85,5%" phải khớp đúng mục đó, không rơi về nối tiếp +0,6s.
+        v = parse.parse("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\n"
+                         "loi: Tăng 85,5% so với trước.\nnhip: @dau | chu: X\nnhip: 85,5% | chu: Y\n")
+        c = v.canh[0]
+        t = vox.moc_nhip(c.nhip, moc(c.loi), lich.DAN_DAU)
+        self.assertEqual(t[1], lich.DAN_DAU + 0.4)
+
+    def test_cue_matches_across_a_standalone_dash(self):
+        # "–" đứng riêng là một mục `moc_tu` nhưng khai triển ra rỗng (bỏ qua); cụm nhịp "A B" phải khớp đúng từ "A".
+        v = parse.parse("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\n"
+                         "loi: A – B là hai.\nnhip: @dau | chu: X\nnhip: A B | chu: Y\n")
+        c = v.canh[0]
+        t = vox.moc_nhip(c.nhip, moc(c.loi), lich.DAN_DAU)
+        self.assertEqual(t[1], lich.DAN_DAU + 0.0)
 
 
 class DuLieuTest(unittest.TestCase):
@@ -54,6 +78,25 @@ class DuLieuTest(unittest.TestCase):
         self.assertEqual(self.du(1)[0]["co"]["chuyen"], "xe-giay")
         self.assertEqual(self.du(2)[0]["co"]["chuyen"], "lia")
         self.assertEqual(self.du(2, "chuyen-canh: khong\n")[0]["co"]["chuyen"], None)
+
+
+def _o_list(md: str) -> list:
+    v = parse.parse(md)
+    plan, _ = lich.dung_lich(v.canh, [lich.GiongInfo(None, 3.0, [0.0], False, "may", moc_tu=moc(c.loi)) for c in v.canh])
+    du = vox.du_lieu_canh(v.canh[0], plan[0], {"anh": {}}, v.meta)
+    return [n["o"] for n in du["nhip"]]
+
+
+class SlotTest(unittest.TestCase):
+    def test_slot_overflow_never_lands_on_nen(self):
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: toan-canh\nloi: Một hai.\n"
+              "nhip: @dau | anh: tim: x | nen\nnhip: một | chu: A\nnhip: hai | chu: B\n")
+        self.assertNotIn("nen", _o_list(md)[1:])
+
+    def test_unslotted_beat_skips_a_slot_a_later_beat_names_explicitly(self):
+        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Một hai.\n"
+              "nhip: @dau | chu: A\nnhip: một | chu: B | trai\n")
+        self.assertEqual(_o_list(md), ["phai", "trai"])
 
 
 class ChuDeTest(unittest.TestCase):
