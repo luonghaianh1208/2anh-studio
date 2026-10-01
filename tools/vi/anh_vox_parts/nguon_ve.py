@@ -42,8 +42,16 @@ def doc_cau_hinh(env=os.environ, home: Path | None = None) -> CauHinh:
             tep = json.loads(f.read_text(encoding="utf-8"))
         except ValueError as exc:
             raise VeError("cau-hinh", f"File cấu hình {f} hỏng: {exc}", "Sửa hoặc xoá file đó rồi chạy lại.") from None
+    khoa_tho = env.get("ANH_AI_KEY") or tep.get("khoa")
+    khoa = None
+    if khoa_tho:
+        khoa_sach = khoa_tho.strip()
+        if khoa_sach != khoa_tho or any(not c.isprintable() for c in khoa_sach):
+            raise VeError("cau-hinh", "Khoá API (ANH_AI_KEY hoặc anh-ai.json) có ký tự xuống dòng hoặc ký tự lạ.",
+                          FIX_KHOA)
+        khoa = khoa_sach or None
     return CauHinh(url=(env.get("ANH_AI_URL") or tep.get("url") or URL_MAC_DINH).rstrip("/"),
-                   khoa=env.get("ANH_AI_KEY") or tep.get("khoa"),
+                   khoa=khoa,
                    mo_hinh=env.get("ANH_AI_MO_HINH") or tep.get("mo_hinh") or MO_HINH_MAC_DINH)
 
 
@@ -61,17 +69,18 @@ def ve(ch: CauHinh, prompt: str, kich_thuoc: str, timeout: float = 120, mo=urlli
         with mo(req, timeout=timeout) as r:
             data = json.loads(r.read())
     except urllib.error.HTTPError as exc:
-        chu = exc.read()[:500].decode("utf-8", "replace")
+        chu = _an(exc.read().decode("utf-8", "replace"), ch.khoa)[:500]
         if exc.code == 401:
-            raise VeError("cau-hinh", _an(f"Nguồn vẽ từ chối khoá (401): {chu}", ch.khoa), FIX_KHOA) from None
-        raise VeError("nha-cung-cap", _an(f"Nguồn vẽ báo lỗi {exc.code}: {chu}", ch.khoa), FIX_NCC,
+            raise VeError("cau-hinh", f"Nguồn vẽ từ chối khoá (401): {chu}", FIX_KHOA) from None
+        raise VeError("nha-cung-cap", f"Nguồn vẽ báo lỗi {exc.code}: {chu}", FIX_NCC,
                       thu_lai=exc.code >= 500) from None
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         raise VeError("mang", _an(f"Không gọi được {ch.url}: {exc}", ch.khoa), FIX_MANG, thu_lai=True) from None
     try:
         muc = data["data"][0]
     except (KeyError, IndexError, TypeError):
-        raise VeError("nha-cung-cap", _an(f"Nguồn vẽ không trả ảnh: {str(data)[:300]}", ch.khoa), FIX_NCC) from None
+        chu = _an(str(data), ch.khoa)[:300]
+        raise VeError("nha-cung-cap", f"Nguồn vẽ không trả ảnh: {chu}", FIX_NCC) from None
     if muc.get("b64_json"):
         return base64.b64decode(muc["b64_json"])
     if muc.get("url"):

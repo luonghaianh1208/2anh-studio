@@ -41,10 +41,29 @@ class _May(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'{"error":{"message":"tam thoi qua tai"}}')
             return
+        if _May.tra == "mot-loi" and len(_May.goi) > 1:
+            self.send_response(429)
+            self.end_headers()
+            self.wfile.write(b'{"error":{"message":"qua tai"}}')
+            return
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
-        self.wfile.write(json.dumps({"data": [{"b64_json": base64.b64encode(png_xanh()).decode()}]}).encode())
+        if _May.tra == "url":
+            noi_dung = {"data": [{"url": f"http://127.0.0.1:{self.server.server_port}/anh.png"}]}
+        else:
+            noi_dung = {"data": [{"b64_json": base64.b64encode(png_xanh()).decode()}]}
+        self.wfile.write(json.dumps(noi_dung).encode())
+
+    def do_GET(self):
+        if self.path == "/anh.png":
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.end_headers()
+            self.wfile.write(png_xanh())
+            return
+        self.send_response(404)
+        self.end_headers()
 
     def log_message(self, *a):
         pass
@@ -139,6 +158,11 @@ class VeTest(unittest.TestCase):
             nguon_ve.ve(nguon_ve.CauHinh("http://127.0.0.1:1/v1", None, "m"), "x", "1024x1024", timeout=2)
         self.assertEqual(c.exception.step, "mang")
 
+    def test_url_response_is_downloaded(self):
+        _May.tra = "url"
+        anh = nguon_ve.ve(nguon_ve.CauHinh(self.url, KHOA, "m1"), "cốc", "1024x1024")
+        self.assertTrue(anh.startswith(b"\x89PNG"))
+
 
 class CliTest(unittest.TestCase):
     def setUp(self):
@@ -191,6 +215,60 @@ class CliTest(unittest.TestCase):
         self.assertEqual(out["error"]["step"], "input")
         self.assertIn("--toi-da", out["error"]["fix"])
         self.assertEqual(_May.goi, [])
+
+    def test_key_with_control_char_is_rejected_without_leaking(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "video.md").write_text(VIDEO.replace(
+                "nhip: @dau | anh: tim: hanoi old quarter | nen\n", "nhip: @dau | chu: Phố cổ\n").replace(
+                "bo-cuc: toan-canh", "bo-cuc: mot"), encoding="utf-8")
+            khoa_hong = "sk-bi-mat\n"
+            e = {**os.environ, "ANH_AI_URL": self.url, "ANH_AI_KEY": khoa_hong, "ANH_AI_MO_HINH": "m1"}
+            r = subprocess.run([sys.executable, str(TOOLS_VI / "anh_vox.py"), str(tmp)], capture_output=True,
+                               text=True, encoding="utf-8", env=e)
+            out = json.loads(r.stdout.strip().splitlines()[-1])
+            self.assertEqual(out["error"]["step"], "cau-hinh")
+            self.assertNotIn("sk-bi-mat", r.stdout + r.stderr)
+        self.assertEqual(_May.goi, [])
+
+    def test_platform_drawn_images_are_reused_regardless_of_model(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            video_hai_anh = VIDEO.replace(
+                "nhip: @dau | anh: tim: hanoi old quarter | nen\n", "nhip: @dau | chu: Phố cổ\n").replace(
+                "bo-cuc: toan-canh", "bo-cuc: mot")
+            (Path(tmp) / "video.md").write_text(video_hai_anh, encoding="utf-8")
+            ds = ke_hoach.lap(parse.parse(video_hai_anh))
+            thu_muc_goc = Path(tmp) / "anh" / "ai" / "goc"
+            thu_muc_goc.mkdir(parents=True)
+            for m in ds:
+                (thu_muc_goc / f"{m.ma}.png").write_bytes(png_xanh())
+            out1 = self.chay(tmp)
+            self.assertTrue(out1["ready"], out1)
+            self.assertEqual(out1["da_ve"], 0)
+            self.assertTrue(out1["warnings"])
+            out2 = self.chay(tmp)
+            self.assertTrue(out2["ready"], out2)
+            self.assertEqual(out2["da_ve"], 0)
+            self.assertTrue(out2["warnings"])
+        self.assertEqual(_May.goi, [])
+
+    def test_partial_failure_saves_successful_draws_and_resumes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            video_hai_anh = VIDEO.replace(
+                "nhip: @dau | anh: tim: hanoi old quarter | nen\n", "nhip: @dau | chu: Phố cổ\n").replace(
+                "bo-cuc: toan-canh", "bo-cuc: mot")
+            (Path(tmp) / "video.md").write_text(video_hai_anh, encoding="utf-8")
+            _May.tra = "mot-loi"
+            out = self.chay(tmp)
+            self.assertFalse(out["ready"], out)
+            self.assertEqual(out["error"]["step"], "nha-cung-cap")
+            nguon = json.loads((Path(tmp) / "anh" / "ai" / "nguon.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(nguon), 1)
+            file_thanh_cong = Path(tmp) / "anh" / "ai" / "goc" / f"{nguon[0]['ma']}.png"
+            self.assertTrue(file_thanh_cong.is_file())
+            _May.tra = "b64"
+            out2 = self.chay(tmp)
+            self.assertTrue(out2["ready"], out2)
+            self.assertEqual(out2["da_ve"], 1)
 
     def test_retries_on_transient_errors_then_succeeds(self):
         with tempfile.TemporaryDirectory() as tmp:

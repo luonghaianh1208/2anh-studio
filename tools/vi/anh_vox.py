@@ -47,6 +47,28 @@ def log(text: str) -> None:
     print(text, file=sys.stderr, flush=True)
 
 
+def _khoa_tho_de_an() -> str | None:
+    """Khoá thô đọc trực tiếp từ môi trường/file cấu hình, chỉ để che trong thông báo lỗi — kể cả khi
+    `doc_cau_hinh` không chạy tới hoặc chính nó từ chối khoá này."""
+    khoa = os.environ.get("ANH_AI_KEY")
+    if khoa:
+        return khoa
+    try:
+        f = Path.home() / ".2anh-studio" / "anh-ai.json"
+        if f.is_file():
+            return json.loads(f.read_text(encoding="utf-8")).get("khoa")
+    except (OSError, ValueError):
+        return None
+    return None
+
+
+def _an_khoa_trong_loi(error: dict) -> dict:
+    khoa = _khoa_tho_de_an()
+    if not khoa:
+        return error
+    return {**error, "message": error["message"].replace(khoa, "***"), "fix": error["fix"].replace(khoa, "***")}
+
+
 def emit(payload: dict) -> None:
     text = json.dumps(payload, ensure_ascii=False) + "\n"
     try:
@@ -155,6 +177,11 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict
         if ban_ghi is not None and ban_ghi.get("mo_hinh") == ch.mo_hinh:
             dung_lai += 1
             continue
+        # Ảnh do nền tảng tự vẽ (chưa rõ mô hình): dùng lại bất kể `ANH_AI_MO_HINH` hiện tại là gì.
+        if ban_ghi is not None and ban_ghi.get("cong_cu") == CONG_CU_NEN_TANG:
+            dung_lai += 1
+            warnings.append(f"ảnh ai/goc/{m.ma}.png do nền tảng vẽ, chưa rõ mô hình")
+            continue
         if ban_ghi is None:
             dung_lai += 1
             ban_ghi_moi = {"file": f"ai/goc/{m.ma}.png", "cong_cu": CONG_CU_NEN_TANG,
@@ -171,24 +198,38 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list) -> dict
     files = [str(ke_hoach.file_goc(thu_muc, m).relative_to(thu_muc).as_posix())
              for m in ds if m.nguon == "ve" and ke_hoach.file_goc(thu_muc, m).is_file()]
     da_ve = 0
+    loi_dung = None
     if can_ve:
         tong = len(can_ve)
-        ket_qua: dict = {}
+        da_huy = False
         with concurrent.futures.ThreadPoolExecutor(SO_LUONG_SONG_SONG) as pool:
-            tuong_lai = {pool.submit(_ve_mot_anh, ch, m, i + 1, tong): i for i, m in enumerate(can_ve)}
+            tuong_lai = {pool.submit(_ve_mot_anh, ch, m, i + 1, tong): m for i, m in enumerate(can_ve)}
             for f in concurrent.futures.as_completed(tuong_lai):
-                ket_qua[tuong_lai[f]] = f.result()
-        for i, m in enumerate(can_ve):
-            data = ket_qua[i]
-            file_goc = ke_hoach.file_goc(thu_muc, m)
-            _luu_anh(data, file_goc)
-            files.append(str(file_goc.relative_to(thu_muc).as_posix()))
-            nguon_moi.append({"file": f"ai/goc/{m.ma}.png", "cong_cu": "api", "mo_hinh": ch.mo_hinh,
-                              "prompt": m.prompt, "ngay": date.today().isoformat(), "ma": m.ma})
-            da_ve += 1
+                m = tuong_lai[f]
+                try:
+                    data = f.result()
+                except concurrent.futures.CancelledError:
+                    continue
+                except nguon_ve.VeError as exc:
+                    if loi_dung is None:
+                        loi_dung = exc
+                    if not da_huy:
+                        pool.shutdown(wait=False, cancel_futures=True)
+                        da_huy = True
+                    continue
+                # Lưu và ghi nguồn ngay khi mỗi ảnh vẽ xong: ảnh đã trả tiền không mất nếu ảnh khác lỗi sau đó.
+                file_goc = ke_hoach.file_goc(thu_muc, m)
+                _luu_anh(data, file_goc)
+                files.append(str(file_goc.relative_to(thu_muc).as_posix()))
+                nguon_moi.append({"file": f"ai/goc/{m.ma}.png", "cong_cu": "api", "mo_hinh": ch.mo_hinh,
+                                  "prompt": m.prompt, "ngay": date.today().isoformat(), "ma": m.ma})
+                da_ve += 1
 
     if nguon_moi:
         _ghi_nguon(thu_muc_ai, nguon_moi)
+
+    if loi_dung is not None:
+        raise loi_dung
 
     return {"files": files, "so_anh": len(ds), "da_ve": da_ve, "dung_lai": dung_lai, "ke_hoach": ke_hoach_rel}
 
@@ -220,7 +261,7 @@ def main(argv=None) -> int:
         error = {"step": "write", "message": f"Không ghi được file: {exc}", "fix": "Đóng file đang mở và kiểm tra ổ đĩa rồi chạy lại."}
     except Exception as exc:  # noqa: BLE001
         error = {"step": "internal", "message": f"{type(exc).__name__}: {exc}", "fix": FIX_INTERNAL}
-    emit({**base, "warnings": warnings, "error": error})
+    emit({**base, "warnings": warnings, "error": _an_khoa_trong_loi(error)})
     return 1
 
 
