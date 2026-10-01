@@ -1,0 +1,211 @@
+# Video Vox — thiết kế (6.3.2-vi.15)
+
+Ngày: 2026-10-01. Trạng thái: chờ chủ repo duyệt.
+
+## 1. Vì sao làm
+
+Chủ repo ra lệnh "tạo 1 video dạng vox chủ đề giao tiếp với đồng nghiệp dài 60s video ngang 16:9". Kết quả (`projects/_video/giao-tiep-dong-nghiep/`) sai ở hai chỗ.
+
+- **Dài 1 phút 55 giây.** Kịch bản có 9 cảnh và 288 từ lời. Giọng máy tốc độ vừa đọc khoảng 2,7 từ/giây, nên riêng tiếng đã 105 giây. Hướng dẫn không có quỹ từ theo thời lượng, và công cụ không biết thời lượng mong muốn.
+- **Kịch bản bó theo khuôn bài giảng.**
+  - `mon`, `lop` bắt buộc.
+  - Hướng dẫn buộc mở bằng cảnh `tieu-de` và chốt bằng tóm tắt, gợi ý luôn có câu hỏi nhanh.
+  - Nội dung đổ vào các khuôn `khai-niem`, `y-tung-y`, `quy-trinh`.
+  - Nền lấy từ 8 nền mẫu, nên chuyện công sở lại ra nền lớp học.
+  - Có số liệu "85%" không rõ nguồn.
+
+Chủ repo muốn bộ công cụ không gắn với ngành hay lĩnh vực nào, và không cần kho mẫu. Ảnh tạo qua API 9router hoặc Codex CLI, kể cả khi chạy trong Claude Code. Video giải thích chỉ còn **một lối là Vox**; trọng tâm là kịch bản, bố cục và hình hiện khớp với lời thoại.
+
+## 2. Quyết định đã chốt
+
+| Câu hỏi | Chốt |
+|---|---|
+| Kiểu viết tay và các khuôn cảnh cũ | Vẫn dựng được (`video.md` cũ không hỏng, test cũ giữ nguyên) nhưng không còn trong hướng dẫn và luật. |
+| Nguồn ảnh | AI trước: công cụ vẽ của nền tảng → API 9router → Codex CLI. Người, địa danh, sự kiện có thật thì dùng ảnh thật giấy phép mở. |
+| Cách tả cảnh | Nhịp theo lời thoại: mỗi nhịp gắn một cụm từ trong lời và nói hiện vật gì ở ô nào. |
+| Hỏi và duyệt | Chỉ hỏi khi câu lệnh thiếu chủ đề hoặc nội dung. Không dừng chờ duyệt; AI tự xem trước, tự sửa, dựng rồi gửi video kèm kịch bản. Người dùng xin xem kịch bản trước thì mới dừng. |
+
+## 3. Kiến trúc
+
+Giữ đường dựng của `tools/vi/video_ma.py`: parse → kiem → giong (edge-tts, mốc từng từ) → lich → trang → chup (beginFrame) → ghep (FFmpeg, karaoke một dòng, nhạc nền, hiệu ứng âm).
+
+Thêm:
+
+1. `phong-cach: vox` trong `video.md`. Cảnh của video Vox không có `loai:`; mỗi cảnh là `loi` + `bo-cuc` + các `nhip`.
+2. Lớp dựng hình Vox trong runtime (file JS và CSS mới cạnh `cat-dan.js`), phát triển từ bản thử 15 giây hôm 2026-10-01.
+3. `tools/vi/anh_vox.py`: lập danh sách ảnh từ các nhịp, tạo ảnh, tách nền, ghi nguồn.
+4. Kiểm thời lượng theo khoá `thoi-luong`.
+5. Hướng dẫn mới cho AI và luật đổi theo.
+
+Hai phong cách cũ (`viet-tay`, `cat-dan`) chạy như trước. Lớp Vox không sửa hành vi của chúng.
+
+## 4. Định dạng `video.md` cho Vox
+
+### 4.1 Khối thông tin
+
+| Khoá | Bắt buộc | Giá trị |
+|---|---|---|
+| `tieu-de` | có | tên video |
+| `phong-cach` | có | `vox` |
+| `thoi-luong` | không | số giây mong muốn, 15–600. Có thì công cụ kiểm thời lượng (mục 7). |
+| `kho` | không | `ngang` (mặc định) hoặc `doc` |
+| `do-phan-giai` | không | `1080` (mặc định) hoặc `720` |
+| `giong`, `toc-do`, `phu-de`, `am-thanh`, `nhac-nen`, `nguon-nhac`, `loat` | không | như hiện nay |
+| `phong-anh` | không | `chup-that` (mặc định) hoặc `minh-hoa`; đuôi câu lệnh chung cho mọi ảnh AI |
+| `bang-mau` | không | một trong vài bộ màu giấy có sẵn (`kem` mặc định, `bao-cu`, `dem`, `tuoi`) |
+| `chuyen-canh` | không | `xen-ke` (mặc định: xé giấy và lia nhanh xen nhau), `xe-giay`, `lia` hoặc `khong` |
+
+Với `phong-cach: vox`, `mon` và `lop` không bắt buộc (mọi phong cách khác vẫn bắt buộc như cũ). `ban-tay`, `nhan-vat`, `mau-ao`, `chu-dong`, `may-quay` không dùng; có ghi thì là lỗi `parse` kèm gợi ý bỏ.
+
+### 4.2 Cảnh
+
+```
+## Cảnh 2
+bo-cuc: hai-ben
+loi: Bạn nói "để mai tính", đồng nghiệp lại hiểu là "không làm".
+nhip: để mai tính | anh: ve: nhân viên văn phòng nhún vai, tay cầm cốc cà phê | trai
+nhip: không làm | anh: ve: đồng nghiệp khoanh tay, nhíu mày | phai
+nhip: hiểu | dau: HIỂU LẦM
+```
+
+- `loi`: 1–3 câu, viết trên một dòng.
+- `bo-cuc`: `mot`, `hai-ben`, `dan-hang`, `chong` hoặc `toan-canh`.
+- `nhip`: 1–6 dòng, dạng `<cụm từ> | <vật>: <nội dung> | <ô> | <tuỳ chọn>`. Có thể bỏ ô (công cụ chọn ô trống kế tiếp) và bỏ tuỳ chọn.
+- `chuyen`: tuỳ chọn, đổi kiểu chuyển vào cảnh này.
+- `nguon`: tuỳ chọn, dòng nguồn số liệu của cảnh (tối đa 90 ký tự), hiện nhỏ ở góc dưới.
+
+### 4.3 Cụm từ và thời điểm
+
+- Cụm từ phải có trong `loi`, so sau khi chuẩn hoá NFC, chữ thường và bỏ dấu câu, theo đúng cách khớp cụm nhấn hiện có (`lich.khoa_so_khop`).
+- Vật hiện khi giọng đọc tới từ đầu của cụm, theo mốc từng từ của edge-tts. Giọng thu sẵn thì dùng mốc ước lượng như hiện nay.
+- `@dau`: hiện ngay khi vào cảnh, sau đoạn dẫn đầu.
+- Cụm cùng xuất hiện nhiều lần trong lời: lấy lần đầu chưa dùng, sau cụm của nhịp trước.
+- Lỗi `parse`: cụm không có trong lời; các nhịp không theo thứ tự lời; cảnh không có nhịp nào.
+
+### 4.4 Vật
+
+| Vật | Nội dung | Giới hạn | Kiểu vào mặc định |
+|---|---|---|---|
+| `anh` | `ve: <mô tả>` (AI vẽ, tối đa 300 ký tự), `<tên file>` trong `anh/`, hoặc `tim: <từ khoá tiếng Anh>` (ảnh thật) | | Cắt nền: bay vào rồi đập xuống, có nảy và bóng đổ. Khung: rơi xoay nhẹ, rồi băng dính dán lên. |
+| `the` | `nhãn \| giá trị \| chú thích` | 24 / 16 / 60 ký tự | trượt vào |
+| `chu` | dòng chữ lớn | 40 ký tự; tối đa 2 dòng `chu` mỗi cảnh | hiện từng từ |
+| `nhan` | nhãn băng dính | 30 ký tự | dán |
+| `dau` | con dấu | 16 ký tự | đóng mạnh, máy rung |
+| `mui-ten` | `<ô> -> <ô>` | | vẽ dần |
+| `so` | `{{số}}` kèm chữ trước hoặc sau | 24 ký tự | chạy số từ 0 |
+
+Chữ đếm ký tự hiện ra như luật giới hạn hiện có. Vượt giới hạn là lỗi `canh`.
+
+### 4.5 Bố cục và ô
+
+| Bố cục | Ô ngang | Ô dọc | Hợp với |
+|---|---|---|---|
+| `mot` | `giua`, `tren`, `duoi` | `giua`, `tren`, `duoi` | một vật hay một khái niệm |
+| `hai-ben` | `trai`, `phai`, `giua` | `tren`, `duoi`, `giua` | so sánh, đối lập |
+| `dan-hang` | `1`–`4` | `1`–`4` (xếp dọc) | danh sách, các bước |
+| `chong` | tự xếp lệch nhau theo seed của cảnh, tối đa 5 vật | như ngang | nhiều yếu tố rối rắm |
+| `toan-canh` | `nen` (ảnh phủ kín khung) + `giua`, `duoi` | như ngang | nơi chốn, bối cảnh |
+
+Ô sai với bố cục là lỗi `parse` kèm danh sách ô đúng. Toạ độ ô nằm trong `runtime/o-bo-cuc.json` cạnh các ô hiện có.
+
+### 4.6 Tuỳ chọn của nhịp
+
+- `khung`: ảnh trong khung chữ nhật mép xé thay vì cắt nền. Ảnh thật và `toan-canh` luôn là khung.
+- `duotone`, `halftone`: xử lý in cho ảnh.
+- `xa`, `gan`: đổi lớp chiều sâu (mặc định: ảnh ở lớp giữa, chữ, thẻ và dấu ở lớp gần).
+
+## 5. Lớp dựng hình Vox
+
+Mọi khung là hàm thuần của thời điểm t (`datThoiDiem(t)`). Ngẫu nhiên đều có seed theo số cảnh và số nhịp (mulberry32 như `cat-dan.js`).
+
+- **Nền:** giấy có vân theo `bang-mau`, 3–5 mảng giấy xé màu (đa giác mép răng cưa, có sọc hoặc chấm halftone), vị trí theo seed của cảnh.
+- **Ảnh cắt nền:** viền giấy xé trắng ngà bao quanh vật. Viền được tính trước ở bước `anh_vox.py` thành PNG (giãn mặt nạ alpha, mép răng cưa theo seed, thớ giấy), không tính lại ở mỗi khung. Có bóng đổ.
+- **Ảnh khung:** chữ nhật mép xé 1–2 cạnh, một hoặc hai băng dính. `duotone` và `halftone` cũng tính trước thành PNG.
+- **2,5D:** ba lớp sâu (nền giấy xa, mảng giấy giữa, vật gần) trong `perspective`. Camera đẩy từ 1,00 lên 1,06 suốt cảnh, xoay `rotateY` tối đa ±4°; mỗi lớp lệch theo độ sâu. Lớp xa mờ nhẹ, cũng tính trước, không dùng `filter: blur` theo khung.
+- **Chuyển động vào:** theo mục 4.4, easeOutBack có nảy. Vật đập xuống kéo theo rung máy 0,15 giây, biên độ tối đa 6 px, theo seed.
+- **Chuyển cảnh:** `xe-giay` (có sẵn) và `lia` (trượt nhanh có nhoè hướng, 0,35 giây).
+- **Phụ đề:** karaoke một dòng có khung nền tối, như `cat-dan`.
+- **Hiệu năng:** bóng đổ, viền xé và độ mờ đều tính trước, để tốc độ dựng không chậm quá 1,5 lần so với `cat-dan` hiện nay (bản thử tính lại mỗi khung, chậm khoảng 7,5 lần thời lượng).
+- **Đo tràn** (`kiemTran`): chữ tràn ô, vật đè lên phụ đề, hai vật chồng quá 30% diện tích (trừ bố cục `chong`).
+
+## 6. `tools/vi/anh_vox.py`
+
+`python tools\vi\anh_vox.py <thư mục video> [--chi-ke-hoach] [--toi-da N]` in một dòng JSON: `ready`, `files`, `so_anh`, `da_ve`, `dung_lai`, `ke_hoach`, `warnings`, `error`.
+
+1. **Lập danh sách** từ mọi nhịp `anh: ve:` và `anh: tim:`. Ghi `anh/ai/ke-hoach.json`, gồm mã băm, câu lệnh đầy đủ, khổ và kiểu (cắt nền hay khung) của từng ảnh.
+   - Khổ: cắt nền 1024×1024; khung và `toan-canh` 1536×1024 (ngang) hoặc 1024×1536 (dọc).
+   - Câu lệnh = mô tả + đuôi `phong-anh` + với ảnh cắt nền "một vật duy nhất, nền xanh lá thuần #00FF00, không bóng, không viền" + luôn "không có chữ, không có chữ cái".
+2. **Lưu đệm:** mã băm = SHA-256 của (câu lệnh, mô hình, khổ). Đã có `anh/ai/goc/<mã>.png` thì không vẽ lại.
+3. **Chọn nguồn vẽ** (dừng ở nguồn đầu tiên dùng được):
+   1. Ảnh do nền tảng vẽ sẵn: `anh/ai/goc/<mã>.png` đã có, do AI dùng công cụ vẽ của Antigravity hoặc Codex app lưu vào theo `ke-hoach.json`.
+   2. API kiểu OpenAI `POST {url}/images/generations`, thân `{model, prompt, size, n: 1}`, nhận `b64_json` hoặc `url`. Cấu hình lấy theo thứ tự: biến môi trường `ANH_AI_URL`, `ANH_AI_KEY`, `ANH_AI_MO_HINH`, rồi file `%USERPROFILE%\.2anh-studio\anh-ai.json`. Mặc định `http://localhost:20128/v1` (9router) và `gpt-image-2`. Khoá không bao giờ nằm trong repo, log hay JSON đầu ra.
+   3. Codex CLI: `codex exec` với câu lệnh vẽ và lưu ra đúng đường dẫn, khi `codex` có trong PATH.
+   4. Không có nguồn nào: lỗi `cau-hinh`, `fix` gợi ý dùng `anh: tim:` hoặc thay ảnh bằng `chu`, `the`.
+4. **Ảnh thật** (`tim:`): chạy `skills/ppt-master/scripts/image_search.py` (chỉ chạy, không sửa `skills/`) vào `anh/`, lấy nguồn từ `anh/image_sources.json`.
+5. **Tách nền** ảnh cắt nền: dùng lại bộ tách nền xanh của `anh_ai.py` (FFmpeg colorkey và despill, đo màu nền). Ảnh tách không sạch thì vẽ lại một lần với câu lệnh chặt hơn; vẫn hỏng thì chuyển nhịp đó sang `khung` và ghi cảnh báo.
+6. **Tính trước** viền xé, bóng đổ, duotone và halftone thành `anh/ai/xu-ly/<mã>-<kiểu>.png`, theo seed của nhịp.
+7. **Giới hạn:** mặc định tối đa 20 ảnh mới mỗi lần chạy (`--toi-da`), vẽ song song 3 ảnh, mỗi ảnh tối đa 120 giây. Lỗi mạng hay lỗi 5xx thì tự thử lại 2 lần.
+8. **Nguồn:** `anh/ai/nguon.json` (nguồn vẽ, mô hình, câu lệnh, ngày) do lệnh này ghi. Cuối video hiện "Hình minh hoạ tạo bằng AI (<mô hình>)" như dòng nguồn AI hiện có, cùng nguồn ảnh thật.
+
+`error.step`: `input`, `parse`, `cau-hinh`, `mang`, `nha-cung-cap` (thông báo kèm nguyên văn lỗi của API: hết hạn mức, từ chối câu lệnh, mô hình không có), `tach-nen`, `write`, `internal`.
+
+**Kiểm đầu tiên khi làm** (Task 1 của kế hoạch, trước mọi phần khác):
+- 9router có nhận `/v1/images/generations` cho `gpt-image-2` không (mục mô hình đang ghi `imageOutput: false`).
+- `codex exec` có vẽ và lưu được ảnh ra file không.
+
+Nguồn nào không chạy được thì báo chủ repo và bỏ khỏi chuỗi; không đoán.
+
+## 7. Kiểm thời lượng
+
+- `--plan-only`: ước tính = tổng số từ của `loi` (và `loi-giai` nếu có) ÷ tốc độ (2,7 từ/giây ở `vua`; `cham` 2,4; `nhanh` 3,1) + 1,1 giây mỗi cảnh. Số đo của video 9 cảnh, 288 từ: 105 giây tiếng, 115 giây video.
+- Sau bước giọng: tính lại từ thời lượng cảnh thật.
+- Có `thoi-luong`: lệch quá +15% hoặc dưới −25% thì cảnh báo, nêu số giây và khoảng số từ cần cắt hay thêm, ví dụ "Video ước 115 giây, mục tiêu 60 giây: bớt khoảng 150 từ". Đây là cảnh báo (`warnings`), không chặn; luật bắt AI sửa `video.md` trước khi dựng thật.
+- Hằng số tốc độ hiệu chỉnh lại bằng ba video mẫu trong Task tương ứng.
+
+## 8. Hướng dẫn và luật
+
+- `docs/vi/tro-ly/video-giai-thich.md` viết lại thành hướng dẫn Vox; giữ đường dẫn để luật, link và test hiện có không vỡ. Nội dung:
+  - Câu hỏi: chỉ hỏi chủ đề hoặc nội dung khi thiếu. Còn lại có mặc định: thời lượng 60 giây nếu không nói, khổ ngang, giọng nữ vừa, phụ đề karaoke, tiếng hiệu ứng có, nhạc nền không.
+  - Mạch kể: móc (3 giây đầu, có hình ngay khung đầu) → vấn đề → giải thích 2–4 ý, mỗi ý một hình ví von cụ thể → lật → chốt. Không cảnh tiêu đề riêng, không "Hôm nay chúng ta…", không liệt kê "thứ nhất, thứ hai".
+  - Quỹ từ: 30 giây ≈ 65 từ, 3–4 cảnh; 60 giây ≈ 130 từ, 5–7 cảnh; 2 phút ≈ 270 từ; 3 phút ≈ 410 từ. Mỗi cảnh 5–12 giây.
+  - Lời: câu ngắn, tối đa khoảng 15 từ, giọng kể. Không bịa số liệu: chỉ dùng số người dùng đưa hoặc tra được nguồn, kèm `nguon`.
+  - Hình khớp thoại: mỗi câu ít nhất một nhịp; phép thử tắt tiếng; chữ trên hình tối đa khoảng 6 từ, không chép lời; `ve:` nêu vật, hành động và góc chụp cụ thể.
+  - Chọn bố cục theo ý (bảng mục 4.5).
+  - Vòng tự kiểm: `--plan-only` → `anh_vox.py` → `--xem-truoc` → xem từng cảnh theo danh sách (khớp lời, tràn, chồng, ảnh có chữ hay sai ý, thời lượng) → sửa → dựng thật → gửi video kèm kịch bản và cảnh báo.
+- `docs/vi/tro-ly/nhip-vox.md` (mới): ngữ pháp nhịp, bảng vật, bố cục, ô, tuỳ chọn, ví dụ đầy đủ một video 60 giây.
+- `docs/vi/tro-ly/canh-video.md` và nội dung viết tay cũ chuyển sang `docs/vi/tham-khao/`, ghi rõ "kiểu cũ, chỉ dùng khi sửa `video.md` cũ".
+- `AGENTS.vi.md` §15, `docs/vi/tro-ly/quy-trinh-hoi.md`, `docs/vi/video-giai-thich.md` (cho người dùng) và `.agents/rules/ppt-master-vi.md` sửa theo. Bỏ câu "Claude Code không vẽ thì dùng nền mẫu". Luật Antigravity vẫn dưới 12 000 byte (CRLF). Câu hỏi phân loại "video từ slide hay video mới" ở §11 giữ nguyên.
+- Từ kích hoạt thêm "video vox", "kiểu vox".
+
+## 9. Kiểm thử
+
+- **Test đơn vị:**
+  - đọc nhịp, khớp cụm từ, thứ tự nhịp, ô theo bố cục, giới hạn chữ;
+  - ước tính thời lượng và cảnh báo;
+  - `anh_vox.py`: chuỗi nguồn với HTTP giả lập và `codex` giả lập, lưu đệm, khoá không lộ ra đầu ra, tách nền, các `error.step`.
+- **Test Chromium:**
+  - cùng t ra cùng byte;
+  - vật hiện đúng mốc từ;
+  - không tràn, đúng khổ ngang, dọc, 720 và 1080;
+  - chuyển cảnh `lia`.
+- **Không đổi hành vi cũ:** toàn bộ test hiện có (1420) vẫn qua; video `viet-tay` và `cat-dan` mẫu dựng ra giống trước.
+- **Kiểm chứng thật:** chạy lại câu lệnh "tạo 1 video dạng vox chủ đề giao tiếp với đồng nghiệp dài 60s video ngang 16:9". Đạt khi:
+  - video dài 54–66 giây;
+  - mọi nhịp khớp lời, có ảnh AI từ 9router;
+  - không có số liệu thiếu nguồn;
+  - chủ repo xem và đồng ý.
+- **Tốc độ:** video Vox 60 giây dựng không quá khoảng 1,5 lần thời lượng trên máy 6 lõi, chưa kể tạo ảnh và giọng.
+
+## 10. Ngoài phạm vi
+
+- Mô hình tách nền chạy trên máy (ONNX). Ảnh thật không cắt nền mà dùng khung.
+- Nhân vật dẫn chuyện người que trong Vox.
+- Video tư liệu, ảnh động.
+- Xoá kiểu viết tay và các khuôn cảnh cũ.
+
+## 11. Rủi ro
+
+- 9router hoặc Codex không tạo được ảnh: Vox vẫn làm được bằng ảnh thật, `chu`, `the`, `dau`, nhưng kém sinh động. Task 1 kiểm trước.
+- Ảnh AI có chữ hoặc sai ý: không kiểm tự động được; AI phải xem ở bước xem trước.
+- Chi phí tạo ảnh: giới hạn 20 ảnh mỗi lần chạy, lưu đệm theo mã băm.
+- Tách nền xanh hỏng với vật có màu xanh lá: tự chuyển sang `khung` và cảnh báo.
