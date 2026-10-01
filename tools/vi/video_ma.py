@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from thi_nghiem_parts import thu_vien  # noqa: E402
-from video_ma_parts import anh, chup, ghep, giong, hinh, kho, kiem, lich, parse, thoi_luong, trang  # noqa: E402
+from video_ma_parts import anh, chup, ghep, giong, hinh, kho, kiem, lich, parse, thoi_luong, trang, vox  # noqa: E402
 from video_parts import media  # noqa: E402
 
 FIX_INPUT = "Viết video.md trong thư mục dự án (xem docs/vi/tro-ly/video-giai-thich.md) rồi chạy lại."
@@ -95,6 +95,8 @@ def _nhan_vat_anh(scene: parse.Scene, thu_muc: Path, meta: dict):
 
 
 def _tai_nguyen(scene: parse.Scene, thu_muc: Path, meta: dict | None = None) -> dict:
+    if scene.loai == "vox":
+        return vox.tai_nguyen(scene, thu_muc)
     them = {}
     if scene.nen is not None:
         them["nen"] = _nen(scene, thu_muc)
@@ -128,6 +130,8 @@ def _cac_du(video, cac_lich, models, thu_muc: Path, nhac=None) -> list:
     # Mọi ảnh AI được ghi công: nền, nhân vật, và ảnh `ai/…` dùng ở trường `anh:` thường.
     mo_hinh = [a["moHinh"] for tn in cac_tn for a in (tn.get("nen"), tn.get("nhanVatAnh"), tn.get("anh"))
                if a and a.get("moHinh")]
+    mo_hinh += [a["moHinh"] for scene, tn in zip(video.canh, cac_tn) if scene.loai == "vox"
+                for a in (tn.get("anh") or {}).values() if a and a.get("moHinh")]
     dongs = ([lich.dong_ai(mo_hinh)] if mo_hinh else []) + ([nhac["nguon"]] if nhac is not None else [])
     if cac_du:
         lich.gan_dong_nguon(cac_du[-1], dongs)

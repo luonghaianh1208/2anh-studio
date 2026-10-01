@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 
+import base64
+import json
 import re
 import unicodedata
 from dataclasses import dataclass
+from pathlib import Path
 
 # Khoá đầu chỉ có ở Vox; giá trị đầu tiên là mặc định.
 VOX_META_CHOICES = {
@@ -16,6 +19,8 @@ VOX_META_CHOICES = {
 # Khoá đầu của kiểu viết tay, không dùng ở Vox.
 VOX_CAM = ("ban-tay", "nhan-vat", "mau-ao", "chu-dong", "may-quay")
 CHUYEN_CANH = ("xe-giay", "lia", "khong")
+# Chuyển cảnh xen kẽ (khoá đầu `chuyen-canh: xen-ke`, mặc định của Vox): cảnh chẵn/lẻ (kể từ Cảnh 2) luân phiên.
+CHUYEN_XEN_KE = ("xe-giay", "lia")
 THOI_LUONG = (15, 600)
 NHIP_TOI_DA = 6
 CHU_TOI_DA = 2
@@ -172,3 +177,168 @@ def kiem_canh(scene, kho: str) -> None:
         vi_tri = i + len(khoa_tu(n.cum))
     if bo_cuc == "chong" and len(scene.nhip) > CHONG_TOI_DA:
         raise _loi(scene.nhip[CHONG_TOI_DA].dong, f"Bố cục `chong` tối đa {CHONG_TOI_DA} vật.")
+
+
+def moc_nhip(nhips: list, moc_tu: list, dan_dau: float) -> list:
+    """Mốc bắt đầu (giây trong cảnh) của từng nhịp, theo mốc từ (`lich.CanhLich.moc_tu`) của cụm từ nhịp đó khớp
+    trong lời; `@dau` luôn ở `dan_dau`. Cụm không khớp được (giọng chưa có mốc từ, hay không khớp) nối tiếp nhịp
+    trước, cách 0,6 giây."""
+    khoa = [w["khoa"] for w in moc_tu]
+    ra, vi_tri = [], 0
+    for n in nhips:
+        if n.cum == "@dau":
+            ra.append(dan_dau)
+            continue
+        can = khoa_tu(n.cum)
+        i = next((j for j in range(vi_tri, len(khoa) - len(can) + 1) if khoa[j:j + len(can)] == can), -1)
+        if i < 0:
+            ra.append((ra[-1] + 0.6) if ra else dan_dau)
+            continue
+        ra.append(moc_tu[i]["t"])
+        vi_tri = i + len(can)
+    return [max(dan_dau, t) for t in ra]
+
+
+def _o_cac_nhip(scene, kho_ten: str) -> list:
+    """Ô của từng nhịp theo thứ tự: nhịp ghi ô thì dùng đúng ô đó; không ghi thì ô đầu tiên của `BO_CUC[bo_cuc][kho]`
+    (trừ `nen`) chưa có vật nào dùng, hết ô thì dùng lại ô cuối; bố cục `chong` không có ô, trả `"chong-<k>"`."""
+    bo_cuc = scene.truong["bo-cuc"][0]
+    o_hop_le = [o for o in BO_CUC[bo_cuc][kho_ten] if o != "nen"]
+    da_dung: list = []
+    chong_dem = 0
+    ket = []
+    for n in scene.nhip:
+        if n.o is not None:
+            ket.append(n.o)
+            if n.o not in da_dung:
+                da_dung.append(n.o)
+            continue
+        if bo_cuc == "chong":
+            ket.append(f"chong-{chong_dem}")
+            chong_dem += 1
+            continue
+        trong = [o for o in o_hop_le if o not in da_dung]
+        o = trong[0] if trong else (ket[-1] if ket else (o_hop_le[0] if o_hop_le else None))
+        ket.append(o)
+        da_dung.append(o)
+    return ket
+
+
+def _nhip_du_lieu(n: Nhip, o: str, bat_dau: float) -> dict:
+    d = {"batDau": bat_dau, "vat": n.vat, "o": o, "tuyChon": list(n.tuy_chon),
+         "chu": None, "the": None, "anh": None, "so": None}
+    if n.vat in ("chu", "nhan", "dau"):
+        d["chu"] = hien(n.noi_dung)
+    elif n.vat == "mui-ten":
+        d["chu"] = n.noi_dung
+    elif n.vat == "the":
+        from .parse import tach_the
+        nhan, gia_tri, chu_thich = tach_the(n.noi_dung)
+        d["the"] = {"nhan": nhan, "giaTri": gia_tri, "chuThich": chu_thich}
+    elif n.vat == "so":
+        m = _SO_RE.search(n.noi_dung)
+        raw = m.group(1)
+        thap_phan = len(raw.split(".", 1)[1]) if "." in raw else 0
+        d["so"] = {"giaTri": float(raw), "truoc": n.noi_dung[:m.start()], "sau": n.noi_dung[m.end():],
+                   "thapPhan": thap_phan}
+    return d
+
+
+def _chuyen_canh(scene, meta: dict):
+    """Kiểu chuyển cảnh vào cảnh này (spec §3–5): trường `chuyen` của cảnh (`khong` -> None); không có thì theo
+    khoá đầu `chuyen-canh` (`xen-ke` luân phiên hai kiểu, `khong` -> None); Cảnh 1 luôn None."""
+    if scene.so <= 1:
+        return None
+    kieu = scene.truong.get("chuyen", [None])[0]
+    if kieu == "khong":
+        return None
+    if kieu:
+        return kieu
+    kieu_meta = meta.get("chuyen-canh", "xen-ke")
+    if kieu_meta == "xen-ke":
+        return CHUYEN_XEN_KE[(scene.so - 2) % len(CHUYEN_XEN_KE)]
+    return None if kieu_meta == "khong" else kieu_meta
+
+
+def du_lieu_canh(scene, cl, tai_nguyen: dict, meta: dict) -> dict:
+    """Dữ liệu trang của một cảnh Vox (Hợp đồng dùng chung, global.md)."""
+    from . import kho as _kho, phong as _phong
+    from . import lich as _lich
+
+    dan_dau = _lich.DAN_DAU
+    kho_ten = meta.get("kho", "ngang")
+    anh_tn = tai_nguyen.get("anh") or {}
+    cac_o = _o_cac_nhip(scene, kho_ten)
+    cac_bat_dau = moc_nhip(scene.nhip, cl.moc_tu, dan_dau)
+    nhip_du = []
+    for n, o, bat_dau in zip(scene.nhip, cac_o, cac_bat_dau):
+        d = _nhip_du_lieu(n, o, bat_dau)
+        if n.vat == "anh":
+            d["anh"] = anh_tn.get(n.chi_so)
+        nhip_du.append(d)
+    return {
+        "so": scene.so, "loai": "vox", "thoiLuong": cl.thoi_luong, "danDau": dan_dau,
+        "kho": _kho.tu_meta(meta).du_lieu(), "chuDe": _phong.chu_de("vox"),
+        "boCuc": scene.truong["bo-cuc"][0], "hat": scene.so, "bangMau": meta.get("bang-mau", "kem"),
+        "nhip": nhip_du, "nguon": scene.truong.get("nguon", [None])[0], "co": {"chuyen": _chuyen_canh(scene, meta)},
+        "nenTruoc": None, "dongNguon": [], "loat": None, "tu": list(cl.moc_tu),
+    }
+
+
+def kiem(video, thu_muc) -> list:
+    """Kiểm cảnh Vox: mỗi nhịp `anh` phải có ảnh đã xử lý trong `anh/ai/vox.json` (Task 4); cảnh báo lời dài."""
+    from . import kiem as _kiem
+
+    duong_bang = Path(thu_muc) / "anh" / "ai" / "vox.json"
+    try:
+        bang = json.loads(duong_bang.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        bang = {}
+    if not isinstance(bang, dict):
+        bang = {}
+    warnings: list = []
+    for scene in video.canh:
+        for n in scene.nhip:
+            if n.vat != "anh":
+                continue
+            info = bang.get(f"{scene.so}-{n.chi_so}")
+            file_ok = info is not None and (Path(thu_muc) / "anh" / info.get("file", "")).is_file()
+            if not file_ok:
+                raise _kiem.CanhError(scene.so, f"nhịp {n.chi_so + 1} chưa có ảnh đã xử lý.",
+                                      "Chạy `python tools\\vi\\anh_vox.py <thư mục video>` để tạo và xử lý ảnh, "
+                                      "rồi chạy lại.")
+        if len(scene.loi) > _kiem.LOI_DAI:
+            warnings.append(f"Cảnh {scene.so}: lời dài {len(scene.loi)} ký tự (quá {_kiem.LOI_DAI}); nên tách "
+                            "thành hai cảnh.")
+    return warnings
+
+
+def tai_nguyen(scene, thu_muc) -> dict:
+    """Ảnh của cảnh ({chi_số: {dataUrl, rong, cao, kieu, nguon, moHinh}}), đọc trực tiếp từ `anh/ai/vox.json` và các
+    PNG đã xử lý trong `anh/ai/xu-ly/` (đã kiểm nguồn ở `anh_vox.py`; không qua `anh.doc`)."""
+    from PIL import Image
+
+    duong_bang = Path(thu_muc) / "anh" / "ai" / "vox.json"
+    try:
+        bang = json.loads(duong_bang.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        bang = {}
+    if not isinstance(bang, dict):
+        bang = {}
+    ra: dict = {}
+    for n in scene.nhip:
+        if n.vat != "anh":
+            continue
+        info = bang.get(f"{scene.so}-{n.chi_so}")
+        if not info:
+            continue
+        duong_anh = Path(thu_muc) / "anh" / info["file"]
+        data = duong_anh.read_bytes()
+        with Image.open(duong_anh) as im:
+            rong, cao = im.size
+        ra[n.chi_so] = {
+            "dataUrl": "data:image/png;base64," + base64.b64encode(data).decode("ascii"),
+            "rong": rong, "cao": cao, "kieu": info.get("kieu"),
+            "nguon": info.get("nguon"), "moHinh": info.get("mo_hinh"),
+        }
+    return {"anh": ra}

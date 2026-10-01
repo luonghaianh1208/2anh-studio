@@ -77,9 +77,9 @@ def kieu_phu_de(chu_de: str, kho_ten: str) -> dict:
     """Kiểu phụ đề karaoke theo chủ đề (`viet-tay`/`cat-dan`) và khổ (`ngang`/`doc`): font, cỡ chữ, có khung nền
     hay không, giới hạn ký tự một dòng. `cat-dan` hoặc bất kỳ khổ `doc` đều có khung."""
     return {
-        "font": FONT_CAT_DAN if chu_de == "cat-dan" else FONT_VIET_TAY,
+        "font": FONT_CAT_DAN if chu_de in ("cat-dan", "vox") else FONT_VIET_TAY,
         "co": 40,
-        "khung": chu_de == "cat-dan" or kho_ten == "doc",
+        "khung": chu_de in ("cat-dan", "vox") or kho_ten == "doc",
         "gioi_han": GIOI_HAN_DOC if kho_ten == "doc" else GIOI_HAN_NGANG,
     }
 

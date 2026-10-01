@@ -210,13 +210,17 @@ CHUYEN_XOAY = ("lau-bang", "lat-trang", "truot", "phong", "mo-man")
 _MAC_DINH_CU = {"ban-tay": "co", "chuyen-canh": "lau-bang"}
 # `cat-dan` (giấy cắt dán): tay ẩn, chuyển cảnh mặc định xé giấy thay vì lau bảng.
 _MAC_DINH_CAT_DAN = {"ban-tay": "khong", "chuyen-canh": "xe-giay"}
+# `vox`: tay ẩn, chuyển cảnh mặc định xen kẽ hai kiểu (vox.CHUYEN_XEN_KE).
+_MAC_DINH_VOX = {"ban-tay": "khong", "chuyen-canh": "xen-ke"}
 
 
 def mac_dinh(meta: dict, khoa: str) -> str:
     """Giá trị của khoá đầu `khoa` (`ban-tay`, `chuyen-canh`): kịch bản có ghi thì theo kịch bản; không ghi thì theo
-    `phong-cach` (`cat-dan` đổi mặc định, phong cách khác giữ mặc định cũ)."""
+    `phong-cach` (`cat-dan`, `vox` đổi mặc định, phong cách khác giữ mặc định cũ)."""
     if khoa in meta:
         return meta[khoa]
+    if meta.get("phong-cach") == "vox":
+        return _MAC_DINH_VOX[khoa]
     if meta.get("phong-cach") == "cat-dan":
         return _MAC_DINH_CAT_DAN[khoa]
     return _MAC_DINH_CU[khoa]
@@ -259,6 +263,9 @@ def tai_lieu_hien(chu: str) -> str:
 
 
 def du_lieu_canh(scene: Scene, cl: CanhLich, model=None, tai_nguyen: dict | None = None) -> dict:
+    if scene.loai == "vox":
+        from . import vox
+        return vox.du_lieu_canh(scene, cl, tai_nguyen or {"anh": {}}, (tai_nguyen or {}).get("meta", {}))
     tai_nguyen = tai_nguyen or {}
     meta = tai_nguyen.get("meta", {})
     chuyen = kieu_chuyen(scene, meta)

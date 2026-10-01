@@ -14,6 +14,9 @@ TEN = "Itim"
 # Be Vietnam Pro của phong cách `cat-dan`: độ đậm -> file (nguồn và SHA-256 ở runtime/fonts/README.md).
 TEN_CAT_DAN = "BeVietnamPro"
 FONT_CAT_DAN = {400: _FONTS / "BeVietnamPro-Regular.ttf", 800: _FONTS / "BeVietnamPro-ExtraBold.ttf"}
+# Cùng font Be Vietnam Pro, nhưng tên họ đúng như trong file (có khoảng trắng): dùng cho chủ đề `vox` để khớp tên
+# font mà karaoke.py/ffmpeg đọc từ bảng `name` của chính TTF.
+TEN_VOX = "Be Vietnam Pro"
 
 # Chủ đề (`du["chuDe"]`) theo khoá đầu `phong-cach`: font, kiểu hiện chữ (`viet` bút viết, `truot` trượt và mờ dần),
 # kiểu nét (`ve` vẽ theo nhịp, `nhanh` vẽ nhanh và đậm); `cat-dan` thêm bốn màu nhãn (cảnh N dùng màu (N-1) % 4) và
@@ -22,6 +25,7 @@ CHU_DE = {
     "viet-tay": {"ten": "viet-tay", "font": TEN, "hienChu": "viet", "net": "ve"},
     "cat-dan": {"ten": "cat-dan", "font": TEN_CAT_DAN, "hienChu": "truot", "net": "nhanh",
                 "mauNhan": ["#b07419", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"},
+    "vox": {"ten": "vox", "font": TEN_VOX, "hienChu": "truot", "net": "nhanh"},
 }
 
 _THUONG = "ạảãàáâậầấẩẫăặằắẳẵẹẻẽèéêệềếểễịỉĩìíọỏõòóôộồốổỗơợờớởỡụủũùúưựừứửữỵỷỹỳýđ"
@@ -112,8 +116,10 @@ def _face(ten: str, path: Path, dam: str = "") -> str:
 
 
 def font_css(phong_cach: str = "viet-tay") -> str:
-    """Khối @font-face nhúng data: của chủ đề. `cat-dan` nhúng Be Vietnam Pro 400 và 800, và vẫn nhúng Itim."""
+    """Khối @font-face nhúng data: của chủ đề. `cat-dan`/`vox` nhúng Be Vietnam Pro 400 và 800 (vox dùng tên họ
+    `TEN_VOX` khớp `CHU_DE["vox"]["font"]`), và vẫn nhúng Itim."""
     css = _face(TEN, FONT)
-    if phong_cach == "cat-dan":
-        css += "".join(_face(TEN_CAT_DAN, path, f"font-weight:{dam};") for dam, path in FONT_CAT_DAN.items())
+    if phong_cach in ("cat-dan", "vox"):
+        ten = TEN_VOX if phong_cach == "vox" else TEN_CAT_DAN
+        css += "".join(_face(ten, path, f"font-weight:{dam};") for dam, path in FONT_CAT_DAN.items())
     return css

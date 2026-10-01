@@ -8,7 +8,7 @@ from pathlib import Path
 
 from thi_nghiem_parts import thu_vien
 
-from . import anh, hinh, nhac, parse
+from . import anh, hinh, nhac, parse, vox
 from .parse import ParseError, Scene, Video
 
 LIMITS = {
@@ -445,7 +445,7 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True) -> list:
     if doc_nhac_nen:
         doc_nhac(video, thu_muc)
     if video.meta["phong-cach"] == "vox":
-        return warnings
+        return warnings + vox.kiem(video, thu_muc)
     _kiem_ai(video, thu_muc)
     da_doc: dict = {}
     da_bao: set = set()
