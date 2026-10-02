@@ -110,7 +110,7 @@ def may_gia():
     return srv, f"http://127.0.0.1:{srv.server_port}/v1"
 
 
-VIDEO = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n"
+VIDEO = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n"
          "## Cảnh 1\nbo-cuc: hai-ben\nloi: Cốc cà phê và chiếc bánh.\n"
          "nhip: Cốc cà phê | anh: ve: cốc cà phê sứ trắng | trai\n"
          "nhip: chiếc bánh | anh: ve: bánh sừng bò | phai | khung\n\n"
@@ -132,11 +132,11 @@ class KeHoachTest(unittest.TestCase):
 
     def test_style_suffix_changes_the_prompt(self):
         a = ke_hoach.lap(parse.parse(VIDEO))[0]
-        b = ke_hoach.lap(parse.parse(VIDEO.replace("phong-cach: vox\n", "phong-cach: vox\nphong-anh: minh-hoa\n")))[0]
+        b = ke_hoach.lap(parse.parse(VIDEO.replace("phong-cach: vox\nnen-canh: khong\ngiong: nu\n", "phong-cach: vox\nnen-canh: khong\ngiong: nu\nphong-anh: minh-hoa\n")))[0]
         self.assertNotEqual(a.prompt, b.prompt)
 
     def test_portrait_frame_size(self):
-        ds = ke_hoach.lap(parse.parse(VIDEO.replace("phong-cach: vox\n", "phong-cach: vox\nkho: doc\n")
+        ds = ke_hoach.lap(parse.parse(VIDEO.replace("phong-cach: vox\nnen-canh: khong\ngiong: nu\n", "phong-cach: vox\nnen-canh: khong\ngiong: nu\nkho: doc\n")
                                       .replace("| trai", "| tren").replace("| phai", "| duoi")))
         self.assertEqual(ds[1].kich_thuoc, "1024x1536")
 
@@ -419,7 +419,7 @@ class CliTest(unittest.TestCase):
 
     def test_retries_on_transient_errors_then_succeeds(self):
         with tempfile.TemporaryDirectory() as tmp:
-            video_mot_anh = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n"
+            video_mot_anh = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n"
                               "## Cảnh 1\nbo-cuc: hai-ben\nloi: Cốc cà phê.\n"
                               "nhip: Cốc cà phê | anh: ve: cốc cà phê sứ trắng | trai\n"
                               "nhip: @dau | chu: OK | phai\n")
@@ -433,7 +433,7 @@ class CliTest(unittest.TestCase):
 
     def _video_mot_anh(self, tmp):
         (Path(tmp) / "video.md").write_text(
-            "---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Cốc cà phê.\n"
+            "---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Cốc cà phê.\n"
             "nhip: Cốc cà phê | anh: ve: cốc cà phê sứ trắng | trai\nnhip: @dau | chu: OK | phai\n", encoding="utf-8")
 
     def test_empty_answer_is_retried_then_succeeds(self):
@@ -507,7 +507,7 @@ class CliTest(unittest.TestCase):
             self.assertEqual(kiem.kiem(video, Path(tmp), doc_nhac_nen=False), [])
 
     def _video_mot_cat(self, tmp, cong_cu="api"):
-        video = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n"
+        video = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n"
                  "## Cảnh 1\nbo-cuc: hai-ben\nloi: Cốc cà phê.\n"
                  "nhip: Cốc cà phê | anh: ve: cốc cà phê sứ trắng | trai\n")
         (Path(tmp) / "video.md").write_text(video, encoding="utf-8")
@@ -580,7 +580,7 @@ class CliTest(unittest.TestCase):
             self.assertTrue(any("khung" in w for w in out["warnings"]), out["warnings"])
 
 
-VIDEO_TIM = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n"
+VIDEO_TIM = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n"
              "## Cảnh 1\nbo-cuc: toan-canh\nloi: Phố cổ Hà Nội.\nnhip: @dau | anh: tim: hanoi old quarter | nen\n")
 
 

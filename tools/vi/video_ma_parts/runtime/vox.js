@@ -1,28 +1,16 @@
 (function (root) {
   'use strict';
 
-  // Cảnh Vox (`phong-cach: vox`): cắt dán giấy xé 2,5D. Ba lớp sâu (nền giấy xa, mảng giấy và ảnh ở giữa, chữ ở gần);
-  // camera đẩy vào chậm và xoay nhẹ, các lớp lệch nhau theo độ sâu (phép chiếu tính trong lopCamera). Mọi khung là hàm thuần của t
-  // (`datThoiDiem`); ngẫu nhiên lấy từ THI_CAT_DAN.prng theo hạt cảnh. Ảnh đã có viền xé và bóng đổ trong PNG
-  // (anh_vox.py), nên trang không thêm filter nào theo khung, trừ nhoè hướng 0,35 giây đầu của chuyển `lia`.
+  // Cảnh Vox (`phong-cach: vox`): cắt dán giấy xé nhiều lớp. Ba lớp sâu (nền xa, ảnh ở giữa, chữ ở gần) trôi ngang
+  // lệch nhau rất chậm (lopCamera); không phóng, không xoay, không rung. Mọi khung là hàm thuần của t (`datThoiDiem`);
+  // ngẫu nhiên lấy từ THI_CAT_DAN.prng theo hạt cảnh. Ảnh đã có viền xé và bóng đổ trong PNG (anh_vox.py), nên trang
+  // không thêm filter nào theo khung, trừ nhoè hướng 0,35 giây đầu của chuyển `lia`. Không lớp nào đổi tỉ lệ bằng
+  // transform: Chromium vẽ lớp đổi tỉ lệ qua bộ đệm của các khung trước, khung sẽ phụ thuộc lịch sử vẽ.
   // Phần trên `khoiDong` là hàm thuần (chạy được trong Node, test ở tests/js/test_vox.js).
   var NS = 'http://www.w3.org/2000/svg';
-  // Độ sâu (điểm CSS, âm là xa) và tâm xoay của camera (ở lớp gần): khi camera xoay, lớp lệch ngang (dọc)
-  // z·sin(rotateY (rotateX)), lớp càng xa càng lệch nhiều (thị sai). Không lớp nào phóng bằng transform: scale: lớp
-  // đổi tỉ lệ bằng transform thì Chromium vẽ chữ, ảnh và bộ lọc qua bộ đệm dựng từ tỉ lệ của các khung trước, nên cùng
-  // t mà khung khác nhau tuỳ đã vẽ những khung nào trước đó (đo được: lệch tới 192/255 ở dấu chữ Việt). Lớp dời theo
-  // bước điểm ảnh thiết bị; đẩy vào `camera().s` đi qua CSS `zoom` (DAY_VAO dưới), nên khung vẫn là hàm thuần của t.
-  var SAU = { gan: 0, giua: -80, xa: -220 };
-  var TAM_XOAY = 0;
-  // Đẩy vào (camera().s) áp bằng CSS `zoom` lên lớp gần (đủ) và lớp giữa (75 %), lớp xa đứng yên: zoom đi qua dàn
-  // trang, Chromium vẽ lại chữ và ảnh ở đúng tỉ lệ thật mỗi khung (không qua bộ đệm tỉ lệ như transform: scale).
-  // Tỉ lệ làm tròn theo bước BUOC_ZOOM; gốc đẩy vào (giữa vạch phụ đề) giữ yên bằng độ dời theo bước điểm ảnh.
-  var DAY_VAO = { gan: 1, giua: 0.75, xa: 0 };
-  var BUOC_ZOOM = 0.002;
   var CHUYEN = 0.35;
-  var DAI = { 'anh-cat': 0.55, 'anh-khung': 0.5, 'anh-phu': 0.6, the: 0.4, nhan: 0.3, dau: 0.35, chu: 0.45, so: 0.45, 'mui-ten': 0.5 };
-  var DAP = 0.45;        // cú đập (tiếng và rung) sau khi ảnh cắt / con dấu bắt đầu vào
-  var RUNG = 0.15, RUNG_TOI_DA = 6;
+  // Vật vào êm: trượt ngắn kèm mờ dần, không nảy, không rung (chủ repo: rung gây nhức mắt).
+  var DAI = { 'anh-cat': 0.5, 'anh-khung': 0.5, 'anh-phu': 0.6, the: 0.5, nhan: 0.4, dau: 0.4, chu: 0.5, so: 0.5, 'mui-ten': 0.5 };
   var SO_CHAY = 1.2;
   var CHU_LON = 72, CHU_NHO = 34;
   var THE_RONG = 460;
@@ -33,7 +21,7 @@
   // Cộng 0 để không bao giờ trả -0 (assert.strictEqual của Node phân biệt).
   function so(x) { return x + 0; }
   function lam(x) { return Math.round(x * 1000) / 1000 + 0; }
-  function easeOutBack(p) { var c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); }
+  function easeOutCubic(p) { return 1 - Math.pow(1 - p, 3); }
   function day(kho) { return kho.day || (kho.ten === 'doc' ? 1080 : 620); }
 
   function bangO() {
@@ -78,60 +66,35 @@
     var gocCuoi = vat === 'dau' ? -4 : 0;
     if (p >= 1) { return { dx: 0, dy: 0, s: 1, goc: gocCuoi, a: 1 }; }
     p = kep(p, 0, 1);
-    var e = easeOutBack(p);
-    var kq = { dx: 0, dy: 0, s: 1, goc: 0, a: p };
-    if (vat === 'anh-cat') {
-      kq.dy = -420 * (1 - p); kq.s = 0.7 + 0.3 * e; kq.a = Math.min(1, p * 4);
-    } else if (vat === 'anh-khung') {
-      kq.dy = -300 * (1 - e); kq.goc = 6 * (1 - p); kq.a = Math.min(1, p * 3);
+    var e = easeOutCubic(p);
+    var kq = { dx: 0, dy: 0, s: 1, goc: gocCuoi, a: Math.min(1, p * 2) };
+    if (vat === 'anh-cat' || vat === 'anh-khung') {
+      kq.dy = 36 * (1 - e);
     } else if (vat === 'anh-phu') {
-      kq.s = 1.05 - 0.05 * e;
+      kq.a = p;
     } else if (vat === 'the') {
-      kq.dx = 260 * (1 - e); kq.a = Math.min(1, p * 2);
+      kq.dx = 40 * (1 - e);
     } else if (vat === 'nhan') {
-      kq.s = 1.12 - 0.12 * e; kq.a = p < 0.15 ? p / 0.15 : 1;
+      kq.dx = -30 * (1 - e);
     } else if (vat === 'dau') {
-      kq.s = 2.2 - 1.2 * e; kq.goc = -8 + 4 * e; kq.a = Math.min(1, p * 5);
+      kq.s = 1.15 - 0.15 * e;
     } else {
       kq.dy = 18 * (1 - e);
     }
     return { dx: lam(kq.dx), dy: lam(kq.dy), s: lam(kq.s), goc: lam(kq.goc), a: lam(kq.a) };
   }
 
-  // Độ dời của một lớp sâu theo camera và rung (hàm thuần): {x, y}, theo bước điểm ảnh thiết bị `dpr`. Thay cho CSS
-  // perspective/preserve-3d (ghép lớp phối cảnh trong Chromium không GPU chậm ~2 lần).
-  function lopCamera(ten, cam, rg, dpr, kho) {
-    var d = SAU[ten] - TAM_XOAY;
-    var rad = Math.PI / 180;
+  // Chuyển động máy quay của Vox rất nhẹ: không phóng, không xoay, không rung. Chỉ có thị sai trôi ngang chậm suốt
+  // cảnh: nền (lớp xa) trôi ±TROI.xa điểm CSS, ảnh (lớp giữa) trôi ít hơn, chữ (lớp gần) đứng yên. Độ dời theo bước
+  // điểm ảnh thiết bị `dpr`, nên khung là hàm thuần của t.
+  var TROI = { xa: 14, giua: 5, gan: 0 };
+  var LE_NEN = 16;       // nền nướng rộng hơn khung mỗi phía LE_NEN điểm CSS để khi trôi không hở mép
+  function lopCamera(ten, cam, dpr) {
     var k = dpr || 1;
-    function buoc(x) { return Math.round(x * k) / k + 0; }
-    var z = Math.round((1 + (cam.s - 1) * DAY_VAO[ten]) / BUOC_ZOOM) * BUOC_ZOOM;
-    z = Math.round(z * 1000) / 1000;
-    var ox = kho ? kho.rong / 2 : 0, oy = kho ? day(kho) : 0;
-    return { x: buoc(d * Math.sin(cam.ry * rad) + rg.x - (z - 1) * ox), y: buoc(-d * Math.sin(cam.rx * rad) + rg.y - (z - 1) * oy),
-      z: z };
+    return { x: Math.round(TROI[ten] * (1 - 2 * cam.u) * k) / k + 0, y: 0 };
   }
-
-  // Camera: đẩy 1 → 1,06 theo smoothstep suốt cảnh, xoay rotateY tối đa ±4° (pha theo hạt), rotateX = 0,4 × rotateY.
-  function camera(t, T, hat) {
-    var u = T > 0 ? kep(t / T, 0, 1) : 1;
-    var s = 1 + 0.06 * (u * u * (3 - 2 * u));
-    var ry = kep(4 * Math.sin(2 * Math.PI * (u * 0.5 + C().prng(hat)() * 0.3)) * u, -4, 4);
-    return { s: so(s), rx: lam(ry * 0.4), ry: lam(ry), tx: 0, ty: 0 };
-  }
-
-  // Rung máy sau cú đập gần nhất trong 0,15 giây: dao động 20 Hz tắt dần từ 6 px, hướng theo hạt và chỉ số mốc.
-  function rung(t, cacMoc, hat) {
-    var chon = -1;
-    for (var i = 0; i < cacMoc.length; i++) {
-      var d = t - cacMoc[i];
-      if (d >= 0 && d <= RUNG && (chon < 0 || cacMoc[i] > cacMoc[chon])) { chon = i; }
-    }
-    if (chon < 0) { return { x: 0, y: 0 }; }
-    var dd = t - cacMoc[chon];
-    var bien = RUNG_TOI_DA * (1 - dd / RUNG) * Math.cos(2 * Math.PI * 20 * dd);
-    var huong = C().prng(hat * 7 + chon)() * 2 * Math.PI;
-    return { x: lam(bien * Math.cos(huong)), y: lam(bien * Math.sin(huong)) };
+  function camera(t, T) {
+    return { u: T > 0 ? kep(t / T, 0, 1) : 1 };
   }
 
   // Chuyển lia: cảnh trước trượt hết bề ngang khung (ease in-out), nhoè hướng mạnh nhất giữa chừng.
@@ -277,9 +240,19 @@
       im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
       return im;
     }
-    var anhXa = nenXa(hat, kho, mau).map(function (svg) { return anhSvg(svg, lop.xa); });
+    // Nền cảnh: ảnh nền AI của cảnh (`du.nen`, anh_vox.py) nếu có; không có thì nền giấy và mảng giấy xé vẽ bằng mã.
+    var coNenAI = !!(du.nen && du.nen.dataUrl);
+    var anhXa;
+    if (coNenAI) {
+      var nenAI = tao('img', 'nen-anh', lop.xa);
+      nenAI.alt = '';
+      nenAI.src = du.nen.dataUrl;
+      anhXa = [nenAI];
+    } else {
+      anhXa = nenXa(hat, kho, mau).map(function (svg) { return anhSvg(svg, lop.xa); });
+    }
     var coNen = cacNhip.some(function (n) { return vatCua(n) === 'anh-phu'; });
-    var anhGiua = coNen ? null : anhSvg(manhGiua(hat, kho, mau), lop.giua);
+    var anhGiua = coNen || coNenAI ? null : anhSvg(manhGiua(hat, kho, mau), lop.giua);
     function giaiMa(im) {
       return im.decode ? im.decode().then(function () { return im; }) : Promise.resolve(im);
     }
@@ -300,9 +273,15 @@
     }
     function nuongHet() {
       var viec = [];
-      viec.push(Promise.all(anhXa.map(giaiMa)).then(function () { return nuong(anhXa, kho.rong, kho.cao, 'nen-anh'); })
+      // Nền nướng rộng hơn khung LE_NEN mỗi phía (cùng tỉ lệ khung) để lớp xa trôi ngang không hở mép.
+      var wNen = kho.rong + 2 * LE_NEN, hNen = Math.round(wNen * kho.cao / kho.rong);
+      viec.push(Promise.all(anhXa.map(giaiMa)).then(function () { return nuong(anhXa, wNen, hNen, 'nen-anh'); })
         .then(function (ra) {
           anhXa.forEach(function (im) { lop.xa.removeChild(im); });
+          ra.style.left = -LE_NEN + 'px';
+          ra.style.top = -Math.round((hNen - kho.cao) / 2) + 'px';
+          ra.style.width = wNen + 'px';
+          ra.style.height = hNen + 'px';
           lop.xa.insertBefore(ra, lop.xa.firstChild);
         }));
       if (anhGiua) {
@@ -333,13 +312,15 @@
         (tuy.indexOf('xa') >= 0 ? 'giua' : (tuy.indexOf('gan') >= 0 ? 'gan' : (n.vat === 'anh' ? 'giua' : 'gan')));
       var el = tao('div', 'vat vat-' + vat);
       el.setAttribute('data-id', 'nhip-' + k);
+      // Bố cục `mot` theo kiểu video mẫu: nhãn tiêu đề (`tren`) và thẻ/chữ (`duoi`) canh trái, hình chính lệch phải.
+      if (boCuc === 'mot' && (n.o === 'tren' || n.o === 'duoi')) { el.classList.add('canh-trai'); }
       var r = C().prng(hat * 101 + k);
       var v = { n: n, vat: vat, el: el, o: o, goc0: typeof o.goc === 'number' ? o.goc : 0, chong: /^chong-/.test(n.o || ''),
         nen: vat === 'anh-phu', noi: null, k: k };
       if (n.vat === 'anh') {
         var a = n.anh || { dataUrl: '', rong: 4, cao: 3 };
-        var chua = a.nguon && !v.nen ? 20 : 0;
-        var b = luoi(v.nen ? phuKin(a.rong, a.cao, kho) : vuaO(o, a.rong, a.cao, chua));
+        // Không hiện dòng nguồn ảnh trên hình: nguồn ghi vào nguon.txt cạnh video (video_ma.py).
+        var b = luoi(v.nen ? phuKin(a.rong, a.cao, kho) : vuaO(o, a.rong, a.cao, 0));
         datHop(el, b);
         v.b = b;
         var img = tao('img', 'anh', el);
@@ -359,17 +340,6 @@
             bd += '<polygon points="' + t0.points + '" transform="rotate(' + (trai ? -38 : 38) + ' ' + lam(cx) + ' 4)"/>';
           }
           el.insertAdjacentHTML('beforeend', bd + '</svg>');
-        }
-        if (a.nguon) {
-          var ng = tao('div', 'nguon-anh', el);
-          ng.textContent = a.nguon;
-          if (v.nen) {
-            ng.classList.add('tren-nen');
-            ng.style.left = 'auto';
-            ng.style.top = 'auto';
-            ng.style.right = lam(b.x + b.w - kho.rong + 24) + 'px';
-            ng.style.bottom = lam(b.y + b.h - day(kho) + 8) + 'px';
-          }
         }
         v.noi = el;
       } else if (vat === 'mui-ten') {
@@ -426,15 +396,9 @@
       dongNguon.forEach(function (d) { tao('div', 'dong', nhacNguon).textContent = d.chu; });
       nhacNguon.style.display = 'none';
     }
+    // Dòng nguồn số liệu của cảnh không hiện trên hình (ghi vào nguon.txt).
     var nguonCanh = null;
-    if (du.nguon) {
-      nguonCanh = tao('div', 'nguon-canh', gocNguon);
-      nguonCanh.textContent = du.nguon;
-    }
     if (du.loat && root.THI_KHUNG_LOAT) { root.THI_KHUNG_LOAT.dung(khung, du); }
-
-    var cacMocDap = cacVat.filter(function (v) { return v.vat === 'anh-cat' || v.vat === 'dau'; })
-      .map(function (v) { return v.n.batDau + DAP; });
 
     // Cỡ chữ lớn nhất vừa ô (đo khi font đã nạp: lần datThoiDiem đầu tiên từ ngoài).
     var daDo = false;
@@ -550,19 +514,16 @@
       }
     }
 
-    function datCamera(cam, rg) {
+    function datCamera(cam) {
       ['xa', 'giua', 'gan'].forEach(function (ten) {
-        var l = lopCamera(ten, cam, rg, root.devicePixelRatio || 1, kho);
-        ngoai[ten].style.transform = l.x || l.y ? 'translate(' + l.x + 'px,' + l.y + 'px)' : 'none';
-        if (ten !== 'xa') { lop[ten].style.zoom = l.z === 1 ? '' : String(l.z); }
+        var l = lopCamera(ten, cam, root.devicePixelRatio || 1);
+        ngoai[ten].style.transform = l.x ? 'translate(' + l.x + 'px,0px)' : 'none';
       });
     }
 
     function dat(t) {
       datChuyen(t);
-      var cam = camera(t, du.thoiLuong, hat);
-      var rg = rung(t, cacMocDap, hat);
-      datCamera(cam, rg);
+      datCamera(camera(t, du.thoiLuong));
       cacVat.forEach(function (v) {
         var p = kep((t - v.n.batDau) / DAI[v.vat], 0, 1);
         var el = v.el;
@@ -601,7 +562,7 @@
     function hcn(el) { return el.getBoundingClientRect(); }
     function kiemTran() {
       root.datThoiDiem(thoiDiemCuoi());
-      datCamera({ s: 1, rx: 0, ry: 0 }, { x: 0, y: 0 });
+      datCamera({ u: 0.5 });
       if (nenTruoc) { nenTruoc.style.display = 'none'; }
       var loi = [];
       var R = kho.rong + 1, Cc = kho.cao + 1, D = day(kho) + 1;
@@ -653,8 +614,9 @@
       var ds = [];
       if (co.chuyen) { ds.push({ t: 0, loai: 'chuyen', dai: CHUYEN }); }
       cacVat.forEach(function (v) {
-        if (v.vat === 'anh-cat' || v.vat === 'dau') { ds.push({ t: lam(v.n.batDau + DAP), loai: 'nhan', dai: 0.2 }); }
-        else { ds.push({ t: v.n.batDau, loai: 'ting', dai: 0.2 }); }
+        // Vật hiện ngay đầu cảnh (cùng lúc chuyển cảnh) không kêu; con dấu kêu tiếng đóng, vật khác tiếng "ting" nhỏ.
+        if (v.n.batDau <= (du.danDau || 0) + 0.01) { return; }
+        ds.push({ t: v.n.batDau, loai: v.vat === 'dau' ? 'nhan' : 'ting', dai: 0.2 });
       });
       return ds;
     }
@@ -667,8 +629,8 @@
   }
 
   root.THI_VOX = {
-    oCua: oCua, xepChong: xepChong, vao: vao, camera: camera, lopCamera: lopCamera, rung: rung, chuyenLia: chuyenLia, dinhDangSo: dinhDangSo,
-    easeOutBack: easeOutBack, DAI: DAI, CHUYEN: CHUYEN, khoiDong: khoiDong
+    oCua: oCua, xepChong: xepChong, vao: vao, camera: camera, lopCamera: lopCamera, chuyenLia: chuyenLia, dinhDangSo: dinhDangSo,
+    easeOutCubic: easeOutCubic, DAI: DAI, CHUYEN: CHUYEN, TROI: TROI, khoiDong: khoiDong
   };
   // Trang Vox không nạp khung-video.js: vox.js tự cung cấp hợp đồng trang THI_VIDEO, luôn là đối tượng mới
   // (page.set_content giữ nguyên window, nên THI_VIDEO của trang trước — có khi đã `san` — còn đó).

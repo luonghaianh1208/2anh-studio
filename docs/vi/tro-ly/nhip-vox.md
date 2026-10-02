@@ -30,11 +30,11 @@ Ví dụ: `nhip: để mai tính | anh: ve: bàn tay cầm điện thoại, ch�
 
 | Vật | Nội dung | Giới hạn | Kiểu vào |
 |---|---|---|---|
-| `anh` | `ve: <mô tả>` (AI vẽ), `tim: <từ khoá tiếng Anh>` (ảnh thật giấy phép mở) hoặc tên file trong `anh/` (`.jpg`, `.jpeg`, `.png`, `.webp`) | mô tả `ve:` tối đa 300 ký tự | cắt nền: bay vào, đập xuống có nảy và bóng đổ; khung: rơi xoay nhẹ rồi băng dính dán lên |
+| `anh` | `ve: <mô tả>` (AI vẽ), `tim: <từ khoá tiếng Anh>` (ảnh thật giấy phép mở) hoặc tên file trong `anh/` (`.jpg`, `.jpeg`, `.png`, `.webp`) | mô tả `ve:` tối đa 300 ký tự | trượt nhẹ lên kèm mờ dần (không nảy, không rung) |
 | `the` | `<nhãn> \| <giá trị> \| <chú thích>`, chú thích bỏ được | nhãn 24, giá trị 16, chú thích 60 ký tự | trượt vào |
 | `chu` | một dòng chữ lớn, ý chốt hay câu ngắn | 40 ký tự; tối đa 2 dòng `chu` mỗi cảnh | hiện từng từ |
 | `nhan` | nhãn trên băng dính màu | 30 ký tự | dán |
-| `dau` | con dấu, thường viết hoa | 16 ký tự | đóng mạnh, máy rung nhẹ |
+| `dau` | con dấu, thường viết hoa | 16 ký tự | mờ dần, thu nhẹ về đúng cỡ (không rung) |
 | `mui-ten` | `<ô> -> <ô>`, hai đầu là ô của bố cục, ví dụ `trai -> phai`; vẽ trên cả khung, không chiếm ô; bố cục `chong` không dùng được | | vẽ dần |
 | `so` | một số chạy `{{số}}` kèm chữ trước hoặc sau, ví dụ `{{48}} giờ mỗi tuần` | 24 ký tự | chạy số từ 0 lên |
 
@@ -68,7 +68,7 @@ Ví dụ: `nhip: để mai tính | anh: ve: bàn tay cầm điện thoại, ch�
 | `khung` | ảnh trong khung chữ nhật mép xé, có băng dính, thay vì cắt nền. Dùng cho cảnh có bối cảnh (một căn phòng, một con phố), cho vật màu xanh lá, hay khi ảnh tách nền không sạch |
 | `duotone` | ảnh hai màu theo `bang-mau` (kiểu in báo) |
 | `halftone` | ảnh in chấm tram |
-| `xa` | đẩy vật ra lớp xa (sau, mờ nhẹ, lệch nhiều khi máy xoay) |
+| `xa` | đặt vật ở lớp giữa (trôi ngang chậm cùng ảnh) |
 | `gan` | kéo vật lên lớp gần (trước) |
 
 Mặc định ảnh ở lớp giữa; chữ, thẻ, nhãn, dấu ở lớp gần. Ảnh cắt nền được tách trên nền xanh lá #00FF00: vật màu xanh lá (cây, lá, logo xanh) bị ăn mất một phần, công cụ tự chuyển sang `khung` kèm cảnh báo. Tả vật đó màu khác, hoặc ghi sẵn `khung`.
@@ -79,7 +79,7 @@ Mặc định ảnh ở lớp giữa; chữ, thẻ, nhãn, dấu ở lớp gần
 - `loi`: 1–3 câu trên một dòng; lời dài quá 700 ký tự có cảnh báo, nên tách cảnh.
 - `nguon:` của cảnh tối đa 90 ký tự. `chuyen:` của cảnh: `xe-giay`, `lia` hoặc `khong`, chỉ từ Cảnh 2.
 - `thoi-luong` là số nguyên 15–600 giây.
-- Ở bước `--xem-truoc` và dựng thật, công cụ đo trên hình và báo lỗi `canh` khi chữ của một nhịp tràn ô, hai vật đè nhau quá 30% (giữa hai vật chữ hay giữa hai ảnh; trừ bố cục `chong`, và trừ `dau`, `nhan` dán lên ảnh), hoặc dòng nguồn tràn khung. Rút chữ, đổi ô hay đổi bố cục rồi chạy lại.
+- Ở bước `--xem-truoc` và dựng thật, công cụ đo trên hình và báo lỗi `canh` khi chữ của một nhịp tràn ô, hai vật đè nhau quá 30% (giữa hai vật chữ hay giữa hai ảnh; trừ bố cục `chong`, và trừ `dau`, `nhan` dán lên ảnh). Rút chữ, đổi ô hay đổi bố cục rồi chạy lại.
 
 ## Ví dụ từng bố cục
 

@@ -5,12 +5,19 @@
 Video giải thích chỉ còn một lối: **kiểu Vox**. Video cũ dài gấp đôi yêu cầu (lệnh "video 60 giây" ra gần 2 phút) và bị bó vào khuôn bài giảng (bắt buộc môn, lớp, cảnh tiêu đề, nền lớp học cho cả chuyện công sở). Bản này dạy AI viết kịch bản kiểu Vox cho mọi ngành, đúng thời lượng, hình hiện khớp từng cụm lời, ảnh do AI vẽ theo từng câu.
 
 ### Thêm
+- Nền riêng cho từng cảnh: mỗi cảnh ghi `nen:` tả nền, `anh_vox.py` vẽ một nền cắt dán cổ điển theo nội dung cảnh (tắt bằng `nen-canh: khong`). Kiểu ảnh mặc định là `phong-anh: cat-dan`.
+- Giọng `giong: thu-giang` (VieNeu, đọc ngay trên máy, không cần mạng), mặc định của kiểu Vox; máy không có VieNeu thì tự dùng giọng nữ edge-tts kèm cảnh báo. Đường dẫn python của VieNeu đặt bằng biến môi trường `VIENEU_PYTHON`.
+- File `nguon.txt` cạnh video ghi mô hình vẽ ảnh, nguồn ảnh thật, nguồn số liệu và nhạc. Video Vox không hiện dòng nguồn nào trên hình.
+- Cảnh báo "vật đầu tiên hiện muộn" khi cảnh mở bằng nền trống.
 - `phong-cach: vox`: mỗi cảnh là `bo-cuc` (`mot`, `hai-ben`, `dan-hang`, `chong`, `toan-canh`), `loi` và 1–6 dòng `nhip`. Mỗi nhịp gắn một cụm từ trong lời với một vật (ảnh, thẻ, chữ, nhãn, con dấu, mũi tên, số chạy) ở một ô; vật hiện đúng lúc giọng đọc tới cụm đó. Dựng bằng lớp giấy cắt dán 2,5D: ba lớp sâu, máy quay đẩy và nghiêng nhẹ, ảnh cắt nền viền giấy xé có bóng, ảnh khung mép xé dán băng dính, chuyển cảnh xé giấy và lia nhanh xen nhau, bốn bảng màu giấy.
 - `tools/vi/anh_vox.py`: lập danh sách ảnh từ các nhịp, vẽ ảnh AI bằng công cụ vẽ của nền tảng (Antigravity, Codex) hoặc qua API kiểu OpenAI (mặc định 9router trên máy, mô hình `ag/gemini-3.1-flash-image`, cấu hình bằng `ANH_AI_URL`, `ANH_AI_KEY`, `ANH_AI_MO_HINH`), tải ảnh thật `tim:` bằng `image_search.py`, tách nền xanh, tính trước viền xé, bóng, duotone, halftone, và ghi nguồn. Lưu đệm theo mã băm câu lệnh: sửa một nhịp chỉ vẽ lại ảnh đó; tối đa 20 ảnh mới mỗi lần chạy (`--toi-da`); ảnh nền tảng vẽ ghi công cụ và mô hình bằng `--cong-cu`, `--mo-hinh`. Khoá API không bao giờ nằm trong repo, log hay JSON đầu ra.
 - Khoá `thoi-luong` (15–600 giây): `video_ma.py --plan-only` trả `thoi_luong_uoc` và cảnh báo khi kịch bản dài quá +15% hay ngắn dưới −25%, nêu số từ cần bớt hay thêm, chạy được trước khi có ảnh; sau khi tạo giọng thì kiểm lại bằng thời lượng thật. `--xem-truoc` của video Vox chụp mỗi cảnh hai ảnh, giữa cảnh và cuối cảnh.
 - Hướng dẫn cho AI viết lại hoàn toàn (`docs/vi/tro-ly/video-giai-thich.md`) và file mới `docs/vi/tro-ly/nhip-vox.md`: mạch móc → vấn đề → giải thích → lật → chốt, quỹ từ theo thời lượng (60 giây khoảng 130 từ), "Không bịa số liệu" (số nào cũng có nguồn), phép thử tắt tiếng, chữ trên hình tối đa khoảng 6 từ, bảng chọn bố cục, vòng tự kiểm và một video mẫu 60 giây "Giao tiếp với đồng nghiệp". Từ kích hoạt mới "video vox", "kiểu vox". Mục "Tạo ảnh cho video Vox thất bại" trong Xử lý lỗi.
 
 ### Đổi
+- Chuyển động của kiểu Vox êm hơn: vật trượt nhẹ vào kèm mờ dần, nền trôi ngang chậm; bỏ rung khung hình, nảy và phóng máy.
+- Lời đọc của kiểu Vox liền mạch hơn: khoảng lặng đầu và cuối mỗi cảnh rút còn 0,25 và 0,3 giây. Quỹ từ tính theo giọng (60 giây khoảng 230 từ với giọng Thu Giang).
+- Mỗi lần chạy `anh_vox.py` vẽ tối đa 30 ảnh mới (tính cả nền từng cảnh).
 - Hướng dẫn và luật chỉ dạy kiểu Vox, không còn giả định bối cảnh trường học. AI chỉ hỏi khi câu lệnh thiếu chủ đề hoặc nội dung, không dừng chờ duyệt kịch bản: tự xem trước, tự sửa, dựng xong mới gửi video kèm kịch bản (người dùng xin xem kịch bản trước thì vẫn dừng).
 - Với `phong-cach: vox`, `mon` và `lop` không bắt buộc; các khoá của kiểu viết tay (`ban-tay`, `nhan-vat`, `mau-ao`, `chu-dong`, `may-quay`) là lỗi `parse`.
 - Hướng dẫn kiểu viết tay cũ và danh mục mười lăm loại cảnh chuyển sang `docs/vi/tham-khao/video-viet-tay.md` và `docs/vi/tham-khao/canh-video.md`, chỉ dùng khi sửa `video.md` cũ. Luật Antigravity gọn lại, khoảng 8 800 byte.

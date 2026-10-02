@@ -11,7 +11,7 @@ def moc(loi: str, buoc=0.4):
             for i, w in enumerate(loi.split())]
 
 
-VID = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n"
+VID = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n"
        "## Cảnh 1\nbo-cuc: hai-ben\nloi: Tiền nhiều, tiền ít, rồi hết.\n"
        "nhip: @dau | nhan: Tiền | giua\nnhip: tiền | chu: Nhiều\nnhip: tiền ít | chu: Ít\n\n"
        "## Cảnh 2\nbo-cuc: mot\nloi: Hai.\nnhip: @dau | dau: XONG\n\n"
@@ -33,7 +33,7 @@ class MocTest(unittest.TestCase):
 
     def test_cue_matches_a_word_joined_by_punctuation(self):
         # "chu-kì" là một mục `moc_tu` (khoa_so_khop không tách dấu gạch nối); cụm nhịp "chu kì" phải vẫn khớp.
-        v = parse.parse("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\n"
+        v = parse.parse("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\n"
                          "loi: Mỗi chu-kì kéo dài lâu.\nnhip: @dau | chu: X\nnhip: chu kì | chu: Y\n")
         c = v.canh[0]
         t = vox.moc_nhip(c.nhip, moc(c.loi), lich.DAN_DAU)
@@ -41,7 +41,7 @@ class MocTest(unittest.TestCase):
 
     def test_cue_matches_a_comma_separated_number(self):
         # "85,5%" là một mục `moc_tu`; cụm nhịp "85,5%" phải khớp đúng mục đó, không rơi về nối tiếp +0,6s.
-        v = parse.parse("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\n"
+        v = parse.parse("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\n"
                          "loi: Tăng 85,5% so với trước.\nnhip: @dau | chu: X\nnhip: 85,5% | chu: Y\n")
         c = v.canh[0]
         t = vox.moc_nhip(c.nhip, moc(c.loi), lich.DAN_DAU)
@@ -49,7 +49,7 @@ class MocTest(unittest.TestCase):
 
     def test_cue_matches_across_a_standalone_dash(self):
         # "–" đứng riêng là một mục `moc_tu` nhưng khai triển ra rỗng (bỏ qua); cụm nhịp "A B" phải khớp đúng từ "A".
-        v = parse.parse("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\n"
+        v = parse.parse("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\n"
                          "loi: A – B là hai.\nnhip: @dau | chu: X\nnhip: A B | chu: Y\n")
         c = v.canh[0]
         t = vox.moc_nhip(c.nhip, moc(c.loi), lich.DAN_DAU)
@@ -58,7 +58,7 @@ class MocTest(unittest.TestCase):
 
 class DuLieuTest(unittest.TestCase):
     def du(self, k=0, meta_them=""):
-        v = parse.parse(VID.replace("phong-cach: vox\n", "phong-cach: vox\n" + meta_them))
+        v = parse.parse(VID.replace("phong-cach: vox\nnen-canh: khong\ngiong: nu\n", "phong-cach: vox\nnen-canh: khong\ngiong: nu\n" + meta_them))
         plan, _ = lich.dung_lich(v.canh, [lich.GiongInfo(None, 3.0, [0.0], False, "may", moc_tu=moc(c.loi)) for c in v.canh])
         return [vox.du_lieu_canh(c, cl, {"anh": {}}, v.meta) for c, cl in zip(v.canh, plan)][k], v
 
@@ -93,19 +93,19 @@ class SlotTest(unittest.TestCase):
         # nhịp thứ ba ghi tường minh `nen` (ảnh phủ kín khung) nên là nhịp *gần nhất* trước nhịp thứ tư — nếu ô hết
         # thì "dùng lại ô cuối" theo đúng nhịp liền trước (lỗi cũ), nhịp thứ tư sẽ ăn nhầm "nen"; phải rơi về ô cuối
         # của bố cục ("duoi") thay vì ô của nhịp liền trước.
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: toan-canh\nloi: Một hai ba bốn.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: toan-canh\nloi: Một hai ba bốn.\n"
               "nhip: một | chu: A\nnhip: hai | nhan: B\nnhip: ba | anh: tim: x | nen\nnhip: bốn | dau: C\n")
         o = _o_list(md)
         self.assertEqual(o, ["giua", "duoi", "nen", "duoi"])
 
     def test_unslotted_beat_skips_a_slot_a_later_beat_names_explicitly(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Một hai.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Một hai.\n"
               "nhip: @dau | chu: A\nnhip: một | chu: B | trai\n")
         self.assertEqual(_o_list(md), ["phai", "trai"])
 
     def test_unslotted_arrow_does_not_take_a_slot(self):
         # Mũi tên vẽ trên cả khung, không chiếm ô: ảnh sau nó vẫn vào `phai`, không bị đẩy sang `giua`.
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Một hai ba.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Một hai ba.\n"
               "nhip: @dau | anh: tim: x | trai\nnhip: hai | mui-ten: trai -> phai\nnhip: ba | anh: tim: y\n")
         o = _o_list(md)
         self.assertEqual((o[0], o[2]), ("trai", "phai"))
@@ -114,7 +114,7 @@ class SlotTest(unittest.TestCase):
 
 class SoTest(unittest.TestCase):
     def test_counter_text_drops_the_emphasis_marks(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nnguon: X\nloi: Ba.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\nnguon: X\nloi: Ba.\n"
               "nhip: @dau | so: ==Tăng== {{85}}% ((giá))\n")
         v = parse.parse(md)
         plan, _ = lich.dung_lich(v.canh, [lich.GiongInfo(None, 3.0, [0.0], False, "may", moc_tu=moc(c.loi)) for c in v.canh])
@@ -134,7 +134,7 @@ class ChuDeTest(unittest.TestCase):
 
 class KiemTest(unittest.TestCase):
     def test_missing_processed_image_is_a_scene_error_with_the_fix(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
               "nhip: Cốc | anh: ve: cốc sứ | giua\n")
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(kiem.CanhError) as c:
@@ -142,7 +142,7 @@ class KiemTest(unittest.TestCase):
         self.assertIn("anh_vox.py", c.exception.fix)
 
     def test_missing_image_is_only_a_warning_in_plan_only(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
               "nhip: Cốc | anh: ve: cốc sứ | giua\n")
         with tempfile.TemporaryDirectory() as tmp:
             w = kiem.kiem(parse.parse(md), Path(tmp), chi_canh_bao=True)
@@ -161,7 +161,7 @@ class KiemTest(unittest.TestCase):
         (Path(tmp) / "anh" / "ai" / "vox.json").write_text(json.dumps({"1-0": muc}), encoding="utf-8")
 
     def test_stale_image_is_a_scene_error(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
               "nhip: Cốc | anh: ve: cốc sứ | giua\n")
         doi = {"mô tả ve: đổi": md.replace("cốc sứ", "cốc thuỷ tinh"),
                "thêm duotone": md.replace("| giua\n", "| giua | duotone\n"),
@@ -178,7 +178,7 @@ class KiemTest(unittest.TestCase):
                 self.assertTrue(any("đã cũ" in x for x in w), w)
 
     def test_index_without_plan_fields_is_stale(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
               "nhip: Cốc | anh: ve: cốc sứ | giua\n")
         with tempfile.TemporaryDirectory() as tmp:
             self._bang(tmp, md, ma_ke_hoach=None)
@@ -186,21 +186,21 @@ class KiemTest(unittest.TestCase):
                 kiem.kiem(parse.parse(md), Path(tmp))
 
     def test_cutout_fallen_back_to_a_frame_is_not_stale(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
               "nhip: Cốc | anh: ve: cốc sứ | giua\n")
         with tempfile.TemporaryDirectory() as tmp:
             self._bang(tmp, md, kieu="khung", ma="ma-ve-lai")
             self.assertEqual(kiem.kiem(parse.parse(md), Path(tmp)), [])
 
     def test_layer_options_do_not_make_the_image_stale(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
               "nhip: Cốc | anh: ve: cốc sứ | giua\n")
         with tempfile.TemporaryDirectory() as tmp:
             self._bang(tmp, md)
             self.assertEqual(kiem.kiem(parse.parse(md.replace("| giua\n", "| giua | gan\n")), Path(tmp)), [])
 
     def test_resources_read_from_the_index(self):
-        md = ("---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
+        md = ("---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n---\n\n## Cảnh 1\nbo-cuc: mot\nloi: Cốc.\n"
               "nhip: Cốc | anh: ve: cốc sứ | giua\n")
         with tempfile.TemporaryDirectory() as tmp:
             self._bang(tmp, md)

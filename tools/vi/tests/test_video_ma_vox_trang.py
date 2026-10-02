@@ -36,7 +36,7 @@ THE = " | ".join([THE.split(" | ")[0][:24], THE.split(" | ")[1][:16], THE.split(
 
 
 def du_vox(nhip: list, bo_cuc: str, kho: str = "ngang", anh_tn=None, so: int = 1, thoi_luong_loi: str = LOI):
-    md = (f"---\ntieu-de: T\nphong-cach: vox\nkho: {kho}\n---\n\n## Cảnh 1\nbo-cuc: {bo_cuc}\n"
+    md = (f"---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\nkho: {kho}\n---\n\n## Cảnh 1\nbo-cuc: {bo_cuc}\n"
           f"loi: {thoi_luong_loi}\n" + "".join(f"nhip: {n}\n" for n in nhip))
     v = parse.parse(md)
     c = v.canh[0]
@@ -234,10 +234,10 @@ class VoxTrangTest(unittest.TestCase):
             chup.mo_trang(page, trang.dung_trang(du))
             sk = chup.doc_su_kien(page)
         self.assertEqual([e for e in sk if e["loai"] == "chuyen"], [{"t": 0, "loai": "chuyen", "dai": 0.35}])
+        # Vật hiện ngay đầu cảnh (`@dau`) không kêu; nhãn kêu "ting", con dấu kêu tiếng đóng đúng lúc hiện.
         khac = [e for e in sk if e["loai"] != "chuyen"]
-        self.assertEqual(len(khac), 3)
-        self.assertEqual([e["loai"] for e in khac], ["nhan", "ting", "nhan"])
-        self.assertAlmostEqual(khac[0]["t"], du["nhip"][0]["batDau"] + 0.45)
+        self.assertEqual([e["loai"] for e in khac], ["ting", "nhan"])
+        self.assertAlmostEqual(khac[1]["t"], du["nhip"][2]["batDau"])
 
     def test_vox_page_after_an_old_style_page_in_the_same_tab(self):
         # page.set_content giữ window: THI_VIDEO của khung-video.js (đã `san`) không được làm trang Vox dựng sai.

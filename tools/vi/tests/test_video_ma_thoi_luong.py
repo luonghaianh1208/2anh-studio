@@ -10,7 +10,7 @@ from video_ma_parts import kiem, parse, thoi_luong  # noqa: E402
 def video(so_canh: int, so_tu: int, them: str = "") -> parse.Video:
     loi = " ".join(["từ"] * (so_tu - 1)) + " cuối."
     canh = "".join(f"## Cảnh {k}\nbo-cuc: mot\nloi: {loi}\nnhip: @dau | chu: A\n\n" for k in range(1, so_canh + 1))
-    return parse.parse(f"---\ntieu-de: T\nphong-cach: vox\n{them}---\n\n{canh}")
+    return parse.parse(f"---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\n{them}---\n\n{canh}")
 
 
 class UocTinhTest(unittest.TestCase):
@@ -20,11 +20,11 @@ class UocTinhTest(unittest.TestCase):
     def test_estimate_matches_the_measured_video(self):
         # Số đo spec mục 7: 9 cảnh, 288 từ → video 115 giây.
         v = video(9, 32)
-        self.assertAlmostEqual(thoi_luong.uoc_tinh(v), 288 / 2.7 + 9 * 1.1, places=3)
+        self.assertAlmostEqual(thoi_luong.uoc_tinh(v), 288 / 2.7 + 9 * thoi_luong.MOI_CANH_VOX, places=3)
 
     def test_speed_changes_the_estimate(self):
         nhanh = video(2, 54, "toc-do: nhanh\n")
-        self.assertAlmostEqual(thoi_luong.uoc_tinh(nhanh), 108 / 3.1 + 2.2, places=3)
+        self.assertAlmostEqual(thoi_luong.uoc_tinh(nhanh), 108 / 3.1 + 2 * thoi_luong.MOI_CANH_VOX, places=3)
 
 
 class CanhBaoTest(unittest.TestCase):
@@ -57,14 +57,14 @@ class CliTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             loi = " ".join(["từ"] * 99) + " cuối."
             canh = "".join(f"## Cảnh {k}\nbo-cuc: mot\nloi: {loi}\nnhip: @dau | chu: A\n\n" for k in (1, 2, 3))
-            (Path(tmp) / "video.md").write_text(f"---\ntieu-de: T\nphong-cach: vox\nthoi-luong: 60\n---\n\n{canh}",
+            (Path(tmp) / "video.md").write_text(f"---\ntieu-de: T\nphong-cach: vox\nnen-canh: khong\ngiong: nu\nthoi-luong: 60\n---\n\n{canh}",
                                                 encoding="utf-8")
             r = subprocess.run([sys.executable, str(TOOLS_VI / "video_ma.py"), tmp, "--plan-only"],
                                capture_output=True, text=True, encoding="utf-8")
             out = json.loads(r.stdout.strip().splitlines()[-1])
         self.assertTrue(out["ready"])
         self.assertTrue(any("bớt khoảng" in w for w in out["warnings"]), out["warnings"])
-        self.assertAlmostEqual(out["thoi_luong_uoc"], round(300 / 2.7 + 3.3, 1))
+        self.assertAlmostEqual(out["thoi_luong_uoc"], round(300 / 2.7 + 3 * thoi_luong.MOI_CANH_VOX, 1))
 
 
 if __name__ == "__main__":

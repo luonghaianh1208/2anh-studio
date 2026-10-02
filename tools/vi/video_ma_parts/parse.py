@@ -13,7 +13,8 @@ META_REQUIRED = ("tieu-de", "mon", "lop")
 META_CHOICES = {
     # Phong cách: viết tay trên bảng, cắt dán giấy kiểu Vox (runtime/cat-dan.css, cat-dan.js), hoặc Vox (nhịp).
     "phong-cach": ("viet-tay", "cat-dan", "vox"),
-    "giong": ("nu", "nam"),
+    # `thu-giang`: giọng "Thu Giang" của VieNeu (giong.py); máy không có VieNeu thì video_ma lùi về `nu`.
+    "giong": ("nu", "nam", "thu-giang"),
     "toc-do": ("cham", "vua", "nhanh"),
     "phu-de": ("hinh", "file", "khong", "karaoke"),
     "ban-tay": ("co", "khong"),
@@ -371,6 +372,8 @@ def _read_meta(lines: list, start: int) -> tuple:
             if key in meta:
                 raise ParseError(dong_meta[key], f"`{key}` là khoá của kiểu viết tay, không dùng với "
                                                   "`phong-cach: vox`; bỏ dòng này.")
+    if phong_cach == "vox":
+        meta.setdefault("giong", vox.GIONG_MAC_DINH)
     for key, default in META_DEFAULTS.items():
         meta.setdefault(key, default)
     if phong_cach == "vox":
@@ -381,7 +384,7 @@ def _read_meta(lines: list, start: int) -> tuple:
     return meta, dong_meta, i + 1
 
 
-_VOX_ALLOWED = {"loi", "bo-cuc", "nhip", "chuyen", "nguon"}
+_VOX_ALLOWED = {"loi", "bo-cuc", "nhip", "chuyen", "nguon", "nen"}
 
 
 def _finish_vox(so: int, dong0: int, truong: dict, dong_truong: dict, kho: str) -> Scene:
@@ -409,6 +412,12 @@ def _finish_vox(so: int, dong0: int, truong: dict, dong_truong: dict, kho: str) 
     if "nguon" in truong and len(truong["nguon"][0]) > vox.NGUON_DAI:
         raise ParseError(dong_truong["nguon"][0],
                           f"`nguon` dài {len(truong['nguon'][0])} ký tự, tối đa {vox.NGUON_DAI}. Rút gọn nguồn.")
+    if "nen" in truong:
+        if len(truong["nen"]) > 1:
+            raise ParseError(dong_truong["nen"][1], f"`nen` bị lặp trong Cảnh {so}.")
+        if len(truong["nen"][0]) > vox.ANH_MO_TA:
+            raise ParseError(dong_truong["nen"][0], f"`nen` (mô tả nền của cảnh) dài {len(truong['nen'][0])} ký tự, "
+                                                    f"tối đa {vox.ANH_MO_TA}.")
     loi = truong.pop("loi")[0]
     nhip = [vox.doc_nhip(v, no, k) for k, (v, no) in enumerate(zip(truong["nhip"], dong_truong["nhip"]))]
     scene = Scene(so=so, dong=dong0, loai="vox", loi=loi, truong=truong, dong_truong=dong_truong, nhip=nhip)

@@ -134,6 +134,8 @@ def _cac_du(video, cac_lich, models, thu_muc: Path, nhac=None) -> list:
     mo_hinh += [a["moHinh"] for scene, tn in zip(video.canh, cac_tn) if scene.loai == "vox"
                 for a in (tn.get("anh") or {}).values() if a and a.get("moHinh")]
     dongs = ([lich.dong_ai(mo_hinh)] if mo_hinh else []) + ([nhac["nguon"]] if nhac is not None else [])
+    if video.meta["phong-cach"] == "vox":
+        dongs = []   # Vox không hiện nguồn nào trên hình: mọi nguồn ghi vào nguon.txt cạnh video
     if cac_du:
         lich.gan_dong_nguon(cac_du[-1], dongs)
     if video.meta.get("loat"):
@@ -262,13 +264,23 @@ def _dung(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> dict:
     k = kho.tu_meta(video.meta)
     with _loi_chup(), chup.trinh_duyet() as browser:
         _kiem_tran_tat_ca(chup.trang_moi(browser, k), video, _trang_tam(video, thu_muc, models, nhac))
-    cac_giong = [_lay_giong(c, thu_muc / "giong", video.meta) for c in video.canh]
+    meta_giong = video.meta
+    if video.meta["giong"] in giong.VIENEU_GIONG:
+        if giong.co_vieneu():
+            # Đọc mọi cảnh chưa có giọng trong một tiến trình VieNeu (mô hình chỉ nạp một lần).
+            giong.tao_truoc_vieneu([(f"canh-{c.so}", c.loi) for c in video.canh], thu_muc / "giong",
+                                   video.meta["giong"], video.meta["toc-do"])
+        else:
+            meta_giong = {**video.meta, "giong": "nu"}
+            warnings.append("Máy không có VieNeu nên không dùng được giọng Thu Giang; đã dùng giọng nữ edge-tts. "
+                            "Đặt biến môi trường VIENEU_PYTHON trỏ tới python của VieNeu để dùng giọng Thu Giang.")
+    cac_giong = [_lay_giong(c, thu_muc / "giong", meta_giong) for c in video.canh]
     cac_lich, canh_bao = lich.dung_lich(video.canh, cac_giong)
     warnings.extend(canh_bao)
     if "thoi-luong" in video.meta:
         warnings[:] = [w for w in warnings if "mục tiêu `thoi-luong:" not in w]
         cb_that = thoi_luong.canh_bao(int(video.meta["thoi-luong"]), sum(cl.thoi_luong for cl in cac_lich),
-                                       video.meta["toc-do"], False)
+                                       video.meta["toc-do"], False, meta_giong["giong"])
         if cb_that is not None:
             warnings.append(cb_that)
     cac_du = _cac_du(video, cac_lich, models, thu_muc, nhac)
@@ -294,6 +306,9 @@ def _dung(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> dict:
         shutil.rmtree(lam, ignore_errors=True)
     if video.meta["phu-de"] != "file":
         (thu_muc / "phu-de.srt").unlink(missing_ok=True)
+    if video.meta["phong-cach"] == "vox":
+        (thu_muc / "nguon.txt").write_text(vox.nguon_van_ban(video, thu_muc, nhac), encoding="utf-8")
+        files = files + ["nguon.txt"]
     nguon = {g.nguon for g in cac_giong} | {g.giai.nguon for g in cac_giong if g.giai is not None}
     return {"files": files, "so_canh": len(video.canh), "thoi_luong_giay": round(sum(cl.thoi_luong for cl in cac_lich), 2),
             "phong_cach": video.meta["phong-cach"], "giong": nguon.pop() if len(nguon) == 1 else "hon-hop"}
@@ -309,7 +324,8 @@ def chay(thu_muc: Path, plan_only: bool, xem_truoc: bool, warnings: list) -> dic
     warnings.extend(kiem.canh_bao_hinh_khop_loi(video))
     uoc = thoi_luong.uoc_tinh(video)
     if "thoi-luong" in video.meta:
-        canh_bao = thoi_luong.canh_bao(int(video.meta["thoi-luong"]), uoc, video.meta["toc-do"], True)
+        canh_bao = thoi_luong.canh_bao(int(video.meta["thoi-luong"]), uoc, video.meta["toc-do"], True,
+                                       video.meta["giong"])
         if canh_bao is not None:
             warnings.append(canh_bao)
     if plan_only:

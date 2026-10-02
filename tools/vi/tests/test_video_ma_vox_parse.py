@@ -36,7 +36,8 @@ class MetaTest(unittest.TestCase):
         self.assertEqual((v.meta["thoi-luong"], v.meta["phong-anh"], v.meta["bang-mau"], v.meta["chuyen-canh"]),
                          ("60", "minh-hoa", "dem", "lia"))
         v2 = doc(CANH_HAI_BEN)
-        self.assertEqual((v2.meta["phong-anh"], v2.meta["bang-mau"], v2.meta["chuyen-canh"]), ("chup-that", "kem", "xen-ke"))
+        self.assertEqual((v2.meta["phong-anh"], v2.meta["bang-mau"], v2.meta["chuyen-canh"]), ("cat-dan", "kem", "xen-ke"))
+        self.assertEqual((v2.meta["nen-canh"], v2.meta["giong"]), ("ve", "thu-giang"))
 
     def test_bad_duration(self):
         for gt in ("5", "601", "một phút", "60.5"):

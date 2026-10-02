@@ -28,7 +28,7 @@ Video giải thích 2 phút về quy trình xin nghỉ phép ở công ty, dùng
 
 Có chủ đề là đủ: AI không hỏi thêm mà tự viết kịch bản, tự tạo ảnh, tự xem trước từng cảnh và sửa chỗ chưa ổn, dựng xong mới gửi video kèm kịch bản. AI chỉ hỏi khi thiếu chủ đề, hoặc khi nội dung là thứ chỉ bạn biết (quy trình nội bộ, số liệu riêng). Muốn duyệt kịch bản trước khi dựng thì nói "cho xem kịch bản trước".
 
-Không nói gì thêm thì video dài 60 giây, khổ ngang, giọng nữ tốc độ vừa, phụ đề in lên hình, có tiếng hiệu ứng; nhạc nền chỉ thêm khi bạn xin. Muốn khác thì nói luôn trong câu lệnh: "dài 2 phút", "khổ dọc", "giọng nam", "có nhạc nền nhẹ", "ảnh kiểu tranh minh hoạ".
+Không nói gì thêm thì video dài 60 giây, khổ ngang, giọng Thu Giang (VieNeu) tốc độ vừa, phụ đề in lên hình, có tiếng hiệu ứng; nhạc nền chỉ thêm khi bạn xin. Muốn khác thì nói luôn trong câu lệnh: "dài 2 phút", "khổ dọc", "giọng nam", "có nhạc nền nhẹ", "ảnh kiểu tranh minh hoạ".
 
 Nói "làm video" mà không rõ loại, AI sẽ hỏi lại: làm video từ bài giảng slide đã có, hay dựng video giải thích mới.
 
@@ -36,14 +36,14 @@ Nói "làm video" mà không rõ loại, AI sẽ hỏi lại: làm video từ b�
 
 AI viết lời theo mạch của các video giải thích trên mạng: mở bằng một tình huống hay câu hỏi gây tò mò, nêu vấn đề, giải thích vài ý (mỗi ý một hình ví von dễ nhớ), lật lại điều người xem vẫn nghĩ, rồi chốt bằng một việc làm được ngay. Không có màn tiêu đề, không "Hôm nay chúng ta…".
 
-- **Đúng thời lượng:** AI đếm số từ của lời theo thời lượng yêu cầu (60 giây khoảng 130 từ), công cụ ước lại và báo khi lệch; AI sửa trước khi dựng.
-- **Không bịa số liệu:** chỉ dùng con số bạn đưa hoặc con số có nguồn gọi tên được, và nguồn hiện nhỏ ở góc dưới cảnh đó. Không có nguồn thì AI nói bằng lời, không đưa số.
+- **Đúng thời lượng:** AI đếm số từ của lời theo thời lượng yêu cầu (60 giây khoảng 230 từ với giọng Thu Giang), công cụ ước lại và báo khi lệch; AI sửa trước khi dựng.
+- **Không bịa số liệu:** chỉ dùng con số bạn đưa hoặc con số có nguồn gọi tên được, và nguồn được ghi vào file `nguon.txt` cạnh video (không hiện trên hình). Không có nguồn thì AI nói bằng lời, không đưa số.
 - **Hình khớp lời:** mỗi câu có ít nhất một thứ hiện ra đúng lúc câu đó được đọc; tắt tiếng đi vẫn đoán được video nói gì.
 
 ## Ảnh trong video
 
-- **Ảnh AI vẽ:** đồ vật, cảnh, người minh hoạ được AI vẽ theo từng câu lời, rồi bộ công cụ tự cắt nền, thêm viền giấy xé và bóng. Ảnh AI không bao giờ có chữ: mọi chữ trên video do bộ công cụ viết nên luôn đúng dấu tiếng Việt. Cuối video ghi "Hình minh hoạ tạo bằng AI".
-- **Ảnh chụp thật:** người, địa danh, sự kiện, sản phẩm có thật thì AI tải ảnh giấy phép mở (Openverse, Wikimedia), không vẽ giả; tác giả và giấy phép hiện cạnh ảnh.
+- **Ảnh AI vẽ:** đồ vật, cảnh, người minh hoạ được AI vẽ theo từng câu lời, rồi bộ công cụ tự cắt nền, thêm viền giấy xé và bóng. Ảnh AI không bao giờ có chữ: mọi chữ trên video do bộ công cụ viết nên luôn đúng dấu tiếng Việt. Mỗi cảnh còn có một nền cắt dán do AI vẽ theo nội dung cảnh. Video không hiện dòng ghi nguồn nào; mô hình AI ghi trong `nguon.txt`.
+- **Ảnh chụp thật:** người, địa danh, sự kiện, sản phẩm có thật thì AI tải ảnh giấy phép mở (Openverse, Wikimedia), không vẽ giả; tác giả và giấy phép ghi trong `nguon.txt` cạnh video (ảnh giấy phép CC BY cần ghi công: khi đăng video, dán nội dung file này vào phần mô tả).
 - **Ảnh của bạn:** gửi file cho AI và cho biết ai chụp.
 
 Ảnh AI lấy từ đâu:
@@ -56,13 +56,14 @@ AI viết lời theo mạch của các video giải thích trên mạng: mở b�
 
   Khoá chỉ nằm trên máy bạn, không ghi vào kịch bản hay thư mục dự án; đừng dán khoá vào khung chat. Dùng dịch vụ khác kiểu OpenAI thì đặt thêm `ANH_AI_URL` và `ANH_AI_MO_HINH`. Chưa có khoá thì AI vẫn làm được video bằng ảnh chụp thật, thẻ, chữ và con dấu, nhưng kém sinh động hơn.
 
-Mỗi lần dựng vẽ tối đa 20 ảnh mới; ảnh đã vẽ được giữ lại, sửa một câu thì chỉ ảnh của câu đó vẽ lại.
+Mỗi lần dựng vẽ tối đa 30 ảnh mới (tính cả nền từng cảnh); ảnh đã vẽ được giữ lại, sửa một câu thì chỉ ảnh của câu đó vẽ lại.
 
 ## Máy cần gì
 
 - **Chromium** (trình duyệt dùng để vẽ cảnh): tải một lần, khoảng 150–300 MB. AI hỏi trước khi tải.
 - **FFmpeg** để tách nền ảnh và ghép video: AI cài theo hướng dẫn nếu máy chưa có.
-- **Mạng** khi dùng giọng máy (giọng nữ HoaiMy hoặc giọng nam NamMinh), khi vẽ ảnh AI, tải ảnh thật hay tìm nhạc nền. Muốn dùng giọng của chính mình: thu từng cảnh thành `giong\canh-1.mp3`, `giong\canh-2.mp3`… trong thư mục video.
+- **Giọng đọc:** mặc định là giọng Thu Giang của VieNeu, đọc ngay trên máy (cần cài VieNeu và đặt biến môi trường `VIENEU_PYTHON` trỏ tới python của nó); máy không có VieNeu thì bộ công cụ tự dùng giọng nữ edge-tts.
+- **Mạng** khi dùng giọng edge-tts (giọng nữ HoaiMy hoặc giọng nam NamMinh), khi vẽ ảnh AI, tải ảnh thật hay tìm nhạc nền. Muốn dùng giọng của chính mình: thu từng cảnh thành `giong\canh-1.mp3`, `giong\canh-2.mp3`… trong thư mục video.
 
 ## Thời gian dựng
 
@@ -72,14 +73,14 @@ Dựng thật mất khoảng 1,5 lần thời lượng video trên máy 6 lõi: 
 
 ## Hiệu ứng
 
-- **Vật đập xuống, dán, trượt vào:** ảnh cắt rời bay vào rồi đập xuống có nảy và bóng đổ, ảnh khung rơi xoay rồi được băng dính dán lên, thẻ trượt vào, con dấu đóng mạnh làm khung hình rung nhẹ, chữ hiện từng từ.
+- **Chuyển động êm:** vật trượt nhẹ vào kèm mờ dần, nền trôi ngang rất chậm sau lớp hình; không rung, không nảy, không phóng giật.
 - **Số chạy:** con số cần nhớ chạy từ 0 lên giá trị thật, kèm nguồn.
 - **Chiều sâu:** nền giấy, mảng giấy xé và các vật nằm trên ba lớp; máy quay đẩy vào chậm và nghiêng nhẹ nên các lớp trượt lệch nhau.
 - **Chuyển cảnh:** xé giấy và lia nhanh xen nhau; muốn một kiểu hoặc không chuyển thì nhờ AI đổi.
 - **Bảng màu:** giấy kem (mặc định), giấy báo cũ, nền tối ban đêm, hoặc màu tươi.
 - **Phụ đề karaoke:** in lên hình, một dòng một lúc, tô vàng dần từng từ theo giọng đọc, có khung nền tối cho dễ đọc. Vẫn chọn được phụ đề cả câu một màu, phụ đề file riêng hoặc không có phụ đề.
-- **Tiếng hiệu ứng:** tiếng đập, tiếng dán, tiếng chuyển cảnh, do bộ công cụ tự tạo (không dùng file âm thanh của ai), luôn nhỏ hơn giọng đọc nhiều.
-- **Nhạc nền:** chỉ có khi bạn xin. AI tìm nhạc trên kho Openverse, chỉ lấy bản giấy phép mở CC0 hoặc CC BY; tên bài, tác giả và giấy phép hiện ở góc dưới trong 4 giây cuối video. AI gửi tên bài kèm video để bạn nghe thử; không ưng thì nhờ đổi bài. Có nhạc riêng thì gửi file kèm nguồn.
+- **Tiếng hiệu ứng:** tiếng "ting" nhỏ khi vật hiện, tiếng đóng dấu, tiếng chuyển cảnh, do bộ công cụ tự tạo (không dùng file âm thanh của ai), luôn nhỏ hơn giọng đọc nhiều.
+- **Nhạc nền:** chỉ có khi bạn xin. AI tìm nhạc trên kho Openverse, chỉ lấy bản giấy phép mở CC0 hoặc CC BY; tên bài, tác giả và giấy phép ghi trong `nguon.txt` cạnh video. AI gửi tên bài kèm video để bạn nghe thử; không ưng thì nhờ đổi bài. Có nhạc riêng thì gửi file kèm nguồn.
 - **Tên loạt:** video thuộc một loạt thì góc trên hiện tên loạt và số cảnh.
 
 Chữ trên hình và phụ đề dùng font Be Vietnam Pro (giấy phép mở SIL OFL), đi kèm bộ công cụ, đủ mọi chữ có dấu, không cần cài font. Mọi hiệu ứng đều tắt được: nhờ AI tắt tiếng hiệu ứng, bỏ nhạc nền, dùng một kiểu chuyển cảnh, hoặc đổi phụ đề.

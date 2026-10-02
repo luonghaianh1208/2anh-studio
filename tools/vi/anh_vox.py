@@ -33,7 +33,7 @@ VOX_TEN = "vox.json"   # bảng duy nhất video_ma đọc: "<cảnh>-<nhịp>" 
 CAU_VE_LAI = "nền xanh lá #00FF00 tuyệt đối đồng màu, không gradient, không bóng"
 FIX_NGUON_THAT = ("Xoá ảnh đó trong `anh/` rồi chạy lại để tìm ảnh khác, hoặc thêm bản ghi nguồn của ảnh vào "
                   "`anh/image_sources.json`.")
-TOI_DA_MAC_DINH = 20
+TOI_DA_MAC_DINH = 30
 SO_LUONG_SONG_SONG = 3
 SO_LAN_THU_LAI = 3
 FIX_INPUT = "Viết video.md trong thư mục dự án (xem docs/vi/tro-ly/video-giai-thich.md) rồi chạy lại."
@@ -269,7 +269,7 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list, cong_cu
     nguon_ve_ = {b["ma"]: b for b in _doc_nguon(thu_muc_ai, []) if isinstance(b, dict) and "ma" in b}
     bang = {}
     for m in ds:
-        khoa = f"{m.canh}-{m.chi_so}"
+        khoa = ke_hoach.khoa(m)
         ma_ke_hoach = m.ma   # mã trước khi vẽ lại: video_ma so với kế hoạch lập lại từ video.md để nhận ra ảnh cũ
         if m.kieu == "cat" and m.nguon == "ve" and not xu_ly.alpha_sach(xu_ly.tach_nen(ke_hoach.file_goc(thu_muc, m))):
             # Ảnh do nền tảng vẽ: không có API để vẽ lại, chuyển thẳng sang khung (xu_ly_muc ghi cảnh báo).

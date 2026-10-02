@@ -66,8 +66,8 @@ HTML chạy không cần mạng và phiếu Word, không phải PPTX. Đọc `do
 
 Video MP4 kiểu Vox, không phải PPTX; cho mọi ngành, không theo khuôn bài giảng. Đọc `docs/vi/tro-ly/video-giai-thich.md` và `nhip-vox.md`. Chỉ hỏi khi thiếu chủ đề hay nội dung; không dừng chờ duyệt, trừ khi được xin xem kịch bản trước.
 
-- Quỹ từ theo `thoi-luong` (60 giây ≈ 130 từ). Không bịa số liệu: số nào cũng có `nguon`.
-- Hình phải khớp lời đọc: mỗi câu ít nhất một nhịp, chữ trên hình ≤ 6 từ, ảnh AI không có chữ.
+- Quỹ từ theo `thoi-luong` (60 giây ≈ 230 từ). Không bịa số liệu: số nào cũng có `nguon`.
+- Hình phải khớp lời đọc: cảnh mở bằng nhãn, cụm hình ở `@dau`; chữ trên hình ≤ 6 từ, ảnh AI không có chữ.
 - `video_ma.py --plan-only` (sửa thời lượng, chưa cần ảnh) → `anh_vox.py` (ảnh tự vẽ: thêm `--cong-cu`, `--mo-hinh`) → `--xem-truoc` tự xem, tự sửa → dựng thật. Không viết HTML, ảnh cảnh bằng tay. Khoá ảnh chỉ qua `ANH_AI_KEY`, không ghi vào repo.
 - Nhạc nền chỉ khi được xin: `tim_nhac.py`, ghi `nhac-nen`, nhắc nghe thử (`mang`: chạy lại một lần).
 

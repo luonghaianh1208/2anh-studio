@@ -60,7 +60,7 @@ Khối thông tin:
 | `tieu-de` | có | tên video |
 | `mon`, `lop` | có | môn và lớp |
 | `phong-cach` | không | `viet-tay` (mặc định: viết tay trên bảng) hoặc `cat-dan` (giấy cắt dán kiểu Vox, font Be Vietnam Pro; vài trường có giới hạn chữ thấp hơn một chút) |
-| `giong` | không | `nu` (mặc định) hoặc `nam` |
+| `giong` | không | `nu` (mặc định), `nam`, hoặc `thu-giang` (giọng VieNeu đọc trên máy) |
 | `toc-do` | không | `cham`, `vua` (mặc định) hoặc `nhanh` |
 | `phu-de` | không | `karaoke` (mặc định: in lên hình, tô vàng từng từ theo giọng đọc), `hinh` (in lên hình kiểu cũ, cả câu một màu), `file` (file `phu-de.srt` riêng) hoặc `khong` |
 | `ban-tay` | không | `co` (mặc định: bàn tay cầm bút đi theo nét và chữ đang viết) hoặc `khong` |

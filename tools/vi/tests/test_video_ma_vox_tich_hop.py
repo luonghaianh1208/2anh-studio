@@ -26,6 +26,8 @@ NEED = "máy thiếu Chromium/playwright hoặc FFmpeg/ffprobe"
 VIDEO_MD_VOX = """---
 tieu-de: Lạm phát
 phong-cach: vox
+nen-canh: khong
+giong: nu
 {thoi_luong}---
 
 ## Cảnh 1
@@ -46,6 +48,8 @@ nhip: kiểm soát | chu: Kiểm soát | duoi
 VIDEO_MD_VOX_NGUON = """---
 tieu-de: T
 phong-cach: vox
+nen-canh: khong
+giong: nu
 kho: doc
 ---
 
@@ -213,9 +217,12 @@ class VoxTichHopTest(unittest.TestCase):
         video = thu_muc / "video.mp4"
         self.assertTrue(video.is_file())
         info = thong_so(video)
-        expect = sum(lich.thoi_luong_canh(g) for g in giay)
+        expect = sum(lich.thoi_luong_canh(g, dan_dau=lich.VOX_DAN_DAU, duoi=lich.VOX_DUOI,
+                                          toi_thieu=lich.VOX_TOI_THIEU) for g in giay)
         self.assertAlmostEqual(float(info["format"]["duration"]), expect, delta=0.1)
         self.assertAlmostEqual(data["thoi_luong_giay"], expect, delta=0.1)
+        self.assertIn("nguon.txt", data["files"])
+        self.assertTrue((thu_muc / "nguon.txt").is_file())
         self.assertFalse(any("mục tiêu `thoi-luong:" in w for w in data["warnings"]), data["warnings"])
 
     def test_missing_images_stop_before_capture(self):
@@ -227,18 +234,14 @@ class VoxTichHopTest(unittest.TestCase):
         self.assertEqual(data["error"]["step"], "canh")
         self.assertIn("anh_vox.py", data["error"]["fix"])
 
-    def test_scene_source_line_overflow_stops_with_a_canh_error(self):
-        # Dòng `nguon` không khoảng trắng (một "từ" 85 ký tự, trong giới hạn 90 của vox.NGUON_DAI) không thể xuống
-        # dòng nên luôn tràn khung dọc hẹp; `kiemTran()` phải trả mã `nguon` và video_ma phải dừng trước khi dựng.
-        thu_muc = self.goc / "nguon-tran"
+    def test_scene_source_line_goes_to_the_sources_file_not_the_picture(self):
+        # Vox không hiện nguồn nào trên hình: dòng `nguon` dài mấy cũng không làm tràn khung; nó nằm trong nguon.txt.
+        thu_muc = self.goc / "nguon-tep"
         thu_muc.mkdir()
         (thu_muc / "video.md").write_text(VIDEO_MD_VOX_NGUON.format(nguon="X" * 85), encoding="utf-8")
         code, data = _chay(thu_muc, "--xem-truoc")
-        self.assertEqual(code, 1, data)
-        self.assertFalse(data["ready"])
-        self.assertEqual(data["error"]["step"], "canh")
-        self.assertIn("nguon", data["error"]["message"])
-        self.assertIn("90 ký tự", data["error"]["fix"])
+        self.assertEqual(code, 0, data)
+        self.assertTrue(data["ready"], data)
 
 
 if __name__ == "__main__":

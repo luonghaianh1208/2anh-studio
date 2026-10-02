@@ -71,13 +71,13 @@ def _giong_tre(vao: int, tre: float, thoi_luong: float, ra: str) -> str:
             f"apad=whole_dur={thoi_luong:.3f}[{ra}];")
 
 
-def lenh_am_canh(mp3: Path, wav: Path, thoi_luong: float, giai: tuple | None = None) -> list:
+def lenh_am_canh(mp3: Path, wav: Path, thoi_luong: float, giai: tuple | None = None, dan_dau: float = DAN_DAU) -> list:
     """Tiếng một cảnh: giọng từ giây DAN_DAU, trộn nhiễu nền. `giai` = (mp3 lời giải, giây bắt đầu trong cảnh) của
     cảnh câu hỏi: giọng lời giải trộn thêm ở đúng lúc hiện đáp án."""
     # Lớp nhiễu hồng rất nhỏ: loa Bluetooth/HDMI tự tắt khi gặp im lặng tuyệt đối và nuốt âm đầu câu sau.
     nhieu = f"anoisesrc=d={thoi_luong:.3f}:c=pink:r=44100:a={BIEN_DO_NHIEU}:seed={HAT_NHIEU}"
     vao = ["-i", str(mp3)]
-    loc = _giong_tre(0, DAN_DAU, thoi_luong, "g")
+    loc = _giong_tre(0, dan_dau, thoi_luong, "g")
     nhan = "[g]"
     if giai is not None:
         vao += ["-i", str(giai[0])]
@@ -175,12 +175,13 @@ def ghep_video(thu_muc: Path, cac_lich: list, cac_giong: list, phu_de: str, fps:
         wav = lam / f"am-{cl.so}.wav"
         giai = (giong.giai.mp3, cl.bat_dau_giai) if giong.giai is not None and cl.bat_dau_giai is not None else None
         cac = su_kien[k] if su_kien is not None else []
+        dan_dau = getattr(cl, "dan_dau", DAN_DAU)
         if not cac:
-            _chay(lenh_am_canh(giong.mp3, wav, cl.thoi_luong, giai), run, thu_muc)
+            _chay(lenh_am_canh(giong.mp3, wav, cl.thoi_luong, giai, dan_dau), run, thu_muc)
         else:
             # Tiếng cảnh = giọng (có nhiễu nền) trộn hiệu ứng, mức hiệu ứng theo đỉnh giọng của chính cảnh.
             wav_giong = lam / f"am-{cl.so}-giong.wav"
-            _chay(lenh_am_canh(giong.mp3, wav_giong, cl.thoi_luong, giai), run, thu_muc)
+            _chay(lenh_am_canh(giong.mp3, wav_giong, cl.thoi_luong, giai, dan_dau), run, thu_muc)
             if mau is None:
                 mau = am_thanh.tao_mau(lam / "am", run=run)
             _chay(am_thanh.lenh_tron(wav_giong, cac, mau, wav, cl.thoi_luong, dinh_giong_db=am_thanh.dinh_db(wav_giong)),

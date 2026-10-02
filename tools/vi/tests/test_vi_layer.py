@@ -1940,8 +1940,8 @@ class ExplainerEffectsDocsTest(unittest.TestCase):
         text = read(TEACHER_EXPLAINER_DOC)
         self.assertIn("## Hiệu ứng", h2_headings(text))
         body = section(text, "## Hiệu ứng")
-        for phrase in ("đập xuống", "Số chạy", "Chiều sâu", "Chuyển cảnh", "Bảng màu", "karaoke", "Tiếng hiệu ứng",
-                       "Nhạc nền", "Openverse", "CC0", "CC BY", "nghe thử", "4 giây cuối"):
+        for phrase in ("Chuyển động êm", "Số chạy", "Chiều sâu", "Chuyển cảnh", "Bảng màu", "karaoke", "Tiếng hiệu ứng",
+                       "Nhạc nền", "Openverse", "CC0", "CC BY", "nghe thử", "nguon.txt"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
         self.assertNotIn("không có nhạc nền", text)
@@ -2136,7 +2136,7 @@ class VoxGuideTest(unittest.TestCase):
 
     def test_guide_teaches_the_vox_craft(self):
         g = read(self.GUIDE)
-        for phrase in ("Vox", "móc", "lật", "chốt", "130 từ", "phép thử tắt tiếng", "Không bịa số liệu",
+        for phrase in ("Vox", "móc", "lật", "chốt", "230 từ", "phép thử tắt tiếng", "Không bịa số liệu",
                        "6 từ", "thoi-luong", "anh_vox.py", "--xem-truoc", "--plan-only", "ANH_AI_KEY",
                        "nhip-vox.md", "Hôm nay chúng ta"):
             with self.subTest(phrase=phrase):
@@ -2158,8 +2158,10 @@ class VoxGuideTest(unittest.TestCase):
 
         g = read(self.GUIDE)
         self.assertEqual(thoi_luong.TOC_DO, {"cham": 2.4, "vua": 2.7, "nhanh": 3.1})
-        self.assertEqual(thoi_luong.MOI_CANH, 1.1)
-        for phrase in ("2,7 từ", "1,1 giây", "2,4", "3,1", "+15%", "−25%", "65 từ", "270 từ", "410 từ"):
+        self.assertEqual(thoi_luong.TOC_DO_VIENEU, {"cham": 4.0, "vua": 4.3, "nhanh": 4.7})
+        self.assertEqual(thoi_luong.MOI_CANH_VOX, 0.55)
+        for phrase in ("4,3 từ", "4,0", "4,7", "2,7 từ", "0,55 giây", "+15%", "−25%", "115 từ", "230 từ", "480 từ",
+                       "150 từ"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, g)
 
@@ -2233,14 +2235,16 @@ class VoxGuideTest(unittest.TestCase):
             with self.subTest(canh=(a.so, b.so)):
                 cung_vat = {n.vat for n in a.nhip} & {n.vat for n in b.nhip}
                 self.assertFalse(a.truong["bo-cuc"] == b.truong["bo-cuc"] and cung_vat, cung_vat)
-        # Mỗi câu của lời có ít nhất một nhịp (cụm từ nằm trong câu đó).
+        # Câu nào cũng có hình đỡ: cảnh mở bằng vật ở `@dau`, và không có hai câu liền nhau mà hình không đổi.
         from video_ma_parts import vox
 
         for scene in video.canh:
             cau = [c for c in re.split(r"(?<=[.!?])\s+", scene.loi) if c.strip()]
-            for c in cau:
-                with self.subTest(canh=scene.so, cau=c):
-                    self.assertTrue(any(n.cum != "@dau" and vox.tim_cum(vox.khoa_tu(c), n.cum, 0) >= 0 for n in scene.nhip))
+            co = [any(n.cum != "@dau" and vox.tim_cum(vox.khoa_tu(c), n.cum, 0) >= 0 for n in scene.nhip) for c in cau]
+            with self.subTest(canh=scene.so):
+                self.assertTrue(any(n.cum == "@dau" for n in scene.nhip))
+                self.assertFalse(any(not x and not y for x, y in zip(co[1:], co[2:])), co)
+                self.assertTrue(any(co))
 
     def test_meta_table_lists_vox_keys(self):
         from video_ma_parts import vox
@@ -2264,7 +2268,7 @@ class VoxGuideTest(unittest.TestCase):
                        r"%USERPROFILE%\.2anh-studio\anh-ai.json", "--chi-ke-hoach", "anh/ai/ke-hoach.json",
                        "--cong-cu", "--mo-hinh",
                        "anh/ai/goc/<ma>.png", "Antigravity", "Codex", "Claude Code", "9router", "tim:", "image_search.py",
-                       "20 ảnh", "--toi-da", "khung", "setx ANH_AI_KEY"):
+                       "30 ảnh", "--toi-da", "khung", "setx ANH_AI_KEY"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, body)
 

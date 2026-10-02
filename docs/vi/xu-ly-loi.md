@@ -91,7 +91,7 @@ Xem dòng kết quả AI đọc được, phần `error`:
 
 - `input`: chưa có thư mục video hoặc file `video.md`. Nhờ AI viết file theo docs/vi/tro-ly/video-giai-thich.md rồi chạy lại.
 - `parse`: `error.message` nêu đúng số **Dòng** trong `video.md` cần sửa, ví dụ thiếu `loai:` hay `loi:`, cảnh đánh số không liên tiếp, hoặc có địa chỉ web. Với video kiểu Vox: cụm của một dòng `nhip` không có trong lời (thông báo in lại lời của cảnh), nhịp sai thứ tự lời, ô sai với bố cục, hay tuỳ chọn tách ra nhiều phần ` | ` (viết chung một phần: `| phai | khung duotone`).
-- `canh` với video kiểu Vox: nhịp chưa có ảnh đã xử lý hay ảnh đã cũ so với `video.md` (nhờ AI chạy lại `anh_vox.py`), chữ của một nhịp tràn ô, hai vật đè lên nhau quá nhiều, hoặc dòng nguồn quá dài. AI rút chữ, đổi ô hay đổi bố cục của cảnh đó.
+- `canh` với video kiểu Vox: nhịp chưa có ảnh đã xử lý hay ảnh đã cũ so với `video.md` (nhờ AI chạy lại `anh_vox.py`), chữ của một nhịp tràn ô, hoặc hai vật đè lên nhau quá nhiều. AI rút chữ, đổi ô hay đổi bố cục của cảnh đó.
 - `canh`: nội dung một cảnh không vừa khung. `error.message` nêu số cảnh: chữ dài quá giới hạn, **chữ tràn khung** khi dựng thử, mã thí nghiệm không có trong danh mục, hoặc mốc thời gian của thí nghiệm dài hơn lời đọc. AI rút gọn chữ hoặc tách thành hai cảnh; lời giảng và số liệu của thầy cô giữ nguyên. Lỗi `canh` về hình và ảnh:
   - **tên biểu tượng không có**: tên biểu tượng phải là tiếng Anh; lỗi chỉ tới bảng tra biểu tượng và gợi ý tối đa 5 tên (tên tiếng Việt được đối chiếu với bảng tra). AI chọn một tên trong đó hoặc tra bảng.
   - **ảnh nặng quá 8 MB**: AI dùng bản thu nhỏ mà lệnh tải ảnh để sẵn trong `anh\.review\`.
@@ -125,7 +125,7 @@ Lệnh không bao giờ ghi đè file nhạc đã có; bản tải về không p
 
 Lệnh `tools\vi\anh_vox.py` vẽ ảnh AI (qua 9router hoặc dịch vụ kiểu OpenAI), tải ảnh thật và xử lý ảnh cho video kiểu Vox. Xem dòng kết quả AI đọc được, phần `error`:
 
-- `input`: chưa có thư mục video hoặc `video.md`, video không phải kiểu Vox, thiếu file ảnh đã nêu trong `anh\`, hoặc số ảnh cần vẽ vượt giới hạn 20 ảnh một lần (AI bớt ảnh hoặc chạy lại với `--toi-da`).
+- `input`: chưa có thư mục video hoặc `video.md`, video không phải kiểu Vox, thiếu file ảnh đã nêu trong `anh\`, hoặc số ảnh cần vẽ vượt giới hạn 30 ảnh một lần (AI bớt ảnh hoặc chạy lại với `--toi-da`).
 - `parse`: `error.message` nêu đúng **Dòng** trong `video.md` cần sửa.
 - `cau-hinh`: khoá thiếu hoặc bị từ chối (401), khoá có ký tự lạ, hoặc file cấu hình `%USERPROFILE%\.2anh-studio\anh-ai.json` hỏng hay sai dạng. Tạo khoá trong trang quản trị 9router, chạy `setx ANH_AI_KEY "<khoá>"` trong cửa sổ lệnh, rồi đóng và mở lại cửa sổ lệnh cùng ứng dụng AI. Không dán khoá vào khung chat. Chưa có khoá thì AI vẫn làm được video bằng ảnh thật, thẻ, chữ, con dấu.
 - `mang`: không gọi được 9router (chưa mở, hoặc sai địa chỉ `ANH_AI_URL`; mặc định `http://localhost:20128/v1`), một ảnh quá 180 giây chưa xong sau 3 lần thử, hoặc không tải được ảnh thật. Mở 9router, kiểm mạng rồi nhờ AI chạy lại.

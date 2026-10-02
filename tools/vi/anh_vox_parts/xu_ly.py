@@ -25,6 +25,9 @@ CANH_TOI_DA = 1400            # cạnh dài nhất của ảnh đã xử lý
 CANH_VAT_TOI_DA = 1100        # vật cắt nền trước khi thêm viền và lề bóng
 GOC = 16                      # cạnh ô góc khi kiểm alpha
 DO_DUC_BONG = 0.35
+# Nền cảnh: (1280 + 2×16) × 1,5 và (720 + 2×16) × 1,5 theo bề ngang, cùng tỉ lệ khung (vox.js LE_NEN).
+NEN_KICH = {"ngang": (1968, 1107), "doc": (1128, 2005)}
+NEN_PHU_GIAY = 0.12
 
 FIX_FFMPEG = "Cài FFmpeg theo mục \"Công cụ tuỳ chọn\" của docs/vi/cai-dat-bang-ai.md rồi chạy lại."
 FIX_ANH_HONG = "File ảnh hỏng hoặc không phải ảnh: xoá file đó (ảnh vẽ sẽ được vẽ lại) hoặc thay ảnh khác rồi chạy lại."
@@ -414,6 +417,23 @@ def xu_ly_muc(thu_muc: Path, muc, run=subprocess.run, kho: str = "ngang", bang_m
     hat = ke_hoach.hat(muc)
     ra = None
     tren_giay = None
+    if muc.kieu == "nen":
+        # Nền AI của cảnh: cắt phủ đúng tỉ lệ khung, cỡ bằng nền nướng trong trang (khung + lề trôi, 1,5 điểm ảnh
+        # mỗi điểm CSS), phủ nhẹ màu giấy cho chữ và vật nổi hơn, lưu JPEG.
+        ngang = kho == "ngang"
+        anh = cat_phu(_mo(goc).convert("RGB"), 16 / 9 if ngang else 9 / 16)
+        anh = anh.resize(NEN_KICH["ngang" if ngang else "doc"], Image.LANCZOS)
+        anh = Image.blend(anh, Image.new("RGB", anh.size, GIAY), NEN_PHU_GIAY)
+        dich = ke_hoach.file_xu_ly(thu_muc, muc)
+        dich.parent.mkdir(parents=True, exist_ok=True)
+        tam = dich.with_name(dich.stem + ".tam.jpg")
+        try:
+            anh.save(tam, "JPEG", quality=90)
+            os.replace(tam, dich)
+        except OSError:
+            tam.unlink(missing_ok=True)
+            raise
+        return canh_bao
     if muc.kieu == "cat":
         vat = tach_nen(goc, run)
         if alpha_sach(vat):
@@ -427,7 +447,7 @@ def xu_ly_muc(thu_muc: Path, muc, run=subprocess.run, kho: str = "ngang", bang_m
             # màu giấy rồi mới làm khung, để khung không lộ phông xanh.
             tren_giay = Image.alpha_composite(Image.new("RGBA", vat.size, GIAY + (255,)), vat).convert("RGB")
     if muc.kieu == "khung":
-        anh = cat_phu(tren_giay if tren_giay is not None else _mo(goc).convert("RGB"),1.5 if kho == "ngang" else 1 / 1.5)
+        anh = cat_phu(tren_giay if tren_giay is not None else _mo(goc).convert("RGB"), 1.5 if kho == "ngang" else 1 / 1.5)
         anh = _thu_nho(anh, CANH_TOI_DA - 80)
         ra = khung_xe(_hieu_ung_in(anh, muc.tuy_chon, bang_mau), hat)
     elif muc.kieu == "phu":

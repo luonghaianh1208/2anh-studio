@@ -12,7 +12,10 @@ from pathlib import Path
 
 # Khoá đầu chỉ có ở Vox; giá trị đầu tiên là mặc định.
 VOX_META_CHOICES = {
-    "phong-anh": ("chup-that", "minh-hoa"),
+    # `cat-dan`: tranh cắt dán kiểu tạp chí cổ (mặc định, giống video mẫu Vox).
+    "phong-anh": ("cat-dan", "chup-that", "minh-hoa"),
+    # Nền AI riêng cho từng cảnh (anh_vox.py); `khong`: nền giấy vẽ bằng mã (máy không có nguồn vẽ ảnh).
+    "nen-canh": ("ve", "khong"),
     "bang-mau": ("kem", "bao-cu", "dem", "tuoi"),
     "chuyen-canh": ("xen-ke", "xe-giay", "lia", "khong"),
 }
@@ -22,6 +25,10 @@ CHUYEN_CANH = ("xe-giay", "lia", "khong")
 # Chuyển cảnh xen kẽ (khoá đầu `chuyen-canh: xen-ke`, mặc định của Vox): cảnh chẵn/lẻ (kể từ Cảnh 2) luân phiên.
 CHUYEN_XEN_KE = ("xe-giay", "lia")
 THOI_LUONG = (15, 600)
+# Giọng mặc định của Vox: "Thu Giang" (VieNeu); máy không có VieNeu thì video_ma lùi về giọng `nu` của edge-tts.
+GIONG_MAC_DINH = "thu-giang"
+# Vật đầu tiên của cảnh (không tính nền) phải hiện trong mấy từ đầu của lời, nếu không cảnh mở bằng nền trống.
+MO_CANH_TU = 3
 NHIP_TOI_DA = 6
 CHU_TOI_DA = 2
 CHONG_TOI_DA = 5
@@ -294,7 +301,7 @@ def du_lieu_canh(scene, cl, tai_nguyen: dict, meta: dict) -> dict:
     from . import kho as _kho, phong as _phong
     from . import lich as _lich
 
-    dan_dau = _lich.DAN_DAU
+    dan_dau = getattr(cl, "dan_dau", _lich.DAN_DAU)
     kho_ten = meta.get("kho", "ngang")
     anh_tn = tai_nguyen.get("anh") or {}
     cac_o = _o_cac_nhip(scene, kho_ten)
@@ -309,7 +316,8 @@ def du_lieu_canh(scene, cl, tai_nguyen: dict, meta: dict) -> dict:
         "so": scene.so, "loai": "vox", "thoiLuong": cl.thoi_luong, "danDau": dan_dau,
         "kho": _kho.tu_meta(meta).du_lieu(), "chuDe": _phong.chu_de("vox"),
         "boCuc": scene.truong["bo-cuc"][0], "hat": scene.so, "bangMau": meta.get("bang-mau", "kem"),
-        "nhip": nhip_du, "nguon": scene.truong.get("nguon", [None])[0], "co": {"chuyen": _chuyen_canh(scene, meta)},
+        # `nguon` (nguồn số liệu) không hiện trên hình: video_ma ghi vào nguon.txt cạnh video.
+        "nhip": nhip_du, "nguon": None, "nen": tai_nguyen.get("nen"), "co": {"chuyen": _chuyen_canh(scene, meta)},
         "nenTruoc": None, "dongNguon": [], "loat": None, "tu": list(cl.moc_tu),
     }
 
@@ -354,6 +362,21 @@ def kiem(video, thu_muc, chi_canh_bao: bool = False) -> list:
     ke = {(m.canh, m.chi_so): m for m in _ke_hoach.lap(video)}
     warnings: list = []
     for scene in video.canh:
+        m_nen = ke.get((scene.so, _ke_hoach.CHI_SO_NEN))
+        if m_nen is not None:
+            info = bang.get(f"{scene.so}-nen")
+            file_ok = isinstance(info, dict) and (Path(thu_muc) / "anh" / str(info.get("file", ""))).is_file()
+            if not file_ok or not _con_moi(info, m_nen):
+                thieu = "chưa có nền AI" if not file_ok else "nền AI đã cũ so với video.md"
+                if chi_canh_bao:
+                    warnings.append(f"Cảnh {scene.so}: {thieu}; chạy anh_vox.py trước --xem-truoc.")
+                else:
+                    raise _kiem.CanhError(scene.so, f"{thieu}.", FIX_ANH + " Máy không có nguồn vẽ ảnh thì ghi "
+                                          "`nen-canh: khong` vào khối thông tin.")
+        dau = [n for n in scene.nhip if n.cum != "@dau"]
+        if len(dau) == len(scene.nhip) and dau and tim_cum(khoa_tu(scene.loi), dau[0].cum, 0) > MO_CANH_TU:
+            warnings.append(f"Cảnh {scene.so}: vật đầu tiên hiện muộn (cụm \"{dau[0].cum}\" nằm sau từ thứ {MO_CANH_TU} "
+                            "của lời), cảnh sẽ mở bằng nền trống; thêm một nhịp `@dau` (nhãn tiêu đề hoặc hình chính).")
         for n in scene.nhip:
             if n.vat != "anh":
                 continue
@@ -399,4 +422,38 @@ def tai_nguyen(scene, thu_muc) -> dict:
             "rong": rong, "cao": cao, "kieu": info.get("kieu"),
             "nguon": info.get("nguon"), "moHinh": info.get("mo_hinh"),
         }
-    return {"anh": ra}
+    nen = None
+    info = bang.get(f"{scene.so}-nen")
+    if isinstance(info, dict) and info.get("file"):
+        duong_nen = Path(thu_muc) / "anh" / info["file"]
+        if duong_nen.is_file():
+            with Image.open(duong_nen) as im:
+                rong, cao = im.size
+            kieu_tep = "jpeg" if duong_nen.suffix.lower() in (".jpg", ".jpeg") else "png"
+            nen = {"dataUrl": f"data:image/{kieu_tep};base64," + base64.b64encode(duong_nen.read_bytes()).decode("ascii"),
+                   "rong": rong, "cao": cao, "moHinh": info.get("mo_hinh")}
+    return {"anh": ra, "nen": nen}
+
+
+def nguon_van_ban(video, thu_muc, nhac=None) -> str:
+    """Nội dung `nguon.txt` cạnh video: Vox không hiện nguồn nào trên hình, nên mô hình AI, nguồn ảnh thật (giấy phép
+    CC BY bắt buộc ghi công), nguồn số liệu từng cảnh và nguồn nhạc nền ghi ở đây."""
+    bang = _doc_bang(thu_muc)
+    dong = [f"Nguồn của video «{video.meta['tieu-de']}»", ""]
+    mo_hinh = sorted({str(i["mo_hinh"]) for i in bang.values() if isinstance(i, dict) and i.get("mo_hinh")})
+    if mo_hinh:
+        dong += [f"Hình minh hoạ tạo bằng AI: {', '.join(mo_hinh)}", ""]
+    anh_that = []
+    for scene in video.canh:
+        for n in scene.nhip or []:
+            info = bang.get(f"{scene.so}-{n.chi_so}")
+            if n.vat == "anh" and isinstance(info, dict) and info.get("nguon"):
+                anh_that.append(f"- Cảnh {scene.so}: {info['nguon']}")
+    if anh_that:
+        dong += ["Ảnh thật:"] + anh_that + [""]
+    so_lieu = [f"- Cảnh {s.so}: {s.truong['nguon'][0]}" for s in video.canh if s.truong.get("nguon")]
+    if so_lieu:
+        dong += ["Số liệu:"] + so_lieu + [""]
+    if nhac is not None and nhac.get("nguon"):
+        dong += [f"Nhạc nền: {nhac['nguon']}", ""]
+    return "\n".join(dong).rstrip() + "\n"
