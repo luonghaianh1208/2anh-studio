@@ -413,6 +413,7 @@ def xu_ly_muc(thu_muc: Path, muc, run=subprocess.run, kho: str = "ngang", bang_m
     canh_bao = []
     hat = ke_hoach.hat(muc)
     ra = None
+    tren_giay = None
     if muc.kieu == "cat":
         vat = tach_nen(goc, run)
         if alpha_sach(vat):
@@ -422,8 +423,11 @@ def xu_ly_muc(thu_muc: Path, muc, run=subprocess.run, kho: str = "ngang", bang_m
         else:
             canh_bao.append(f"Cảnh {muc.canh}, nhịp {muc.chi_so + 1}: ảnh tách nền không sạch, đã chuyển sang `khung`.")
             muc.kieu = "khung"
+            # Ảnh vẽ trên phông xanh: vẫn bỏ màu xanh (kể cả lỗ kín bên trong vật) bằng kết quả tách nền, đặt vật lên
+            # màu giấy rồi mới làm khung, để khung không lộ phông xanh.
+            tren_giay = Image.alpha_composite(Image.new("RGBA", vat.size, GIAY + (255,)), vat).convert("RGB")
     if muc.kieu == "khung":
-        anh = cat_phu(_mo(goc).convert("RGB"), 1.5 if kho == "ngang" else 1 / 1.5)
+        anh = cat_phu(tren_giay if tren_giay is not None else _mo(goc).convert("RGB"),1.5 if kho == "ngang" else 1 / 1.5)
         anh = _thu_nho(anh, CANH_TOI_DA - 80)
         ra = khung_xe(_hieu_ung_in(anh, muc.tuy_chon, bang_mau), hat)
     elif muc.kieu == "phu":

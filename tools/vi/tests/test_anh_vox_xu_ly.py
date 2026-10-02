@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np  # noqa: E402
-from PIL import Image  # noqa: E402
+from PIL import Image, ImageDraw  # noqa: E402
 from anh_vox_parts import ke_hoach, xu_ly  # noqa: E402
 
 CO_FFMPEG = shutil.which("ffmpeg") is not None
@@ -171,6 +171,37 @@ class XuLyMucTest(unittest.TestCase):
             a = np.asarray(ra.convert("RGBA")).astype(int)
         xanh = int(((a[..., 3] > 128) & (a[..., 1] > np.maximum(a[..., 0], a[..., 2]) + 30)).sum())
         self.assertEqual(xanh, 0, f"{xanh} điểm xanh còn sót")
+
+    @staticmethod
+    def _mat_na_lo_xanh():
+        # Mặt nạ giấy trắng gần kín khung, hai lỗ mắt kín màu xanh nền: vật > 90 % diện tích nên tách nền không sạch.
+        im = Image.new("RGB", (400, 400), (0, 255, 0))
+        d = ImageDraw.Draw(im)
+        d.rectangle((4, 4, 395, 395), fill=(238, 236, 228))
+        d.ellipse((110, 150, 170, 200), fill=(0, 255, 0))
+        d.ellipse((230, 150, 290, 200), fill=(0, 255, 0))
+        return im
+
+    @staticmethod
+    def _diem_xanh(p) -> int:
+        with Image.open(p) as ra:
+            a = np.asarray(ra.convert("RGBA")).astype(int)
+        return int(((a[..., 3] > 0) & (a[..., 1] > np.maximum(a[..., 0], a[..., 2]) + 40)).sum())
+
+    def test_green_screen_fallback_frame_has_no_green_even_in_enclosed_holes(self):
+        m = _muc("cat")
+        self._dat_goc(m, self._mat_na_lo_xanh())
+        self.assertFalse(xu_ly.alpha_sach(xu_ly.tach_nen(ke_hoach.file_goc(self.thu_muc, m))))
+        canh_bao = xu_ly.xu_ly_muc(self.thu_muc, m)
+        self.assertEqual(m.kieu, "khung")
+        self.assertEqual(len(canh_bao), 1)
+        self.assertEqual(self._diem_xanh(ke_hoach.file_xu_ly(self.thu_muc, m)), 0)
+
+    def test_frame_drawn_as_frame_from_the_start_keeps_its_colours(self):
+        m = _muc("khung")
+        self._dat_goc(m, self._mat_na_lo_xanh())
+        xu_ly.xu_ly_muc(self.thu_muc, m)
+        self.assertGreater(self._diem_xanh(ke_hoach.file_xu_ly(self.thu_muc, m)), 1000)
 
     def test_frame_ratio_follows_the_format_and_effects_add_suffixes(self):
         m = _muc("khung", nguon="ve", tuy_chon=("duotone", "halftone"), kich_thuoc="1024x1536")
