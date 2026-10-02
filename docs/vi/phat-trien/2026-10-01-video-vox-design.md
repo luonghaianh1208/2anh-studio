@@ -204,6 +204,45 @@ Codex CLI chưa cài trên máy chủ repo nên bỏ khỏi chuỗi.
 - Video tư liệu, ảnh động.
 - Xoá kiểu viết tay và các khuôn cảnh cũ.
 
+## 12. Bản v2 sau góp ý của chủ repo (2026-10-02)
+
+Chủ repo xem video kiểm chứng "Giao tiếp với đồng nghiệp" (56 giây) và nhận xét: chưa đẹp bằng video mẫu, hiệu ứng rung nhức mắt, không cần ghi nguồn ảnh hay nguồn tạo ảnh, nội dung không phong phú, ít hình, lời rời rạc ngắt quãng; dùng giọng Thu Giang của VieNeu. So khung hình với video mẫu (`video Vì sao in thêm tiền lại gây lạm phát.mp4`): mẫu có nền cắt dán do AI vẽ theo chủ đề từng cảnh (giấy cũ, tranh khắc, tiền giấy, toà nhà, tem, mảng giấy xé tông trầm), một cụm hình lớn ghép nhiều vật chiếm khoảng nửa khung, bố cục cố định (nhãn tiêu đề góc trái trên, thẻ chữ, hình lớn), gần như không chuyển động, lời liền mạch.
+
+Quyết định đã chốt: mỗi cảnh một nền AI riêng; không hiện nguồn nào trên hình.
+
+### 12.1 Hình
+- `phong-anh` thêm giá trị `cat-dan`, là **mặc định** của Vox: đuôi câu lệnh "tranh cắt dán hỗn hợp kiểu tạp chí cổ: giấy cũ ngả màu, tranh khắc chấm lưới, mép giấy xé, tông đỏ trầm, xanh than, vàng đất, kem". `chup-that`, `minh-hoa` giữ nguyên.
+- **Nền cảnh AI:** cảnh có thêm trường tuỳ chọn `nen: ve: <mô tả>`. Không ghi thì `anh_vox.py` tự lập câu lệnh nền từ `tieu-de` của video và lời của cảnh. Câu lệnh nền thêm "nền cắt dán phủ kín khung, chừa vùng sáng ít chi tiết ở giữa và bên trái để đặt chữ, không có chữ". Khổ theo khung (1536×1024 hoặc 1024×1536), xử lý trước: cắt phủ, làm tối viền nhẹ. Nền thay cho nền giấy và mảng màu vẽ bằng mã; nền vẽ bằng mã chỉ còn là đường lùi khi không có ảnh nền. Cảnh `toan-canh` có ảnh ô `nen` thì không cần nền AI riêng.
+- **Hình chính:** hướng dẫn tả hình chính là một cụm nhiều vật ghép lại kiểu cắt dán ("cái cân, một bên bánh mì và thùng dầu, một bên xấp tiền"). Ô hình chính đủ lớn, khoảng 45–55% khung.
+- **Bố cục `mot`** đổi toạ độ theo kiểu video mẫu: `tren` là nhãn tiêu đề góc trái trên, `duoi` là vùng thẻ/chữ bên trái, `giua` là hình chính lớn lệch phải. Các bố cục khác phóng ô ảnh lớn hơn. Toạ độ chỉnh theo mắt khi so với video mẫu.
+
+### 12.2 Bố cục và nhịp
+- Đầu mỗi cảnh phải có hình: nền, nhãn tiêu đề và hình chính dùng `@dau` hoặc cụm ở vài từ đầu lời; vật phụ hiện theo lời. `--plan-only` cảnh báo khi vật đầu tiên của cảnh (không tính nền) hiện sau hơn 1,2 giây kể từ đầu cảnh.
+- Vật đã hiện thì ở lại tới hết cảnh (như hiện nay).
+
+### 12.3 Chuyển động
+- Bỏ rung máy. Bỏ lắc trái phải (sway) và độ lệch thị sai theo lắc. Giữ camera đẩy vào rất chậm, 1,00 → 1,04, bằng CSS `zoom` như hiện nay (khung vẫn tất định).
+- Vật vào bằng trượt ngắn kèm mờ dần (0,5 giây, easeOutCubic, không vượt quá đích). Con dấu: mờ dần kèm thu nhỏ từ 1,15 về 1, không rung.
+- Chuyển cảnh giữ `xe-giay` và `lia`.
+
+### 12.4 Nguồn
+- Không hiện trên hình: dòng "Hình minh hoạ tạo bằng AI", nguồn ảnh thật, dòng `nguon` số liệu của cảnh, dòng nguồn nhạc nền.
+- `video_ma.py` ghi `nguon.txt` cạnh `video.mp4`: mô hình AI và nguồn vẽ, nguồn từng ảnh thật (giấy phép CC BY bắt buộc ghi công), nguồn số liệu từng cảnh, nguồn nhạc. Luật "Không bịa số liệu" giữ nguyên; trường `nguon` của cảnh vẫn bắt buộc khi có số và đi vào `nguon.txt`.
+
+### 12.5 Lời liền mạch
+- Với Vox, đoạn dẫn đầu cảnh 0,25 giây và đuôi cảnh 0,3 giây (thay 1,0 và 0,6), nên giữa hai cảnh chỉ nghỉ khoảng nửa giây.
+- Hướng dẫn: câu 10–20 từ, nối ý bằng "nhưng", "vì thế", "mà", "thế nên"; mỗi cảnh 2–3 câu nối nhau thành một mạch; không băm thành nhiều câu cụt.
+- `thoi_luong.MOI_CANH` của Vox và quỹ từ trong hướng dẫn hiệu chỉnh lại theo giọng thật.
+
+### 12.6 Giọng Thu Giang (VieNeu)
+- Khoá `giong` thêm giá trị `thu-giang` (giọng "Thu Giang" của VieNeu). Với Vox, mặc định là `thu-giang` khi máy có VieNeu, không có thì dùng `nu` (edge-tts) kèm cảnh báo.
+- Python của VieNeu đọc từ biến môi trường `VIENEU_PYTHON`, mặc định `E:\vieneu-tts\Scripts\python.exe` nếu có. `video_ma` gọi một script phụ chạy bằng Python đó để đọc từng cảnh ra wav (48 kHz), rồi đổi sang mp3. Có lưu đệm theo (giọng, lời) như giọng edge.
+- VieNeu không trả mốc từng từ. Mốc câu lấy bằng dò khoảng lặng (FFmpeg `silencedetect`) khớp với số câu của lời; mốc từ trong câu chia theo số ký tự. Phụ đề karaoke và lúc hiện vật dùng các mốc này, không kèm cảnh báo "ước lượng" khi khớp đủ số câu.
+- Tốc độ đọc đo được khoảng 3,8 từ/giây (23 từ trong 6,1 giây). `thoi_luong.TOC_DO` có bảng riêng cho `thu-giang`, quỹ từ 60 giây khoảng 200 từ; hiệu chỉnh bằng số đo thật.
+
+### 12.7 Kiểm chứng v2
+Dựng lại "Giao tiếp với đồng nghiệp, 60 giây, ngang" theo hướng dẫn mới bằng giọng Thu Giang. Đạt khi: dài 54–66 giây; mỗi cảnh có nền AI và hình chính ngay từ đầu cảnh; không rung; không có dòng nguồn trên hình, có `nguon.txt`; lời liền mạch (giữa cảnh nghỉ ≤ 0,6 giây); chủ repo so với video mẫu và đồng ý.
+
 ## 11. Rủi ro
 
 - Nguồn vẽ hết hạn mức hoặc tài khoản Antigravity bị khoá: Vox vẫn làm được bằng ảnh thật, `chu`, `the`, `dau`, nhưng kém sinh động. Đổi nguồn chỉ cần đổi `ANH_AI_MO_HINH` (hoặc `ANH_AI_URL`).
