@@ -47,6 +47,29 @@ class _May(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'{"error":{"message":"tam thoi qua tai"}}')
             return
+        if _May.tra == "treo":
+            # Giữ kết nối, nhỏ giọt từng byte (mỗi lần đọc socket đều có dữ liệu nên timeout của urllib không bao giờ hết),
+            # rồi tự dừng sau ~3 giây để máy giả còn tắt được.
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", "100000")
+            self.end_headers()
+            import time
+            for _ in range(15):
+                try:
+                    self.wfile.write(b" ")
+                    self.wfile.flush()
+                except OSError:
+                    return
+                time.sleep(0.2)
+            return
+        if _May.tra == "rong" or (_May.tra == "rong-mot" and len(_May.goi) == 1):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"data": [{"revised_prompt": "coc"}, {"b64_json": "QUJD" * 200}],
+                                         "loi": f"khoa {KHOA}"}).encode())
+            return
         if _May.tra == "mot-loi" and len(_May.goi) > 1:
             self.send_response(429)
             self.end_headers()
@@ -175,6 +198,31 @@ class VeTest(unittest.TestCase):
         _May.tra = "url"
         anh = nguon_ve.ve(nguon_ve.CauHinh(self.url, KHOA, "m1"), "cốc", "1024x1024")
         self.assertTrue(anh.startswith(b"\x89PNG"))
+
+    def test_hung_server_hits_the_wall_clock_deadline(self):
+        # Máy giả nhỏ giọt byte: timeout theo từng lần đọc socket không bao giờ hết; hạn tổng phải cắt.
+        import time
+        _May.tra = "treo"
+        bat_dau = time.monotonic()
+        with mock.patch.object(nguon_ve, "HAN_CHOT", 0.5), self.assertRaises(nguon_ve.VeError) as c:
+            nguon_ve.ve(nguon_ve.CauHinh(self.url, KHOA, "m1"), "cốc", "1024x1024", timeout=10)
+        self.assertLess(time.monotonic() - bat_dau, 2.5)
+        self.assertEqual(c.exception.step, "mang")
+        self.assertTrue(c.exception.thu_lai)
+        self.assertIn("không trả ảnh sau 0.5 giây", c.exception.message)
+        self.assertEqual(nguon_ve.HAN_CHOT, 180)
+
+    def test_empty_answer_is_transient_and_shows_a_scrubbed_snippet(self):
+        _May.tra = "rong"
+        with self.assertRaises(nguon_ve.VeError) as c:
+            nguon_ve.ve(nguon_ve.CauHinh(self.url, KHOA, "m1"), "cốc", "1024x1024")
+        e = c.exception
+        self.assertEqual(e.step, "nha-cung-cap")
+        self.assertTrue(e.thu_lai)
+        self.assertIn("revised_prompt", e.message)
+        self.assertNotIn("QUJD", e.message)
+        self.assertNotIn(KHOA, e.message)
+        self.assertLessEqual(len(e.message), 300 + len("Nguồn vẽ trả kết quả không có ảnh: "))
 
 
 class CliTest(unittest.TestCase):
@@ -382,6 +430,53 @@ class CliTest(unittest.TestCase):
             self.assertTrue(out["ready"], out)
             self.assertEqual(out["da_ve"], 1)
             self.assertEqual(len(_May.goi), 3)
+
+    def _video_mot_anh(self, tmp):
+        (Path(tmp) / "video.md").write_text(
+            "---\ntieu-de: T\nphong-cach: vox\n---\n\n## Cảnh 1\nbo-cuc: hai-ben\nloi: Cốc cà phê.\n"
+            "nhip: Cốc cà phê | anh: ve: cốc cà phê sứ trắng | trai\nnhip: @dau | chu: OK | phai\n", encoding="utf-8")
+
+    def test_empty_answer_is_retried_then_succeeds(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._video_mot_anh(tmp)
+            _May.tra = "rong-mot"
+            out = self.chay(tmp)
+            self.assertTrue(out["ready"], out)
+            self.assertEqual(len(_May.goi), 2)
+
+    def test_always_empty_answer_fails_after_three_calls_with_the_snippet(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self._video_mot_anh(tmp)
+            _May.tra = "rong"
+            out = self.chay(tmp)
+            self.assertFalse(out["ready"], out)
+            self.assertEqual(out["error"]["step"], "nha-cung-cap")
+            self.assertIn("revised_prompt", out["error"]["message"])
+            self.assertEqual(len(_May.goi), 3)
+
+    def test_source_is_recorded_as_soon_as_each_image_is_saved(self):
+        # Lượt chạy bị ngắt sau ảnh đầu: nguon.json đã có ảnh đó (api, mô hình), lượt sau không ghi nhầm "nền tảng vẽ".
+        import anh_vox
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "video.md").write_text(VIDEO.replace(
+                "nhip: @dau | anh: tim: hanoi old quarter | nen\n", "nhip: @dau | chu: Phố cổ\n").replace(
+                "bo-cuc: toan-canh", "bo-cuc: mot"), encoding="utf-8")
+            that = anh_vox._luu_anh
+            da_luu = []
+
+            def luu(data, duong_dan):
+                if da_luu:
+                    raise RuntimeError("tiến trình bị ngắt")
+                that(data, duong_dan)
+                da_luu.append(duong_dan)
+
+            env = {"ANH_AI_URL": self.url, "ANH_AI_KEY": KHOA, "ANH_AI_MO_HINH": "m1"}
+            with mock.patch.dict(os.environ, env), mock.patch.object(anh_vox, "_luu_anh", luu), \
+                    self.assertRaises(RuntimeError):
+                anh_vox.chay(Path(tmp), False, 20, [])
+            nguon = json.loads((Path(tmp) / "anh" / "ai" / "nguon.json").read_text(encoding="utf-8"))
+            self.assertEqual([(b["file"], b["cong_cu"], b["mo_hinh"]) for b in nguon],
+                             [(f"ai/goc/{da_luu[0].name}", "api", "m1")])
 
     def test_steps_are_the_documented_ones(self):
         import anh_vox

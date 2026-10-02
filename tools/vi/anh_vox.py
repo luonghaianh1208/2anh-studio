@@ -226,6 +226,8 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list, cong_cu
         raise AnhVoxError("input", f"Cần vẽ {len(can_ve)} ảnh, quá giới hạn {toi_da}",
                            "Bớt nhịp `anh: ve:` hoặc chạy lại với `--toi-da N`.")
 
+    if nguon_moi:   # nguồn của ảnh nền tảng vẽ: ghi ngay, trước khi vẽ gì
+        _ghi_nguon(thu_muc_ai, nguon_moi)
     files = [str(ke_hoach.file_goc(thu_muc, m).relative_to(thu_muc).as_posix())
              for m in ds if m.nguon == "ve" and ke_hoach.file_goc(thu_muc, m).is_file()]
     da_ve = 0
@@ -251,12 +253,11 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list, cong_cu
                         da_huy = True
                     continue
                 files.append(str(file_goc.relative_to(thu_muc).as_posix()))
-                nguon_moi.append({"file": f"ai/goc/{m.ma}.png", "cong_cu": CONG_CU_API, "mo_hinh": ch.mo_hinh,
-                                  "prompt": m.prompt, "ngay": date.today().isoformat(), "ma": m.ma})
+                # Ghi nguồn ngay sau mỗi ảnh (ghi file tạm rồi đổi tên): lượt chạy bị ngắt giữa chừng không làm ảnh
+                # API đã vẽ bị ghi nhầm là "do nền tảng vẽ" ở lượt sau.
+                _ghi_nguon(thu_muc_ai, [{"file": f"ai/goc/{m.ma}.png", "cong_cu": CONG_CU_API, "mo_hinh": ch.mo_hinh,
+                                         "prompt": m.prompt, "ngay": date.today().isoformat(), "ma": m.ma}])
                 da_ve += 1
-
-    if nguon_moi:
-        _ghi_nguon(thu_muc_ai, nguon_moi)
 
     if loi_dung is not None:
         raise loi_dung

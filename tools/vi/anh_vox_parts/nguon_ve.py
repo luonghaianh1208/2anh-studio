@@ -7,6 +7,7 @@ import base64
 import binascii
 import json
 import os
+import threading
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -17,7 +18,8 @@ MO_HINH_MAC_DINH = "ag/gemini-3.1-flash-image"
 FIX_KHOA = ("Đặt khoá API của 9router: `setx ANH_AI_KEY \"<khoá>\"` (lấy ở trang quản trị 9router) rồi mở lại cửa sổ "
             "lệnh; hoặc dùng `anh: tim:` (ảnh thật), hoặc thay ảnh bằng `chu`, `the`.")
 FIX_MANG = "Kiểm tra 9router đang chạy (`9router` mở ở cổng 20128) hoặc địa chỉ `ANH_AI_URL`, rồi chạy lại."
-KHONG_PHAI_ANH = "Nguồn vẽ trả dữ liệu không phải ảnh."
+HAN_CHOT = 180   # giây, hạn tổng của một lần vẽ (kể cả tải ảnh `url`)
+KHONG_PHAI_ANH ="Nguồn vẽ trả dữ liệu không phải ảnh."
 FIX_NCC = "Đọc thông báo của nhà cung cấp: hết hạn mức thì chờ hoặc đổi `ANH_AI_MO_HINH`; câu lệnh bị từ chối thì sửa mô tả `ve:`."
 
 
@@ -64,7 +66,41 @@ def _an(chu: str, khoa: str | None) -> str:
     return chu.replace(khoa, "***") if khoa else chu
 
 
+def _trich(data, khoa: str | None) -> str:
+    """Đoạn ngắn của câu trả lời để đưa vào thông báo: bỏ mọi chuỗi ảnh base64, che khoá, tối đa 300 ký tự."""
+    def bo_anh(x):
+        if isinstance(x, dict):
+            return {k: ("…" if k == "b64_json" and v else bo_anh(v)) for k, v in x.items()}
+        if isinstance(x, list):
+            return [bo_anh(v) for v in x]
+        return x
+    return _an(json.dumps(bo_anh(data), ensure_ascii=False), khoa)[:300]
+
+
 def ve(ch: CauHinh, prompt: str, kich_thuoc: str, timeout: float = 120, mo=urllib.request.urlopen) -> bytes:
+    """Vẽ một ảnh, có hạn tổng `HAN_CHOT` giây: `timeout` của urllib chỉ tính từng lần đọc socket, nên máy chủ giữ kết
+    nối mà nhỏ giọt dữ liệu thì không bao giờ hết giờ. Yêu cầu chạy ở luồng nền (daemon); quá hạn thì bỏ luồng đó và
+    báo lỗi `mang` tạm thời (anh_vox thử lại)."""
+    han = HAN_CHOT
+    kq: dict = {}
+
+    def chay():
+        try:
+            kq["anh"] = _ve(ch, prompt, kich_thuoc, timeout, mo)
+        except BaseException as exc:  # noqa: BLE001 — chuyển nguyên lỗi về luồng gọi
+            kq["loi"] = exc
+
+    luong = threading.Thread(target=chay, name="ve-anh", daemon=True)
+    luong.start()
+    luong.join(han)
+    if luong.is_alive():
+        raise VeError("mang", f"Nguồn vẽ không trả ảnh sau {han:g} giây.", FIX_MANG, thu_lai=True)
+    if "loi" in kq:
+        raise kq["loi"]
+    return kq["anh"]
+
+
+def _ve(ch: CauHinh, prompt: str, kich_thuoc: str, timeout: float, mo) -> bytes:
     than = json.dumps({"model": ch.mo_hinh, "prompt": prompt, "size": kich_thuoc, "n": 1}).encode("utf-8")
     dau = {"Content-Type": "application/json"}
     if ch.khoa:
@@ -84,8 +120,9 @@ def ve(ch: CauHinh, prompt: str, kich_thuoc: str, timeout: float = 120, mo=urlli
     try:
         muc = data["data"][0]
     except (KeyError, IndexError, TypeError):
-        chu = _an(str(data), ch.khoa)[:300]
-        raise VeError("nha-cung-cap", f"Nguồn vẽ không trả ảnh: {chu}", FIX_NCC) from None
+        raise VeError("nha-cung-cap", f"Nguồn vẽ không trả ảnh: {_trich(data, ch.khoa)}", FIX_NCC) from None
+    if not isinstance(muc, dict):
+        muc = {}
     if muc.get("b64_json"):
         try:
             return base64.b64decode(muc["b64_json"])
@@ -97,4 +134,5 @@ def ve(ch: CauHinh, prompt: str, kich_thuoc: str, timeout: float = 120, mo=urlli
                 return r.read()
         except (urllib.error.URLError, OSError) as exc:
             raise VeError("mang", f"Không tải được ảnh từ địa chỉ nguồn vẽ trả về: {exc}", FIX_MANG) from None
-    raise VeError("nha-cung-cap", "Nguồn vẽ trả kết quả không có ảnh.", FIX_NCC)
+    # Nguồn vẽ thỉnh thoảng trả 200 mà không có ảnh (gặp thật với 9router): coi là lỗi tạm, thử lại.
+    raise VeError("nha-cung-cap", f"Nguồn vẽ trả kết quả không có ảnh: {_trich(data, ch.khoa)}", FIX_NCC, thu_lai=True)

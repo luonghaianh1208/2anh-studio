@@ -128,7 +128,7 @@ Lệnh `tools\vi\anh_vox.py` vẽ ảnh AI (qua 9router hoặc dịch vụ kiể
 - `input`: chưa có thư mục video hoặc `video.md`, video không phải kiểu Vox, thiếu file ảnh đã nêu trong `anh\`, hoặc số ảnh cần vẽ vượt giới hạn 20 ảnh một lần (AI bớt ảnh hoặc chạy lại với `--toi-da`).
 - `parse`: `error.message` nêu đúng **Dòng** trong `video.md` cần sửa.
 - `cau-hinh`: khoá thiếu hoặc bị từ chối (401), khoá có ký tự lạ, hoặc file cấu hình `%USERPROFILE%\.2anh-studio\anh-ai.json` hỏng hay sai dạng. Tạo khoá trong trang quản trị 9router, chạy `setx ANH_AI_KEY "<khoá>"` trong cửa sổ lệnh, rồi đóng và mở lại cửa sổ lệnh cùng ứng dụng AI. Không dán khoá vào khung chat. Chưa có khoá thì AI vẫn làm được video bằng ảnh thật, thẻ, chữ, con dấu.
-- `mang`: không gọi được 9router (chưa mở, hoặc sai địa chỉ `ANH_AI_URL`; mặc định `http://localhost:20128/v1`), hoặc không tải được ảnh thật. Mở 9router, kiểm mạng rồi nhờ AI chạy lại.
+- `mang`: không gọi được 9router (chưa mở, hoặc sai địa chỉ `ANH_AI_URL`; mặc định `http://localhost:20128/v1`), một ảnh quá 180 giây chưa xong sau 3 lần thử, hoặc không tải được ảnh thật. Mở 9router, kiểm mạng rồi nhờ AI chạy lại.
 - `nha-cung-cap`: dịch vụ vẽ báo lỗi, `error.message` chép nguyên văn: hết hạn mức (chờ, hoặc đổi mô hình bằng `ANH_AI_MO_HINH`), câu lệnh bị từ chối (AI tả lại ảnh), mô hình không có, dịch vụ trả dữ liệu không phải ảnh; hoặc ảnh thật chưa có nguồn.
 - `tach-nen`: máy chưa có FFmpeg, hoặc một ảnh hỏng không tách nền được. Cài FFmpeg theo `docs/vi/cai-dat-bang-ai.md`, hoặc nhờ AI xoá ảnh hỏng để vẽ lại.
 - `write`: không ghi được file; đóng file đang mở, kiểm ổ đĩa còn chỗ rồi chạy lại.

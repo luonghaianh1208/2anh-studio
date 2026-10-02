@@ -202,7 +202,7 @@ Nguồn ảnh AI, theo thứ tự:
 
 Lưu đệm và giới hạn:
 - Mỗi ảnh AI có mã băm theo câu lệnh và khổ. Sửa mô tả một nhịp thì chỉ ảnh đó vẽ lại; đổi `ANH_AI_MO_HINH` thì ảnh vẽ bằng mô hình cũ được vẽ lại (trừ ảnh nền tảng vẽ).
-- Mỗi lần chạy vẽ tối đa 20 ảnh mới (`--toi-da N` để nâng), 3 ảnh song song; lỗi mạng hay lỗi máy chủ tự thử lại 2 lần.
+- Mỗi lần chạy vẽ tối đa 20 ảnh mới (`--toi-da N` để nâng), 3 ảnh song song; lỗi mạng, lỗi máy chủ, câu trả lời không có ảnh hay một ảnh quá 180 giây chưa xong thì tự thử lại 2 lần. Lượt chạy bị ngắt giữa chừng: chạy lại, ảnh đã vẽ được dùng lại và vẫn ghi đúng mô hình.
 - Ảnh cắt nền tách không sạch thì tự vẽ lại một lần với nền xanh chặt hơn; vẫn hỏng thì chuyển nhịp đó sang `khung` kèm một dòng `warnings`.
 - Câu lệnh luôn cấm chữ, nhưng ảnh AI vẫn có thể có chữ lạ hay sai ý: chỉ phát hiện được bằng mắt ở bước xem trước. Sửa mô tả `ve:` (thêm chi tiết, bỏ thứ dễ sinh chữ như biển hiệu, giấy có chữ) rồi chạy lại `anh_vox.py`.
 - Cuối video hiện "Hình minh hoạ tạo bằng AI (<mô hình>)". `anh/ai/nguon.json` và `anh/ai/vox.json` do `anh_vox.py` ghi; không tự viết hay sửa hai file này.
