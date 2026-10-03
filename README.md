@@ -8,7 +8,7 @@
 
 > **Dành cho AI agent:** người dùng nhờ cài bộ công cụ này (hoặc chỉ dán link repo) thì làm theo [docs/vi/cai-dat-bang-ai.md](docs/vi/cai-dat-bang-ai.md), không tự nghĩ cách cài khác.
 
-Phiên bản: **6.3.2-vi.14** · [Nhật ký thay đổi](CHANGELOG-VI.md)
+Phiên bản: **6.3.2-vi.15** · [Nhật ký thay đổi](CHANGELOG-VI.md)
 
 ## Bắt đầu trong 3 bước
 

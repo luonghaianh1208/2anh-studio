@@ -2373,7 +2373,7 @@ class VoxGuideTest(unittest.TestCase):
                 self.assertIn(phrase, text)
 
     def test_changelog_has_the_vox_entry(self):
-        body = section(read("CHANGELOG-VI.md"), "## 6.3.2-vi.15 — (chưa phát hành)")
+        body = section(read("CHANGELOG-VI.md"), "## 6.3.2-vi.15 — 2026-10-03")
         for heading in ("### Thêm", "### Đổi", "### Không đổi", "### Rủi ro"):
             self.assertIn(heading, body)
         for phrase in ("Vox", "nhip", "anh_vox.py", "thoi-luong", "`mon` và `lop` không bắt buộc", "kịch bản cũ",

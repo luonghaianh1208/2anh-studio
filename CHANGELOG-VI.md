@@ -1,6 +1,6 @@
 # Nhật ký thay đổi — Bản Việt
 
-## 6.3.2-vi.15 — (chưa phát hành)
+## 6.3.2-vi.15 — 2026-10-03
 
 Video giải thích chỉ còn một lối: **kiểu Vox**. Video cũ dài gấp đôi yêu cầu (lệnh "video 60 giây" ra gần 2 phút) và bị bó vào khuôn bài giảng (bắt buộc môn, lớp, cảnh tiêu đề, nền lớp học cho cả chuyện công sở). Bản này dạy AI viết kịch bản kiểu Vox cho mọi ngành, đúng thời lượng, hình hiện khớp từng cụm lời, ảnh do AI vẽ theo từng câu.
 
@@ -9,6 +9,7 @@ Video giải thích chỉ còn một lối: **kiểu Vox**. Video cũ dài gấp
 - Giọng `giong: thu-giang` (VieNeu, đọc ngay trên máy, không cần mạng), mặc định của kiểu Vox; máy không có VieNeu thì tự dùng giọng nữ edge-tts kèm cảnh báo. Đường dẫn python của VieNeu đặt bằng biến môi trường `VIENEU_PYTHON`.
 - File `nguon.txt` cạnh video ghi mô hình vẽ ảnh, nguồn ảnh thật, nguồn số liệu và nhạc. Video Vox không hiện dòng nguồn nào trên hình.
 - Cảnh báo "vật đầu tiên hiện muộn" khi cảnh mở bằng nền trống.
+- `anh_vox.py` đọc giọng Thu Giang song song với lúc vẽ ảnh, bước dựng dùng lại giọng đó. Video 58 giây: bước dựng không còn chờ 49 giây đọc giọng (đọc lại chỉ còn dưới 1 giây).
 - `phong-cach: vox`: mỗi cảnh là `bo-cuc` (`mot`, `hai-ben`, `dan-hang`, `chong`, `toan-canh`), `loi` và 1–6 dòng `nhip`. Mỗi nhịp gắn một cụm từ trong lời với một vật (ảnh, thẻ, chữ, nhãn, con dấu, mũi tên, số chạy) ở một ô; vật hiện đúng lúc giọng đọc tới cụm đó. Dựng bằng lớp giấy cắt dán 2,5D: ba lớp sâu, máy quay đẩy và nghiêng nhẹ, ảnh cắt nền viền giấy xé có bóng, ảnh khung mép xé dán băng dính, chuyển cảnh xé giấy và lia nhanh xen nhau, bốn bảng màu giấy.
 - `tools/vi/anh_vox.py`: lập danh sách ảnh từ các nhịp, vẽ ảnh AI bằng công cụ vẽ của nền tảng (Antigravity, Codex) hoặc qua API kiểu OpenAI (mặc định 9router trên máy, mô hình `ag/gemini-3.1-flash-image`, cấu hình bằng `ANH_AI_URL`, `ANH_AI_KEY`, `ANH_AI_MO_HINH`), tải ảnh thật `tim:` bằng `image_search.py`, tách nền xanh, tính trước viền xé, bóng, duotone, halftone, và ghi nguồn. Lưu đệm theo mã băm câu lệnh: sửa một nhịp chỉ vẽ lại ảnh đó; tối đa 20 ảnh mới mỗi lần chạy (`--toi-da`); ảnh nền tảng vẽ ghi công cụ và mô hình bằng `--cong-cu`, `--mo-hinh`. Khoá API không bao giờ nằm trong repo, log hay JSON đầu ra.
 - Khoá `thoi-luong` (15–600 giây): `video_ma.py --plan-only` trả `thoi_luong_uoc` và cảnh báo khi kịch bản dài quá +15% hay ngắn dưới −25%, nêu số từ cần bớt hay thêm, chạy được trước khi có ảnh; sau khi tạo giọng thì kiểm lại bằng thời lượng thật. `--xem-truoc` của video Vox chụp mỗi cảnh hai ảnh, giữa cảnh và cuối cảnh.
