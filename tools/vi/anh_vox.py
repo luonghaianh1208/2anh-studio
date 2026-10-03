@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Lập danh sách ảnh và vẽ ảnh AI cho video `phong-cach: vox` qua API kiểu OpenAI (9router mặc định), tìm ảnh thật
 (`tim:`), rồi tính trước ảnh đã xử lý (cắt nền viền giấy xé, khung mép xé, duotone, halftone) vào `anh/ai/xu-ly/` và
-bảng `anh/ai/vox.json` cho video_ma.
+bảng `anh/ai/vox.json` cho video_ma. Giọng VieNeu (Thu Giang) được đọc trước vào `giong/` song song với lúc vẽ ảnh,
+để bước dựng của video_ma dùng lại thay vì ngồi chờ đọc.
 
   python tools/vi/anh_vox.py <thư_mục> [--chi-ke-hoach] [--toi-da N] [--cong-cu <tên>] [--mo-hinh <tên>]
 
@@ -16,6 +17,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 from dataclasses import asdict, replace
 from datetime import date
 from pathlib import Path
@@ -23,7 +25,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from anh_vox_parts import ke_hoach, nguon_ve, xu_ly  # noqa: E402
-from video_ma_parts import anh, parse  # noqa: E402
+from video_ma_parts import anh, giong, parse  # noqa: E402
+from video_parts import media  # noqa: E402
 
 ERROR_STEPS = ("input", "parse", "cau-hinh", "mang", "nha-cung-cap", "tach-nen", "write", "internal")
 KE_HOACH_TEN = "ke-hoach.json"
@@ -97,6 +100,26 @@ def _doc_video(thu_muc: Path) -> parse.Video:
         raise AnhVoxError("input", "anh_vox.py chỉ dùng cho video `phong-cach: vox`.",
                            "Dựng video này bằng `tools/vi/video_ma.py` thay vì `anh_vox.py`.")
     return video
+
+
+def _doc_giong_nen(video: parse.Video, thu_muc: Path, warnings: list) -> threading.Thread | None:
+    """Giọng VieNeu chỉ cần lời, không cần ảnh: đọc ở luồng nền trong lúc vẽ (vẽ chủ yếu chờ mạng, VieNeu dùng CPU).
+    Lỗi chỉ là cảnh báo — bước dựng của video_ma đọc lại giọng còn thiếu như thường."""
+    if video.meta["giong"] not in giong.VIENEU_GIONG or not giong.co_vieneu():
+        return None
+
+    def doc() -> None:
+        try:
+            giong.tao_truoc_vieneu([(f"canh-{c.so}", c.loi) for c in video.canh], thu_muc / "giong",
+                                   video.meta["giong"], video.meta["toc-do"])
+        except (media.MediaError, OSError) as exc:
+            loi = exc.message if isinstance(exc, media.MediaError) else str(exc)
+            warnings.append(f"Chưa đọc trước được giọng {giong.VIENEU_GIONG[video.meta['giong']]} ({loi}); "
+                            "bước dựng sẽ đọc lại.")
+
+    luong = threading.Thread(target=doc, name="doc-giong", daemon=True)
+    luong.start()
+    return luong
 
 
 def _ghi_ke_hoach(thu_muc: Path, mo_hinh: str | None, ds: list) -> str:
@@ -191,6 +214,16 @@ def chay(thu_muc: Path, chi_ke_hoach: bool, toi_da: int, warnings: list, cong_cu
         return {"files": [ke_hoach_rel], "so_anh": len(ds), "da_ve": 0, "dung_lai": 0, "ke_hoach": ke_hoach_rel}
 
     ch = nguon_ve.doc_cau_hinh()
+    luong_giong = _doc_giong_nen(video, thu_muc, warnings)
+    try:
+        return _ve_va_xu_ly(video, thu_muc, ds, ch, toi_da, warnings, cong_cu, mo_hinh)
+    finally:
+        if luong_giong is not None:
+            luong_giong.join()
+
+
+def _ve_va_xu_ly(video: parse.Video, thu_muc: Path, ds: list, ch: nguon_ve.CauHinh, toi_da: int, warnings: list,
+                 cong_cu: str | None, mo_hinh: str | None) -> dict:
     ke_hoach_rel = _ghi_ke_hoach(thu_muc, ch.mo_hinh, ds)
     thu_muc_ai = thu_muc / "anh" / "ai"
     nguon_cu = {b["ma"]: b for b in _doc_nguon(thu_muc_ai, warnings) if isinstance(b, dict) and "ma" in b}

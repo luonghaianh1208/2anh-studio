@@ -35,6 +35,10 @@ Nhận xét của chủ repo: chưa đẹp bằng video mẫu, khung hình rung 
 
 Đã xem khung hình từng cảnh: mỗi cảnh có nền cắt dán riêng, nhãn và cụm hình hiện ngay từ đầu cảnh, không còn rung hay nảy.
 
+## Đọc giọng song song với vẽ ảnh — 2026-10-03
+
+VieNeu đọc 6 cảnh mất 49 giây khi chạy riêng. Chạy thử `anh_vox.py` trên bản sao của video v2 (vẽ lại 12 ảnh): giọng xong sau 40 giây, trong khi lượt vẽ kéo dài 176 giây (lần này 9router chậm hơn lần đầu), nên giọng nằm gọn trong thời gian vẽ. Bước dựng thấy giọng đã có và còn khớp lời, mất 0,8 giây thay vì 49 giây.
+
 ## Khác với thiết kế
 
 - Mục 12.3 của thiết kế giữ một cú đẩy máy rất chậm (1,00 → 1,04). Bản đã làm bỏ hẳn phóng to, chỉ để nền trôi ngang chậm sau lớp hình: phóng to từng khung làm chữ nhoè lệch giữa các khung, trôi ngang theo số nguyên điểm ảnh thì không.

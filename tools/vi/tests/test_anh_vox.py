@@ -478,6 +478,82 @@ class CliTest(unittest.TestCase):
             self.assertEqual([(b["file"], b["cong_cu"], b["mo_hinh"]) for b in nguon],
                              [(f"ai/goc/{da_luu[0].name}", "api", "m1")])
 
+    def _chay_giong(self, tmp, giong_meta, tao_truoc, co_vieneu=True):
+        import anh_vox
+        (Path(tmp) / "video.md").write_text(VIDEO.replace("giong: nu", f"giong: {giong_meta}").replace(
+            "nhip: @dau | anh: tim: hanoi old quarter | nen\n", "nhip: @dau | chu: Phố cổ\n").replace(
+            "bo-cuc: toan-canh", "bo-cuc: mot"), encoding="utf-8")
+        env = {"ANH_AI_URL": self.url, "ANH_AI_KEY": KHOA, "ANH_AI_MO_HINH": "m1"}
+        warnings = []
+        with mock.patch.dict(os.environ, env), \
+                mock.patch.object(anh_vox.giong, "co_vieneu", return_value=co_vieneu), \
+                mock.patch.object(anh_vox.giong, "tao_truoc_vieneu", side_effect=tao_truoc):
+            kq = anh_vox.chay(Path(tmp), False, 20, warnings)
+        return kq, warnings
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
+    def test_vieneu_voice_is_read_while_the_images_are_drawn(self):
+        # Giọng chỉ cần lời: VieNeu đọc ở luồng nền trong lúc vẽ, xong trước khi lệnh trả kết quả.
+        import time
+        goi = []
+
+        def tao_truoc(cac_loi, thu_muc, giong_, toc_do):
+            han = time.monotonic() + 10
+            while not _May.goi and time.monotonic() < han:
+                time.sleep(0.01)
+            goi.append({"thay_ve": bool(_May.goi), "cac_loi": cac_loi, "thu_muc": thu_muc, "giong": giong_,
+                        "toc_do": toc_do})
+            return len(cac_loi)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            kq, warnings = self._chay_giong(tmp, "thu-giang", tao_truoc)
+            self.assertEqual(kq["da_ve"], 2)
+            self.assertEqual(len(goi), 1)
+            self.assertTrue(goi[0]["thay_ve"], "giọng phải chạy cùng lúc với lượt vẽ")
+            self.assertEqual(goi[0]["cac_loi"], [("canh-1", "Cốc cà phê và chiếc bánh."), ("canh-2", "Phố cổ Hà Nội.")])
+            self.assertEqual((goi[0]["thu_muc"], goi[0]["giong"], goi[0]["toc_do"]),
+                             (Path(tmp) / "giong", "thu-giang", "vua"))
+            self.assertEqual(warnings, [])
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
+    def test_a_failed_voice_read_is_only_a_warning(self):
+        from video_parts import media
+
+        def hong(*_a):
+            raise media.MediaError("giong", "VieNeu không chạy", "x")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            kq, warnings = self._chay_giong(tmp, "thu-giang", hong)
+            self.assertEqual(kq["da_ve"], 2)
+            self.assertEqual(len(warnings), 1)
+            self.assertIn("VieNeu không chạy", warnings[0])
+            self.assertIn("bước dựng sẽ đọc lại", warnings[0])
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "cần FFmpeg")
+    def test_no_voice_read_for_edge_voices_or_without_vieneu(self):
+        for giong_meta, co in (("nu", True), ("thu-giang", False)):
+            with self.subTest(giong=giong_meta, co_vieneu=co), tempfile.TemporaryDirectory() as tmp:
+                gia = mock.Mock(return_value=0)
+                _May.goi.clear()
+                self._chay_giong(tmp, giong_meta, gia, co_vieneu=co)
+                gia.assert_not_called()
+
+    def test_an_interrupted_draw_still_waits_for_the_voice_thread(self):
+        import anh_vox
+        import time
+        xong = []
+
+        def tao_truoc(*_a):
+            time.sleep(0.3)
+            xong.append(True)
+            return 0
+
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(anh_vox, "_luu_anh", side_effect=RuntimeError("tiến trình bị ngắt")), \
+                self.assertRaises(RuntimeError):
+            self._chay_giong(tmp, "thu-giang", tao_truoc)
+        self.assertEqual(xong, [True])
+
     def test_steps_are_the_documented_ones(self):
         import anh_vox
         self.assertEqual(anh_vox.ERROR_STEPS, ("input", "parse", "cau-hinh", "mang", "nha-cung-cap", "tach-nen", "write", "internal"))
