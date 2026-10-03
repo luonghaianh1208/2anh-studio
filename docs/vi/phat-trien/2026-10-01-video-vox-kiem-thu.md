@@ -45,5 +45,5 @@ VieNeu đọc 6 cảnh mất 49 giây khi chạy riêng. Chạy thử `anh_vox.p
 
 ## Việc còn lại
 
-- Kiểu `cat-dan` cũ: `clip-path` của chuyển cảnh `xe-giay` trong `chuyen-canh.js` thiếu đơn vị `px`, nên vết xé nhiều khả năng không hiện. Lỗi có từ trước, nằm ngoài phạm vi đợt này.
+- ~~Kiểu `cat-dan` cũ: `clip-path` của chuyển cảnh `xe-giay` thiếu đơn vị `px`~~: đã sửa 2026-10-03; Chromium xác nhận bản cũ bị bỏ qua, bản mới được nhận.
 - Driver card màn hình của máy thử cũ hơn mức NVENC cần, nên chưa đo được mã hoá bằng GPU.

@@ -338,6 +338,15 @@ test('chuyen canh: xe-giay dang chay thi co bong doc mep, moi ve nguyen trang', 
   }
 });
 
+test('chuyen canh: xe-giay polygon co don vi px o moi toa do (CSS bo qua polygon so tran, vet xe se khong hien)', function () {
+  var s = CH.trangThai('xe-giay', 0.2, 0.5, 2);
+  var diem = s.nen.clipPath.replace(/^polygon\(|\)$/g, '').split(', ');
+  assert.ok(diem.length > 3, s.nen.clipPath);
+  diem.forEach(function (d) {
+    assert.ok(/^-?\d+(\.\d+)?px -?\d+(\.\d+)?px$/.test(d), 'diem sai cu phap CSS: ' + d);
+  });
+});
+
 test('chuyen canh: xe-giay xac dinh theo t va hat (cung t, cung hat ra cung hinh)', function () {
   for (var t = -0.1; t < 0.8; t += 0.013) {
     assert.deepStrictEqual(CH.trangThai('xe-giay', t, 0.5, 3), CH.trangThai('xe-giay', t, 0.5, 3), 't=' + t);

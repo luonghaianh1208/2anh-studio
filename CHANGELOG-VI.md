@@ -32,6 +32,9 @@ Video giải thích chỉ còn một lối: **kiểu Vox**. Video cũ dài gấp
 - Vật màu xanh lá bị ăn mất khi tách nền xanh: công cụ tự chuyển sang khung kèm cảnh báo.
 - Sửa `video.md` sau khi đã vẽ ảnh (đổi số cảnh, thứ tự nhịp, mô tả `ve:`, tuỳ chọn ảnh) làm ảnh cũ: `--xem-truoc` và dựng thật dừng ở lỗi `canh` "đã cũ so với video.md" tới khi chạy lại `anh_vox.py` (`--plan-only` chỉ cảnh báo, nên vẫn ước được thời lượng trước khi vẽ ảnh).
 - Ảnh nền tảng tự vẽ chỉ ghi đúng mô hình khi AI nêu `--mo-hinh`; không nêu thì cuối video ghi "không rõ".
+### Bản vá (2026-10-03, sau khi gắn tag)
+- Kiểu cắt dán cũ: chuyển cảnh xé giấy (`xe-giay`) nay hiện đúng vết xé. Trước đây toạ độ mép xé thiếu đơn vị `px` nên Chromium bỏ qua cả hình cắt, cảnh cũ biến mất mà không có vết xé.
+- Test bảng ô bố cục (`tests/js/test_kho.js`) nhận đúng hai ngoại lệ của Vox: nền toàn cảnh phủ kín khung, và bố cục hai bên ở khổ dọc xếp trên/dưới.
 
 ## 6.3.2-vi.14 — 2026-09-30
 

@@ -28,10 +28,11 @@
   }
   function den(a) { return 'rgba(0,0,0,' + lam(a) + ')'; }
   // clip-path polygon() của mép xé tại canhX: hộp rộng và cao quá khổ để chỉ mép trái (đã xé) rơi trong khung;
-  // hạt cố định nên hình răng cưa luôn giống nhau. Đổi cú pháp điểm SVG ("x,y x,y") của giayXe sang CSS ("x y, x y").
+  // hạt cố định nên hình răng cưa luôn giống nhau. Đổi cú pháp điểm SVG ("x,y x,y") của giayXe sang CSS ("xpx ypx, …"):
+  // CSS bỏ qua cả clip-path nếu toạ độ thiếu đơn vị.
   function xeGiayClip(k, canhX, hat) {
     var diem = root.THI_CAT_DAN.giayXe(hat, canhX, -XE_GIAY_LE, 3 * k.rong, k.cao + 2 * XE_GIAY_LE, XE_GIAY_RANG);
-    return 'polygon(' + diem.split(' ').map(function (p) { return p.replace(',', ' '); }).join(', ') + ')';
+    return 'polygon(' + diem.split(' ').map(function (p) { return p.replace(',', 'px ') + 'px'; }).join(', ') + ')';
   }
   // Nếp màn: sọc dọc mờ cách 64 px và bóng đậm dần về mép trong (`huong` là hướng tới mép trong).
   function nepMan(huong, muc) {

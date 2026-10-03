@@ -44,6 +44,7 @@ test('o bo cuc: kho ngang du ten, moi o nam trong 1280x720 va day o <= vach phu 
     assert.deepStrictEqual(Object.keys(o).sort(), ['h', 'w', 'x', 'y'], ten);
     assert.ok(o.x >= 0 && o.y >= 0 && o.w > 0 && o.h > 0 && o.x + o.w <= 1280 && o.y + o.h <= 720, ten + ' ' + JSON.stringify(o));
     // Ô chú thích ảnh giữ đúng toạ độ vi.11 (đáy 625, lố vạch 5; chữ một dòng nằm trên vạch) để hình không đổi.
+    if (phuKin(ten)) { assert.deepStrictEqual(o, { x: 0, y: 0, w: 1280, h: 720 }, ten); return; }
     assert.ok(o.y + o.h <= NGANG.day + (ten === 'chu-thich' ? 5 : 0), ten + ' xuong vung phu de ' + JSON.stringify(o));
   });
 });
@@ -65,16 +66,25 @@ test('o bo cuc: ten la thi bao loi; ban tra ve la ban sao', function () {
   assert.strictEqual(K.o('cot-phu').x, 900);
 });
 
+// Ô nền toàn cảnh của Vox cố ý phủ kín khung (nằm dưới phụ đề); ô hai bên của Vox ở khổ dọc xếp trên/dưới nên khác tên.
+function phuKin(ten) { return /^vox-.*-nen$/.test(ten); }
+var VOX_HAI_BEN = { ngang: ['vox-hai-ben-trai', 'vox-hai-ben-phai'], doc: ['vox-hai-ben-tren', 'vox-hai-ben-duoi'] };
+
 function chong(a, b) { return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h; }
 
 test('o bo cuc doc: cung ten voi kho ngang, moi o trong 720x1280, day o <= 1080, le 48 hoac rong hon', function () {
   var bang = require(path.join(RT, 'o-bo-cuc.json'));
-  assert.deepStrictEqual(Object.keys(bang.doc).sort(), Object.keys(bang.ngang).sort());
+  function boHaiBen(kho) { return Object.keys(bang[kho]).filter(function (t) { return VOX_HAI_BEN[kho].indexOf(t) < 0; }).sort(); }
+  assert.deepStrictEqual(boHaiBen('doc'), boHaiBen('ngang'));
+  ['ngang', 'doc'].forEach(function (kho) {
+    VOX_HAI_BEN[kho].forEach(function (t) { assert.ok(bang[kho][t], kho + ' thieu ' + t); });
+  });
   K.dat(DOC);
   Object.keys(bang.doc).forEach(function (ten) {
     var o = K.o(ten);
     assert.deepStrictEqual(o, bang.doc[ten]);
     assert.ok(o.x >= 0 && o.y >= 0 && o.w > 0 && o.h > 0 && o.x + o.w <= 720, ten + ' ' + JSON.stringify(o));
+    if (phuKin(ten)) { assert.deepStrictEqual(o, { x: 0, y: 0, w: 720, h: 1280 }, ten); return; }
     assert.ok(o.y + o.h <= DOC.day, ten + ' xuong vung phu de ' + JSON.stringify(o));
   });
   K.dat(NGANG);
