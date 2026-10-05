@@ -1,5 +1,17 @@
 # Nhật ký thay đổi — Bản Việt
 
+## Chưa phát hành
+
+### Đổi
+- Ảnh AI kiểu `phong-anh: cat-dan` (mặc định của video Vox) dùng prompt chi tiết theo video mẫu Vox, chia ba phần: phong cách chung (ảnh in chấm lưới và tranh khắc tông sepia, bảng năm màu cố định xanh than `#1F3A5F`, đỏ son `#D9472B`, vàng mù tạt `#E3A72F`, xanh két `#2A7F7A`, kem `#EFE6D2`, mép giấy xé có xơ trắng), bố cục nền (giấy kem, giữa và hai phần ba bên trái để trơn cho chữ, mảng giấy màu, giấy kẻ ô, chấm lưới chỉ ở rìa, không có người) và bố cục vật (đúng một vật, viền giấy trắng, mảng giấy màu lót sau, không thêm người hay vật lạ). Nền bớt rối, màu đậm và rõ hơn thay vì ngả nâu toàn bộ. `chup-that` và `minh-hoa` giữ nguyên.
+- Mô tả `ve:` chỉ cần tả nội dung; hướng dẫn bỏ cách viết "cụm cắt dán gồm…".
+
+### Thêm
+- Khoá đầu `nhan-vat-chinh` của video Vox: tả một lần nhân vật xuất hiện ở nhiều cảnh, rồi gọi `@nhan-vat` trong mô tả `ve:`; công cụ chèn mô tả đó vào mọi ảnh gọi nhân vật để người giống nhau giữa các cảnh. Gọi `@nhan-vat` mà chưa có khoá này là lỗi `parse`.
+
+### Lưu ý
+- Video Vox kiểu `cat-dan` làm từ bản trước: prompt đổi nên ảnh cũ thành "đã cũ so với video.md"; chạy lại `anh_vox.py` để vẽ lại theo phong cách mới.
+
 ## 6.3.2-vi.15 — 2026-10-03
 
 Video giải thích chỉ còn một lối: **kiểu Vox**. Video cũ dài gấp đôi yêu cầu (lệnh "video 60 giây" ra gần 2 phút) và bị bó vào khuôn bài giảng (bắt buộc môn, lớp, cảnh tiêu đề, nền lớp học cho cả chuyện công sở). Bản này dạy AI viết kịch bản kiểu Vox cho mọi ngành, đúng thời lượng, hình hiện khớp từng cụm lời, ảnh do AI vẽ theo từng câu.

@@ -19,6 +19,10 @@ VOX_META_CHOICES = {
     "bang-mau": ("kem", "bao-cu", "dem", "tuoi"),
     "chuyen-canh": ("xen-ke", "xe-giay", "lia", "khong"),
 }
+# Khoá đầu tự do chỉ có ở Vox: nhân vật chính cố định, mô tả ≤ NHAN_VAT_CHINH_DAI ký tự; mô tả `ve:` gọi bằng `@nhan-vat`.
+VOX_META_FREE = ("nhan-vat-chinh",)
+NHAN_VAT_CHINH_DAI = 300
+DAU_NHAN_VAT = "@nhan-vat"
 # Khoá đầu của kiểu viết tay, không dùng ở Vox.
 VOX_CAM = ("ban-tay", "nhan-vat", "mau-ao", "chu-dong", "may-quay")
 CHUYEN_CANH = ("xe-giay", "lia", "khong")

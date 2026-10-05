@@ -41,7 +41,7 @@ Ví dụ: `nhip: để mai tính | anh: ve: bàn tay cầm điện thoại, ch�
 - Giới hạn đếm ký tự hiện ra. Vượt giới hạn là lỗi `parse` nêu đúng dòng.
 - `so`: viết dấu chấm thập phân (`{{2.5}}`), video hiện dấu phẩy ("2,5"). Cảnh có `so` hay có số liệu trong lời phải có dòng `nguon:` của cảnh.
 - `the` hợp với một con số hay một sự thật có ba tầng: tên, giá trị, ghi chú.
-- `anh: ve:` là ảnh AI, kiểu cắt nền (một vật trên nền giấy, viền giấy xé trắng) trừ khi có tuỳ chọn `khung` hay ở ô `nen`. Ảnh thật `tim:` và ảnh người dùng gửi luôn ở dạng khung.
+- `anh: ve:` là ảnh AI, kiểu cắt nền (một vật trên nền giấy, viền giấy xé trắng) trừ khi có tuỳ chọn `khung` hay ở ô `nen`. Mô tả chỉ tả nội dung, phong cách do `phong-anh` thêm; `@nhan-vat` trong mô tả là nhân vật chính của khoá đầu `nhan-vat-chinh`. Ảnh thật `tim:` và ảnh người dùng gửi luôn ở dạng khung.
 
 ## Bố cục và ô
 

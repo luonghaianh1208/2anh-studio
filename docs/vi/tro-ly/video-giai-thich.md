@@ -74,13 +74,14 @@ Lời:
 
 - **Mỗi cảnh mở ra đã có hình**: nền của cảnh, một nhãn tiêu đề (`nhan` ở `tren`) và hình chính đều đặt ở `@dau`; vật phụ (chữ chốt, thẻ, con dấu) mới hiện theo lời. Cảnh mở bằng nền trống là lỗi: `--plan-only` cảnh báo "vật đầu tiên hiện muộn".
 - **Nền cảnh**: mỗi cảnh ghi một dòng `nen: <mô tả>` tả một mặt nền cắt dán gợi đúng bối cảnh của lời ("mặt bàn văn phòng nhìn từ trên xuống với giấy tờ, kẹp giấy và phong bì", "bản đồ cũ, la bàn và mảnh giấy xé"). Không ghi thì công cụ tự lập từ tên video và lời của cảnh, kém đúng ý hơn. Cảnh `toan-canh` đã có ảnh ở ô `nen` thì không cần.
-- **Hình chính là một cụm vật ghép lại kiểu cắt dán**, không phải một vật lẻ: "cụm cắt dán gồm một chiếc đồng hồ cát lớn đặt cạnh chồng giấy tờ cao nghiêng ngả". Cụm hình to, khoảng nửa khung.
+- **Hình chính là một vật chính rõ ràng**, có thể kèm một hai vật nhỏ gắn liền với nó: "một chiếc đồng hồ cát lớn đặt cạnh chồng giấy tờ cao nghiêng ngả", "chiếc xe cút kít chất đầy tiền giấy". Hình to, khoảng nửa khung.
 - Câu nào cũng có hình đỡ: câu mở cảnh do nhãn và cụm hình ở `@dau` đỡ, các câu sau không để hai câu liền nhau mà hình không đổi. Nhịp gắn vào đúng từ gọi tên sự vật: lời nói "cốc cà phê nguội" thì ảnh cốc cà phê hiện ra đúng lúc giọng đọc tới "cốc cà phê".
 - **Phép thử tắt tiếng**: tắt tiếng đi, người xem vẫn đoán được mỗi cảnh nói gì. Trước khi chạy lệnh, viết cho từng cảnh một dòng nháp "lời nói gì — hình cho thấy gì"; hình không cho thấy ý của lời thì đổi hình.
 - Chữ trên hình tối đa khoảng 6 từ, là ý chốt hay nhãn, không chép lại lời (lời đã có ở phụ đề). Mỗi cảnh tối đa 2 dòng `chu`.
-- `ve:` tả **vật và hành động** cụ thể: "cụm cắt dán gồm một con rùa cõng chiếc đồng hồ báo thức cổ trên lưng" thay vì "sự chậm rãi". Ảnh cắt nền là một cụm gọn, tách khỏi nền. Không tả không khí chung, không xin chữ, biển hiệu hay màn hình có chữ: ảnh AI không được có chữ.
+- `ve:` tả **vật và hành động** cụ thể: "một con rùa cõng chiếc đồng hồ báo thức cổ trên lưng" thay vì "sự chậm rãi". Chỉ tả nội dung: công cụ tự thêm phong cách (kỹ thuật cắt dán, bảng màu, giấy, viền, nền xanh để tách), nên không viết "cắt dán", màu giấy hay bố cục vào `ve:`; viết thêm dễ làm ảnh lệch phong cách chung của video. Không tả không khí chung, không xin chữ, biển hiệu hay màn hình có chữ: ảnh AI không được có chữ.
 - Người, địa danh, công trình, sự kiện, sản phẩm có thật: dùng ảnh thật `anh: tim: <từ khoá tiếng Anh>`, không để AI vẽ giả.
 - Ý trừu tượng thì tìm vật ví von. Không tìm được vật nào đúng thì dùng `the`, `dau` hoặc `chu`, không chèn ảnh cho có.
+- **Nhân vật chính cố định**: video có một người xuất hiện ở nhiều cảnh (người kể, nhân vật trong tình huống) thì tả người đó một lần ở khoá đầu `nhan-vat-chinh:` (tuổi, giới, tóc, trang phục và màu áo, nét riêng; tối đa 300 ký tự), rồi gọi `@nhan-vat` trong `ve:`: "@nhan-vat cầm điện thoại, nhíu mày đọc tin nhắn". Công cụ chèn đúng mô tả đó vào mọi ảnh gọi nhân vật, để người giống nhau giữa các cảnh. Người khác trong cùng ảnh thì tả thẳng. Nền cảnh không vẽ người.
 - Ảnh cắt nền được tách trên nền xanh lá: vật màu xanh lá (cây, lá, chai xanh, logo xanh) bị ăn mất một phần. Tả vật đó màu khác, hoặc thêm tuỳ chọn `khung`.
 - Hai cảnh liền nhau không dùng cùng một bố cục và cùng kiểu vật; đổi nhịp cho mắt nghỉ.
 
@@ -111,7 +112,8 @@ Viết `video.md` trong `projects/_video/<tên_video>/`. File mở đầu bằng
 | `toc-do` | không | `cham`, `vua` (mặc định) hoặc `nhanh` |
 | `phu-de` | không | `karaoke` (mặc định: in lên hình, tô vàng từng từ, một dòng một lúc), `hinh` (cả câu một màu), `file` (file `phu-de.srt` riêng) hoặc `khong` |
 | `am-thanh` | không | `co` (mặc định: tiếng "ting" nhỏ khi vật hiện, tiếng đóng dấu, tiếng chuyển cảnh, luôn nhỏ hơn giọng đọc) hoặc `khong` |
-| `phong-anh` | không | `cat-dan` (mặc định: tranh cắt dán kiểu tạp chí cổ, giấy cũ, tranh khắc, tông trầm), `chup-that` (ảnh AI kiểu ảnh chụp thật) hoặc `minh-hoa` (tranh minh hoạ phẳng, màu tươi); áp cho mọi ảnh AI của video |
+| `phong-anh` | không | `cat-dan` (mặc định: cắt dán kiểu Vox, ảnh in chấm lưới và tranh khắc tông sepia, giấy xé năm màu xanh than, đỏ son, vàng mù tạt, xanh két, kem; nền giấy kem chừa khoảng trống giữa cho chữ), `chup-that` (ảnh AI kiểu ảnh chụp thật) hoặc `minh-hoa` (tranh minh hoạ phẳng, màu tươi); áp cho mọi ảnh AI của video |
+| `nhan-vat-chinh` | không | Mô tả nhân vật xuất hiện ở nhiều cảnh (tối đa 300 ký tự); mô tả `ve:` gọi bằng `@nhan-vat` |
 | `nen-canh` | không | `ve` (mặc định: mỗi cảnh một nền AI riêng) hoặc `khong` (nền giấy vẽ bằng mã, dùng khi máy không có nguồn vẽ ảnh) |
 | `bang-mau` | không | `kem` (mặc định: giấy kem, mực đậm, nhấn cam đỏ), `bao-cu` (giấy báo cũ ngả vàng, nhấn đỏ trầm), `dem` (nền xanh đêm, chữ kem, nhấn vàng) hoặc `tuoi` (giấy sáng, nhấn đỏ hồng) |
 | `chuyen-canh` | không | `xen-ke` (mặc định: xé giấy và lia nhanh xen nhau), `xe-giay`, `lia` hoặc `khong` |
@@ -148,22 +150,22 @@ bo-cuc: mot
 nen: mặt bàn văn phòng nhìn từ trên xuống với giấy tờ, kẹp giấy, phong bì thư và những mảnh giấy xé
 loi: Bạn chỉ hỏi đồng nghiệp một câu rất bình thường: việc ấy xong chưa? Thế mà người kia lại nghe thành một lời trách: sao làm chậm thế? Cùng một câu nói mà hai người hiểu theo hai cách.
 nhip: @dau | nhan: Một câu, hai cách hiểu | tren
-nhip: @dau | anh: ve: cụm cắt dán gồm hai nhân viên văn phòng đứng quay lưng vào nhau, ở giữa là một bong bóng thoại bị xé làm đôi | giua
+nhip: @dau | anh: ve: hai nhân viên văn phòng đứng quay lưng vào nhau, ở giữa là một bong bóng thoại bị xé làm đôi | giua
 nhip: lời trách | dau: HIỂU LẦM | duoi
 
 ## Cảnh 2
 bo-cuc: hai-ben
 nen: những lá thư tay cũ, tem thư và dây điện thoại xoắn nằm rải rác trên giấy ngả màu
 loi: Lý do là chữ viết không mang theo giọng nói, cũng không mang theo nét mặt. Người đọc buộc phải tự đoán thái độ của bạn, mà lúc đang bận thì người ta thường đoán theo hướng xấu nhất.
-nhip: @dau | anh: ve: cụm cắt dán gồm một chiếc điện thoại bàn cổ và một bong bóng tin nhắn trống bay lên | trai
-nhip: nét mặt | anh: ve: cụm cắt dán gồm một chiếc mặt nạ sân khấu trắng không biểu cảm và vài mảnh giấy báo xé | phai
+nhip: @dau | anh: ve: một chiếc điện thoại bàn cổ và một bong bóng tin nhắn trống bay lên | trai
+nhip: nét mặt | anh: ve: một chiếc mặt nạ sân khấu trắng không biểu cảm và vài mảnh giấy báo xé | phai
 nhip: hướng xấu nhất | dau: ĐOÁN XẤU | giua
 
 ## Cảnh 3
 bo-cuc: dan-hang
 nen: bảng ghim bằng gỗ bần với giấy nhớ trống, đinh ghim và dây kẹp, nhìn chính diện
 loi: Vì thế, mỗi khi nhắn giao việc, bạn hãy viết cho đủ ba điều: việc cần làm là gì, hạn chót là khi nào, và ai là người chịu trách nhiệm chính.
-nhip: @dau | anh: ve: cụm cắt dán gồm một chiếc bút máy cổ nằm chéo trên xấp giấy nhớ | 1
+nhip: @dau | anh: ve: một chiếc bút máy cổ nằm chéo trên xấp giấy nhớ | 1
 nhip: việc cần làm | the: Việc gì | Slide báo giá | 2
 nhip: hạn chót | the: Hạn chót | Trưa thứ Năm | 3
 nhip: ai là người | the: Ai làm | Anh Minh | 4
@@ -173,7 +175,7 @@ bo-cuc: mot
 nen: mặt đồng hồ cổ, bánh răng đồng và những tờ lịch xé chồng lên nhau ở rìa khung
 loi: Còn khi nhận được một tin nhắn chưa rõ, bạn đừng ngồi đoán mà hãy hỏi lại ngay. Hỏi lại chỉ mất mười giây, trong khi đoán sai có thể khiến bạn mất cả buổi chiều làm lại.
 nhip: @dau | nhan: Chưa rõ thì hỏi lại | tren
-nhip: @dau | anh: ve: cụm cắt dán gồm một chiếc đồng hồ cát lớn đặt cạnh chồng giấy tờ cao nghiêng ngả | giua
+nhip: @dau | anh: ve: một chiếc đồng hồ cát lớn đặt cạnh chồng giấy tờ cao nghiêng ngả | giua
 nhip: mười giây | chu: Hỏi mười giây, khỏi làm lại | duoi
 
 ## Cảnh 5
@@ -188,7 +190,7 @@ bo-cuc: mot
 nen: con đường quanh co vẽ trên bản đồ cũ, la bàn và những mảnh giấy xé màu đỏ trầm và xanh than
 loi: Nghe thì có vẻ mất công hơn, nhưng thật ra một phút nói cho rõ ràng sẽ tiết kiệm cho bạn cả một ngày hiểu lầm. Vì vậy, trước khi bấm gửi, bạn hãy đọc lại tin nhắn như thể mình là người nhận.
 nhip: @dau | nhan: Đọc lại trước khi gửi | tren
-nhip: @dau | anh: ve: cụm cắt dán gồm một con rùa cõng chiếc đồng hồ báo thức cổ trên lưng | giua
+nhip: @dau | anh: ve: một con rùa cõng chiếc đồng hồ báo thức cổ trên lưng | giua
 nhip: một phút | chu: Rõ một phút, nhàn cả ngày | duoi
 ```
 

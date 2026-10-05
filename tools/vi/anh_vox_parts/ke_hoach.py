@@ -6,6 +6,8 @@ import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 
+from video_ma_parts.vox import DAU_NHAN_VAT
+
 DUOI_PHONG = {
     # Kiểu video mẫu Vox: tranh cắt dán hỗn hợp, giấy cũ, tranh khắc, tông trầm.
     "cat-dan": ("tranh cắt dán hỗn hợp kiểu tạp chí cổ, ghép từ ảnh in chấm lưới và tranh khắc, giấy cũ ngả màu, "
@@ -17,6 +19,47 @@ DUOI_CAT = "cả cụm nằm gọn ở giữa, tách rời khỏi nền, nền x
 DUOI_NEN = ("nền phủ kín khung làm phông cho video, các mảng giấy xé và hình mờ nằm ở rìa và các góc, "
             "chừa vùng giấy sáng ít chi tiết ở giữa và bên trái để đặt chữ, không có nhân vật lớn ở giữa")
 DUOI_CHUNG = "không có chữ, không có chữ cái, không có logo"
+
+# `phong-anh: cat-dan` (mặc định): prompt chi tiết theo video mẫu Vox, tiếng Anh vì mô hình vẽ theo sát hơn. Ba phần:
+# phong cách chung (kỹ thuật, bảng màu, chất giấy) cho mọi ảnh; bố cục riêng cho nền, vật cắt rời, ảnh khung/phủ.
+# Giấy kem chỉ nằm ở phần nền: để ở phần chung thì mô hình vẽ cả tờ giấy sau vật, tách nền ra cả tờ giấy.
+CAT_DAN_CHUNG = (
+    "Editorial mixed-media paper collage in the style of Vox explainer videos. Elements are cut out from vintage "
+    "black-and-white halftone photographs and 19th-century copperplate engravings, printed in muted sepia with visible "
+    "halftone dots, combined with flat torn-paper shapes in a strictly limited palette: deep navy blue #1F3A5F, "
+    "vermilion red #D9472B, mustard yellow #E3A72F, teal #2A7F7A and cream #EFE6D2. Torn paper edges with white "
+    "fibrous rims, soft drop shadows between paper layers, subtle risograph grain."
+)
+CAT_DAN = {
+    "nen": (
+        "Wide background plate on aged cream newsprint paper with fine fibers and faint stains. A large calm area of "
+        "plain cream paper fills the centre and the left two thirds, almost empty, reserved for text. Collage pieces "
+        "only along the edges and corners: big torn shapes of navy, vermilion and mustard paper, a strip of graph paper "
+        "with faint blue grid lines, a halftone dot patch, a fragment of an engraved banknote guilloche pattern, and a "
+        "few engraved details about the theme: {mo_ta}. Low clutter, generous negative space, flat front-facing view, "
+        "no people."
+    ),
+    "cat": (
+        "One single hero cut-out showing exactly this and nothing else: {mo_ta}. Rendered as a detailed vintage halftone "
+        "photograph or copperplate engraving in muted sepia, cut out along its silhouette with a thin white paper border, "
+        "with one or two small flat torn paper shapes in navy, vermilion or mustard tucked directly behind it. Do not add "
+        "extra people, extra objects, picture frames or a paper sheet behind the whole group. People, when present, look "
+        "like real adults from a 1950s photograph, natural proportions. Centered with wide margin, standing directly on a "
+        "perfectly flat pure green #00FF00 background that fills the whole image edge to edge, no shadow on the green."
+    ),
+    "khung": (
+        "A single rectangular vintage picture filling the entire image edge to edge: {mo_ta}. Halftone photograph or "
+        "engraving in muted sepia with small accents from the palette, no border, no frame, no paper margin."
+    ),
+    "phu": (
+        "A full-frame collage scene filling the entire image edge to edge: {mo_ta}. Layered cut-out halftone photographs "
+        "and engravings over aged cream paper, with large torn shapes of navy, vermilion and mustard paper."
+    ),
+}
+CAT_DAN_CAM = "No text, no letters, no numbers, no logos, no watermark."
+# Nhân vật chính cố định (`nhan-vat-chinh`): mô tả `ve:` gọi nhân vật bằng `vox.DAU_NHAN_VAT`.
+CAU_NHAN_VAT = ("the main character ({mo_ta}); draw the same main character with the same face, hair, clothes and "
+                "colours as in every other image of this video")
 KHO_ANH = {"cat": "1024x1024", ("khung", "ngang"): "1536x1024", ("khung", "doc"): "1024x1536",
            ("phu", "ngang"): "1536x1024", ("phu", "doc"): "1024x1536",
            ("nen", "ngang"): "1536x1024", ("nen", "doc"): "1024x1536"}
@@ -66,8 +109,24 @@ def _nen_canh(video, c) -> Muc:
     if not mo_ta:
         mo_ta = f"phông nền cho video «{video.meta['tieu-de']}», gợi ý nội dung: {c.loi[:LOI_TRONG_NEN]}"
     kt = KHO_ANH[("nen", video.meta["kho"])]
-    prompt = ", ".join([mo_ta, DUOI_PHONG[video.meta["phong-anh"]], DUOI_NEN, DUOI_CHUNG])
+    if video.meta["phong-anh"] == "cat-dan":
+        prompt = " ".join([CAT_DAN_CHUNG, CAT_DAN["nen"].format(mo_ta=mo_ta), CAT_DAN_CAM])
+    else:
+        prompt = ", ".join([mo_ta, DUOI_PHONG[video.meta["phong-anh"]], DUOI_NEN, DUOI_CHUNG])
     return Muc(ma_anh(prompt, kt), c.so, CHI_SO_NEN, "nen", "ve", prompt, kt, ())
+
+
+def _prompt_ve(video, mo_ta: str, kieu: str) -> str:
+    nhan_vat = video.meta.get("nhan-vat-chinh")
+    if nhan_vat and DAU_NHAN_VAT in mo_ta:
+        mo_ta = mo_ta.replace(DAU_NHAN_VAT, CAU_NHAN_VAT.format(mo_ta=nhan_vat))
+    if video.meta["phong-anh"] == "cat-dan":
+        return " ".join([CAT_DAN_CHUNG, CAT_DAN[kieu].format(mo_ta=mo_ta), CAT_DAN_CAM])
+    phan = [mo_ta, DUOI_PHONG[video.meta["phong-anh"]]]
+    if kieu == "cat":
+        phan.append(DUOI_CAT)
+    phan.append(DUOI_CHUNG)
+    return ", ".join(phan)
 
 
 def lap(video) -> list:
@@ -85,11 +144,7 @@ def lap(video) -> list:
             co_phu = co_phu or kieu == "phu"
             kt = KHO_ANH["cat"] if kieu == "cat" else KHO_ANH[(kieu, kho)]
             if nguon == "ve":
-                phan = [nd[3:].strip(), DUOI_PHONG[video.meta["phong-anh"]]]
-                if kieu == "cat":
-                    phan.append(DUOI_CAT)
-                phan.append(DUOI_CHUNG)
-                prompt = ", ".join(phan)
+                prompt = _prompt_ve(video, nd[3:].strip(), kieu)
             else:
                 prompt = nd[4:].strip() if nguon == "tim" else nd
             ma = ma_anh(prompt, kt) if nguon == "ve" else hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:10]

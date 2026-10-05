@@ -47,14 +47,14 @@ class NenCanhTest(unittest.TestCase):
         self.assertIn("Giao tiếp", nen[1].prompt, "không tả nền thì lập từ tên video và lời")
         self.assertIn("Một hai ba", nen[1].prompt)
         for m in nen:
-            self.assertIn("không có chữ", m.prompt)
-            self.assertIn("chừa vùng giấy sáng", m.prompt)
+            self.assertIn("No text", m.prompt)
+            self.assertIn("left two thirds", m.prompt)
             self.assertEqual(m.kich_thuoc, "1536x1024")
             self.assertTrue(ke_hoach.file_xu_ly(Path("x"), m).name.endswith("-nen.jpg"))
 
     def test_collage_style_is_in_every_ai_prompt(self):
         for m in ke_hoach.lap(doc()):
-            self.assertIn("cắt dán", m.prompt)
+            self.assertIn("paper collage", m.prompt)
 
     def test_backgrounds_can_be_switched_off(self):
         ds = ke_hoach.lap(doc(DAU.replace("phong-cach: vox\n", "phong-cach: vox\nnen-canh: khong\n")))

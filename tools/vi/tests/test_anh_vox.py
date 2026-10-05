@@ -124,7 +124,7 @@ class KeHoachTest(unittest.TestCase):
                          [(1, 0, "cat", "ve"), (1, 1, "khung", "ve"), (2, 0, "phu", "tim")])
         self.assertIn("#00FF00", ds[0].prompt)
         self.assertNotIn("#00FF00", ds[1].prompt)
-        self.assertIn("không có chữ", ds[0].prompt)
+        self.assertIn("No text", ds[0].prompt)
         self.assertEqual(ds[0].kich_thuoc, "1024x1024")
         self.assertEqual(ds[1].kich_thuoc, "1536x1024")
         self.assertEqual(ds[0].ma, ke_hoach.ma_anh(ds[0].prompt, ds[0].kich_thuoc))

@@ -1,6 +1,6 @@
 # Làm video giải thích
 
-Video giải thích là một video ngắn kiểu **Vox**: nền giấy cắt dán nhiều lớp, ảnh cắt rời có viền giấy xé, thẻ số liệu, con dấu và chữ lớn hiện ra đúng lúc giọng đọc tiếng Việt nói tới, máy quay đẩy chậm và nghiêng nhẹ cho có chiều sâu, phụ đề tô màu từng từ. Dùng được cho mọi chủ đề: chuyện công sở, sức khoẻ, tiền bạc, công nghệ, pháp luật, bài học, sản phẩm. Khác "Làm video bài giảng" (dựng từ file slide có sẵn), video giải thích dựng thẳng từ **một chủ đề hay một đoạn nội dung**, không cần làm slide trước.
+Video giải thích là một video ngắn kiểu **Vox**: nền giấy cắt dán nhiều lớp, ảnh cắt rời có viền giấy xé, thẻ số liệu, con dấu và chữ lớn hiện ra đúng lúc giọng đọc tiếng Việt nói tới, các lớp giấy trôi ngang chậm cho có chiều sâu, phụ đề tô màu từng từ. Dùng được cho mọi chủ đề: chuyện công sở, sức khoẻ, tiền bạc, công nghệ, pháp luật, bài học, sản phẩm. Khác "Làm video bài giảng" (dựng từ file slide có sẵn), video giải thích dựng thẳng từ **một chủ đề hay một đoạn nội dung**, không cần làm slide trước.
 
 | File | Dùng để |
 |---|---|
@@ -42,7 +42,7 @@ AI viết lời theo mạch của các video giải thích trên mạng: mở b�
 
 ## Ảnh trong video
 
-- **Ảnh AI vẽ:** đồ vật, cảnh, người minh hoạ được AI vẽ theo từng câu lời, rồi bộ công cụ tự cắt nền, thêm viền giấy xé và bóng. Ảnh AI không bao giờ có chữ: mọi chữ trên video do bộ công cụ viết nên luôn đúng dấu tiếng Việt. Mỗi cảnh còn có một nền cắt dán do AI vẽ theo nội dung cảnh. Video không hiện dòng ghi nguồn nào; mô hình AI ghi trong `nguon.txt`.
+- **Ảnh AI vẽ:** đồ vật, cảnh, người minh hoạ được AI vẽ theo từng câu lời, rồi bộ công cụ tự cắt nền, thêm viền giấy xé và bóng. Ảnh AI không bao giờ có chữ: mọi chữ trên video do bộ công cụ viết nên luôn đúng dấu tiếng Việt. Mỗi cảnh còn có một nền cắt dán do AI vẽ theo nội dung cảnh. Ảnh theo một phong cách chung kiểu Vox: ảnh in chấm lưới và tranh khắc tông sepia, giấy xé năm màu (xanh than, đỏ son, vàng mù tạt, xanh két, kem), nền giấy kem chừa khoảng trống cho chữ. Video có một nhân vật xuất hiện nhiều cảnh thì AI tả nhân vật đó một lần để người giống nhau ở mọi cảnh. Video không hiện dòng ghi nguồn nào; mô hình AI ghi trong `nguon.txt`.
 - **Ảnh chụp thật:** người, địa danh, sự kiện, sản phẩm có thật thì AI tải ảnh giấy phép mở (Openverse, Wikimedia), không vẽ giả; tác giả và giấy phép ghi trong `nguon.txt` cạnh video (ảnh giấy phép CC BY cần ghi công: khi đăng video, dán nội dung file này vào phần mô tả).
 - **Ảnh của bạn:** gửi file cho AI và cho biết ai chụp.
 

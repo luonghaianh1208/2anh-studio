@@ -329,7 +329,7 @@ def _read_meta(lines: list, start: int) -> tuple:
                 raise ParseError(i + 1, "Dòng thông tin phải có dạng `khoá: giá trị`.")
             key, value = match.group(1), match.group(2).strip()
             if (key not in META_REQUIRED and key not in META_CHOICES and key not in META_FREE
-                    and key not in VOX_META_CHOICES):
+                    and key not in VOX_META_CHOICES and key not in vox.VOX_META_FREE):
                 raise ParseError(i + 1, f"Khoá `{key}` không có trong khối thông tin.")
             if key in meta:
                 raise ParseError(i + 1, f"Khoá `{key}` bị lặp.")
@@ -360,7 +360,10 @@ def _read_meta(lines: list, start: int) -> tuple:
                                                   "thêm dòng `nhac-nen: <file trong nhac/>` hoặc bỏ dòng này.")
     if len(meta.get("loat", "")) > LOAT_DAI:
         raise ParseError(dong_meta["loat"], f"`loat` dài {len(meta['loat'])} ký tự, tối đa {LOAT_DAI}. Rút gọn tên loạt.")
-    for key in VOX_META_CHOICES:
+    if len(meta.get("nhan-vat-chinh", "")) > vox.NHAN_VAT_CHINH_DAI:
+        raise ParseError(dong_meta["nhan-vat-chinh"], f"`nhan-vat-chinh` dài {len(meta['nhan-vat-chinh'])} ký tự, "
+                                                       f"tối đa {vox.NHAN_VAT_CHINH_DAI}. Rút gọn mô tả nhân vật.")
+    for key in (*VOX_META_CHOICES, *vox.VOX_META_FREE):
         if key != "chuyen-canh" and key in meta and phong_cach != "vox":
             raise ParseError(dong_meta[key], f"`{key}` chỉ dùng với `phong-cach: vox`.")
     if "chuyen-canh" in meta:
@@ -554,6 +557,12 @@ def parse(text: str) -> Video:
                 if key in scene.truong:
                     raise ParseError(scene.dong_truong[key][0], f"`{key}` cần nhân vật dẫn chuyện; thêm "
                                      "`nhan-vat: nguoi-que` (hoặc `nhan-vat: ve: <mô tả>`) vào khối thông tin, hoặc bỏ dòng này.")
+    if "nhan-vat-chinh" not in meta:
+        for scene in scenes:
+            for n in scene.nhip or []:
+                if n.vat == "anh" and vox.DAU_NHAN_VAT in n.noi_dung:
+                    raise ParseError(n.dong, f"`{vox.DAU_NHAN_VAT}` gọi nhân vật chính nhưng khối thông tin chưa có "
+                                             "`nhan-vat-chinh: <mô tả nhân vật>`; thêm dòng đó hoặc tả thẳng người trong `ve:`.")
     for scene in scenes:
         if scene.loai == "ke-chuyen":
             scene.nen = giai_nen(scene.truong["nen"][0], scene.so, scenes, scene.dong_truong["nen"][0])
