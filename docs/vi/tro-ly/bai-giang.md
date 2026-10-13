@@ -40,11 +40,26 @@ Ví dụ câu lệnh:
 ## Cấu trúc gợi ý
 
 - THCS và THPT: theo 4 hoạt động của Công văn 5512/BGDĐT-GDTrH — Mở đầu → Hình thành kiến thức mới → Luyện tập → Vận dụng. Thêm trang bìa và trang mục tiêu ở đầu, trang tổng kết và dặn dò ở cuối.
+- Khuôn trang theo 5512 (mỗi trang một vai; ghi chú người nói ghi lời giảng, câu hỏi gợi mở và thời gian dự kiến):
+
+  | Vai trang | Trên slide | Ghi chú người nói |
+  |---|---|---|
+  | Bìa | tên bài, môn, lớp, bộ sách, người dạy | lời chào, dẫn vào bài một câu |
+  | Mục tiêu | 2–4 điều học sinh làm được sau bài, mỗi điều một động từ | đọc mục tiêu, hỏi học sinh đã biết gì |
+  | Mở đầu (khởi động) | một tình huống, câu đố, trò chơi hay ảnh gây tò mò; nhãn "Hoạt động 1: Mở đầu" | câu hỏi gợi mở, thời gian (3–5 phút), cách dẫn sang kiến thức mới |
+  | Hình thành kiến thức mới | mỗi đơn vị kiến thức một trang hoặc một cụm trang: nhiệm vụ của học sinh, ảnh hay sơ đồ, kết luận chốt | lời giảng đầy đủ, câu hỏi kiểm tra hiểu, chỗ học sinh hay hiểu sai |
+  | Luyện tập | câu hỏi hoặc bài tập; đáp án ở trang riêng ngay sau | đáp án, lời giải, thời gian làm |
+  | Vận dụng | tình huống thực tế, bài về nhà hay dự án nhỏ | gợi ý cách làm, tiêu chí đánh giá |
+  | Tổng kết | sơ đồ hoặc 3–5 ý chốt | câu hỏi ôn nhanh |
+  | Dặn dò | việc chuẩn bị cho tiết sau | — |
+
+  Mỗi trang hoạt động có nhãn tên hoạt động ở góc để thầy cô và học sinh biết đang ở phần nào.
 - Tiểu học: theo mạch tiết học thầy cô quen dùng; không áp khung 4 hoạt động nếu thầy cô không yêu cầu.
 - Mỗi hoạt động nêu rõ nhiệm vụ của học sinh. Câu hỏi trắc nghiệm đặt đáp án ở slide riêng ngay sau câu hỏi.
 
 ## Phong cách gợi ý
 
+- Kiểu nhìn theo `docs/vi/tro-ly/kieu-slide.md`: mặc định Học đường sáng (THCS, THPT) hoặc Sách tranh tiểu học (Tiểu học); thầy cô gọi tên kiểu khác thì theo kiểu đó.
 - Học đường, sáng rõ, nền sáng, tương phản cao để học sinh cuối lớp vẫn đọc được.
 - Chữ nội dung từ 28pt; font Segoe UI hoặc Arial.
 - Đề xuất mode `instructional` của upstream.

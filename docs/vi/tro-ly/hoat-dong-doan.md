@@ -44,6 +44,7 @@ Ví dụ câu lệnh:
 
 ## Phong cách gợi ý
 
+- Kiểu nhìn theo `docs/vi/tro-ly/kieu-slide.md`: mặc định Lễ hội Đoàn; giới thiệu câu lạc bộ, dự án thì Kính mờ CLB; nhiều ảnh tư liệu thì Cắt dán giấy.
 - Trẻ trung, năng động; chữ đậm, đọc được từ xa.
 - Huy hiệu Đoàn giữ đúng tỉ lệ và màu gốc: không kéo giãn, không đổi màu.
 

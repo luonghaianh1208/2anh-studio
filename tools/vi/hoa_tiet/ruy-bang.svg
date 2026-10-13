@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="90" viewBox="0 0 420 90">
+  <!-- Ruy băng đặt tiêu đề trang (kiểu Ruy băng hành chính); xoay -4 độ cho kiểu chéo. -->
+  <defs>
+    <symbol id="ht-ruy-bang" viewBox="0 0 420 90" preserveAspectRatio="none">
+      <polygon points="0,0 420,0 392,45 420,90 0,90" fill="#1F4E9C"/>
+      <polygon points="0,90 26,90 0,110" fill="#14366E"/>
+    </symbol>
+  </defs>
+  <use href="#ht-ruy-bang" x="0" y="0" width="420" height="90"/>
+</svg>

@@ -108,6 +108,15 @@ Mục này quy đổi lựa chọn của thầy cô về lượng chữ trên sl
 - Ở bước xác nhận của upstream, điền chế độ đọc đúng theo bảng; tạo nhanh thì áp chế độ đó khi tự quyết.
 - Làm đẹp slide có sẵn (Beautify) giữ nguyên văn từng chữ và từng trang. Thầy cô muốn làm đẹp mà ít chữ hơn, rút gọn, tách hay gộp trang: không dùng Beautify, mà tạo mới từ file đó (file PPTX cũ làm tài liệu nguồn) theo loại việc phù hợp và mật độ chữ thầy cô chọn. Nói trước với thầy cô một dòng rằng bài sẽ được dựng lại, không chỉ đổi giao diện.
 
+## Kiểu nhìn
+
+Áp dụng khi tạo bài mới cho Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Poster/ấn phẩm Zalo – Facebook, Tập huấn/workshop; cả khi tạo nhanh. Không áp dụng cho làm đẹp slide có sẵn (Beautify): giữ giao diện thầy cô chọn ở bước xác nhận của upstream.
+
+- Chọn kiểu nhìn và bảng màu theo [kieu-slide.md](kieu-slide.md): kiểu thầy cô gọi tên, không thì kiểu mặc định của loại việc. Không thêm câu hỏi riêng về kiểu; chỉ hỏi khi thầy cô nhắc tới giao diện mà chưa rõ muốn kiểu nào, và câu đó thay cho một câu tuỳ chọn, tổng vẫn không quá 7 câu.
+- Hồ sơ đơn vị có "Màu chủ đạo" thì dùng màu đó làm màu chính của bảng màu.
+- Ghi vào brief, mục "Phong cách gợi ý", dòng `Kiểu nhìn: <tên kiểu> — bảng màu <tên bảng>` kèm "(thầy cô đồng ý)" hoặc "(AI đề xuất, chưa duyệt)"; ở bước xác nhận của upstream nêu tên kiểu, bảng màu và các màu.
+- Khi dựng trang, dùng màu, chữ và hoạ tiết của kiểu theo mục "Hoạ tiết" của kieu-slide.md.
+
 ## Ghi brief và đưa vào dự án
 
 1. Tạo hoặc cập nhật `projects/_ho-so-don-vi.md`.

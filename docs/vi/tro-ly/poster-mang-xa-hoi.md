@@ -41,6 +41,7 @@ Ví dụ câu lệnh:
 
 ## Phong cách gợi ý
 
+- Kiểu nhìn theo `docs/vi/tro-ly/kieu-slide.md`: poster sự kiện mặc định Lễ hội Đoàn, poster kiến thức mặc định Cắt dán giấy; tuyển thành viên, tuyển sinh thì Kính mờ CLB.
 - Chữ lớn, đọc được trên điện thoại; khoảng 30 chữ mỗi ảnh.
 - Tương phản cao; tối đa 2 màu chủ đạo cộng 1 màu nhấn.
 - Giữ chữ quan trọng cách xa mép trên và mép dưới (bảng tin Facebook cắt ảnh dọc).

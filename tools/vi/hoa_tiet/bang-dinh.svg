@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="56" viewBox="0 0 240 56">
+  <!-- Băng dính dán góc ảnh hay góc thẻ; xoay ±30 độ khi đặt. -->
+  <defs>
+    <symbol id="ht-bang-dinh" viewBox="0 0 240 56" preserveAspectRatio="none">
+      <polygon points="0,0 240,0 234,7 240,14 234,21 240,28 234,35 240,42 234,49 240,56 0,56 6,49 0,42 6,35 0,28 6,21 0,14 6,7 0,0" fill="#F2D16B" fill-opacity="0.85"/>
+    </symbol>
+  </defs>
+  <use href="#ht-bang-dinh" x="0" y="0" width="240" height="56"/>
+</svg>

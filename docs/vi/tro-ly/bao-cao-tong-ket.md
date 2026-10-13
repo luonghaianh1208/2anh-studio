@@ -43,6 +43,7 @@ Ví dụ câu lệnh:
 
 ## Phong cách gợi ý
 
+- Kiểu nhìn theo `docs/vi/tro-ly/kieu-slide.md`: mặc định Ruy băng hành chính; báo cáo chuyên môn, sáng kiến thì Học thuật – hội thảo.
 - Hành chính, trang trọng, bố cục gọn.
 - Font Times New Roman để giữ phong cách văn bản hành chính (Nghị định 30/2020/NĐ-CP quy định font này cho văn bản; slide không bắt buộc).
 - Màu chủ đạo theo hồ sơ đơn vị; biểu đồ ghi rõ số liệu và đơn vị tính.

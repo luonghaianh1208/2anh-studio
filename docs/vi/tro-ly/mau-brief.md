@@ -23,7 +23,7 @@
 
 ## Phong cách gợi ý
 
-<màu, font, cỡ chữ, và lựa chọn của upstream nên đề xuất>
+<dòng "Kiểu nhìn: <tên kiểu> — bảng màu <tên bảng>" theo kieu-slide.md; màu, font, cỡ chữ, và lựa chọn của upstream nên đề xuất>
 
 <Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop thêm một dòng "Mật độ chữ: <ít chữ | vừa | nhiều chữ> → chế độ đọc <presentation | balanced | text>" kèm "(thầy cô đồng ý)" hoặc "(AI đề xuất, chưa duyệt)", theo mục "Mật độ chữ" của quy-trinh-hoi.md>
 

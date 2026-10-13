@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+  <!-- Mảng chấm tram nhỏ dần cho góc trang (kiểu Cắt dán giấy); fill-opacity thấp nếu nền tối. -->
+  <defs>
+    <symbol id="ht-cham-tram" viewBox="0 0 240 240">
+      <circle cx="15" cy="15" r="9" fill="#1E2430"/>
+      <circle cx="45" cy="15" r="8.4" fill="#1E2430"/>
+      <circle cx="75" cy="15" r="7.9" fill="#1E2430"/>
+      <circle cx="105" cy="15" r="7.3" fill="#1E2430"/>
+      <circle cx="135" cy="15" r="6.8" fill="#1E2430"/>
+      <circle cx="165" cy="15" r="6.2" fill="#1E2430"/>
+      <circle cx="195" cy="15" r="5.6" fill="#1E2430"/>
+      <circle cx="225" cy="15" r="5.1" fill="#1E2430"/>
+      <circle cx="15" cy="45" r="8.4" fill="#1E2430"/>
+      <circle cx="45" cy="45" r="7.9" fill="#1E2430"/>
+      <circle cx="75" cy="45" r="7.3" fill="#1E2430"/>
+      <circle cx="105" cy="45" r="6.8" fill="#1E2430"/>
+      <circle cx="135" cy="45" r="6.2" fill="#1E2430"/>
+      <circle cx="165" cy="45" r="5.6" fill="#1E2430"/>
+      <circle cx="195" cy="45" r="5.1" fill="#1E2430"/>
+      <circle cx="225" cy="45" r="4.5" fill="#1E2430"/>
+      <circle cx="15" cy="75" r="7.9" fill="#1E2430"/>
+      <circle cx="45" cy="75" r="7.3" fill="#1E2430"/>
+      <circle cx="75" cy="75" r="6.8" fill="#1E2430"/>
+      <circle cx="105" cy="75" r="6.2" fill="#1E2430"/>
+      <circle cx="135" cy="75" r="5.6" fill="#1E2430"/>
+      <circle cx="165" cy="75" r="5.1" fill="#1E2430"/>
+      <circle cx="195" cy="75" r="4.5" fill="#1E2430"/>
+      <circle cx="225" cy="75" r="3.9" fill="#1E2430"/>
+      <circle cx="15" cy="105" r="7.3" fill="#1E2430"/>
+      <circle cx="45" cy="105" r="6.8" fill="#1E2430"/>
+      <circle cx="75" cy="105" r="6.2" fill="#1E2430"/>
+      <circle cx="105" cy="105" r="5.6" fill="#1E2430"/>
+      <circle cx="135" cy="105" r="5.1" fill="#1E2430"/>
+      <circle cx="165" cy="105" r="4.5" fill="#1E2430"/>
+      <circle cx="195" cy="105" r="3.9" fill="#1E2430"/>
+      <circle cx="225" cy="105" r="3.4" fill="#1E2430"/>
+      <circle cx="15" cy="135" r="6.8" fill="#1E2430"/>
+      <circle cx="45" cy="135" r="6.2" fill="#1E2430"/>
+      <circle cx="75" cy="135" r="5.6" fill="#1E2430"/>
+      <circle cx="105" cy="135" r="5.1" fill="#1E2430"/>
+      <circle cx="135" cy="135" r="4.5" fill="#1E2430"/>
+      <circle cx="165" cy="135" r="3.9" fill="#1E2430"/>
+      <circle cx="195" cy="135" r="3.4" fill="#1E2430"/>
+      <circle cx="225" cy="135" r="2.8" fill="#1E2430"/>
+      <circle cx="15" cy="165" r="6.2" fill="#1E2430"/>
+      <circle cx="45" cy="165" r="5.6" fill="#1E2430"/>
+      <circle cx="75" cy="165" r="5.1" fill="#1E2430"/>
+      <circle cx="105" cy="165" r="4.5" fill="#1E2430"/>
+      <circle cx="135" cy="165" r="3.9" fill="#1E2430"/>
+      <circle cx="165" cy="165" r="3.4" fill="#1E2430"/>
+      <circle cx="195" cy="165" r="2.8" fill="#1E2430"/>
+      <circle cx="225" cy="165" r="2.2" fill="#1E2430"/>
+      <circle cx="15" cy="195" r="5.6" fill="#1E2430"/>
+      <circle cx="45" cy="195" r="5.1" fill="#1E2430"/>
+      <circle cx="75" cy="195" r="4.5" fill="#1E2430"/>
+      <circle cx="105" cy="195" r="3.9" fill="#1E2430"/>
+      <circle cx="135" cy="195" r="3.4" fill="#1E2430"/>
+      <circle cx="165" cy="195" r="2.8" fill="#1E2430"/>
+      <circle cx="195" cy="195" r="2.2" fill="#1E2430"/>
+      <circle cx="225" cy="195" r="1.7" fill="#1E2430"/>
+      <circle cx="15" cy="225" r="5.1" fill="#1E2430"/>
+      <circle cx="45" cy="225" r="4.5" fill="#1E2430"/>
+      <circle cx="75" cy="225" r="3.9" fill="#1E2430"/>
+      <circle cx="105" cy="225" r="3.4" fill="#1E2430"/>
+      <circle cx="135" cy="225" r="2.8" fill="#1E2430"/>
+      <circle cx="165" cy="225" r="2.2" fill="#1E2430"/>
+      <circle cx="195" cy="225" r="1.7" fill="#1E2430"/>
+      <circle cx="225" cy="225" r="1.1" fill="#1E2430"/>
+    </symbol>
+  </defs>
+  <use href="#ht-cham-tram" x="0" y="0" width="240" height="240"/>
+</svg>

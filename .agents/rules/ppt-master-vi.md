@@ -50,6 +50,10 @@ Bài mới thuộc 5 loại việc tạo PPTX ở bảng trên, kể cả tạo 
 
 Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop hỏi mật độ chữ: ít chữ → `presentation`, vừa → `balanced`, nhiều chữ → `text`; chưa chọn thì báo cáo vừa, ba loại kia ít chữ. Ít chữ: mỗi trang một ý, khoảng 5 dòng, giải thích vào lời giảng; không vừa thì chia trang, không bỏ thông tin. Muốn làm đẹp slide có sẵn mà ít chữ hơn, tách hay gộp trang: không dùng Beautify, tạo mới từ file đó như tài liệu nguồn.
 
+## Kiểu nhìn
+
+Năm loại việc tạo PPTX chọn kiểu nhìn có tên trong `docs/vi/tro-ly/kieu-slide.md` (kiểu thầy cô gọi, không thì mặc định của loại việc), ghi `Kiểu nhìn: <kiểu> — bảng màu <bảng>` vào brief. Hoạ tiết vẽ tay lấy `<symbol>` trong `tools/vi/hoa_tiet/`, đặt bằng `<use>`; không vẽ hoạ tiết bằng ảnh.
+
 ## Hiệu ứng
 
 Bốn loại ở mục Mật độ chữ hỏi mức hiệu ứng (không, vừa, nhiều; chưa chọn thì vừa). Không áp dụng cho làm đẹp hay sửa PPTX có sẵn.

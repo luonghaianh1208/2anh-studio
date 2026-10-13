@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="40" viewBox="0 0 400 40">
+  <!-- Vệt bút dạ đặt dưới chữ quan trọng (đặt trước chữ trong thứ tự vẽ). -->
+  <defs>
+    <symbol id="ht-gach-but-da" viewBox="0 0 400 40" preserveAspectRatio="none">
+      <polygon points="0,7.7 25,9.5 50,11.5 75,7.9 100,9.9 125,7.2 150,11 175,11.6 200,10.4 225,12.3 250,8.9 275,11.2 300,10.6 325,10.5 350,9.7 375,12 400,12.7 400,29.8 375,31 350,27.4 325,31.2 300,30.9 275,33 250,31.9 225,28.7 200,29.3 175,31 150,27.1 125,29.8 100,28 75,27.7 50,27.4 25,31.6 0,27.8" fill="#F2D16B" fill-opacity="0.8"/>
+    </symbol>
+  </defs>
+  <use href="#ht-gach-but-da" x="0" y="0" width="400" height="40"/>
+</svg>

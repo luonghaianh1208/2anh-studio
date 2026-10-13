@@ -43,6 +43,7 @@ Ví dụ câu lệnh:
 
 ## Phong cách gợi ý
 
+- Kiểu nhìn theo `docs/vi/tro-ly/kieu-slide.md`: mặc định Bút dạ – sổ tay; buổi tập huấn trang trọng thì Học đường sáng.
 - Gần gũi, rõ ràng; mỗi slide thao tác một bước kèm ảnh chụp màn hình.
 - Đề xuất mode `instructional` và style `workshop-teaching` của upstream.
 

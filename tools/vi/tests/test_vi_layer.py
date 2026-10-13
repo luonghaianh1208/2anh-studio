@@ -399,6 +399,7 @@ COMMON_HEADINGS = (
     "## Cách hỏi",
     "## Ảnh minh hoạ",
     "## Mật độ chữ",
+    "## Kiểu nhìn",
     "## Ghi brief và đưa vào dự án",
     "## Tạo nhanh",
     "## Đổi ý giữa chừng",
@@ -2185,9 +2186,9 @@ class VoxGuideTest(unittest.TestCase):
         self.assertEqual((vox.NHIP_TOI_DA, vox.CHU_TOI_DA, vox.CHONG_TOI_DA, vox.NGUON_DAI), (6, 2, 5, 90))
         self.assertEqual(vox.GIOI_HAN_THE, (24, 16, 60))
         self.assertEqual((vox.VAT["chu"], vox.VAT["nhan"], vox.VAT["dau"], vox.VAT["so"], vox.ANH_MO_TA), (40, 30, 16, 24, 300))
-        self.assertEqual(vox.THOI_LUONG, (15, 600))
+        self.assertEqual(vox.THOI_LUONG, (10, 600))
         for phrase in ("1–6 nhịp", "tối đa 2 nhịp `chu`", "tối đa 5 vật", "nhãn 24, giá trị 16, chú thích 60",
-                       "| 40 ký tự", "| 30 ký tự", "| 16 ký tự", "| 24 ký tự", "300 ký tự", "90 ký tự", "15–600",
+                       "| 40 ký tự", "| 30 ký tự", "| 16 ký tự", "| 24 ký tự", "300 ký tự", "90 ký tự", "10–600",
                        "`@dau`", "| khung duotone", "#00FF00", "30%"):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, n)

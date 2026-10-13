@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="120" viewBox="0 0 220 120">
+  <!-- Mũi tên vẽ tay chỉ vào ảnh hay số liệu. -->
+  <defs>
+    <symbol id="ht-mui-ten-ve-tay" viewBox="0 0 220 120">
+      <path d="M10 100 C 60 20, 140 10, 190 40" fill="none" stroke="#1E2430" stroke-width="5"/>
+      <polygon points="206,52 176,52 194,26" fill="#1E2430"/>
+    </symbol>
+  </defs>
+  <use href="#ht-mui-ten-ve-tay" x="0" y="0" width="220" height="120"/>
+</svg>

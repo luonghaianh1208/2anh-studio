@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="100" viewBox="0 0 120 100">
+  <!-- Dấu ngoặc kép lớn cho trang trích dẫn, lời phát biểu. -->
+  <defs>
+    <symbol id="ht-ngoac-kep" viewBox="0 0 120 100">
+      <path d="M10 90 L10 55 C10 25 25 10 50 5 L54 18 C38 24 32 36 32 50 L50 50 L50 90 Z" fill="#E4572E"/>
+      <path d="M66 90 L66 55 C66 25 81 10 106 5 L110 18 C94 24 88 36 88 50 L106 50 L106 90 Z" fill="#E4572E"/>
+    </symbol>
+  </defs>
+  <use href="#ht-ngoac-kep" x="0" y="0" width="120" height="100"/>
+</svg>

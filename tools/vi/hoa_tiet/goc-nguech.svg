@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="200" viewBox="0 0 240 200">
+  <!-- Cụm vẽ nguệch ngoạc cho góc trang (kiểu Bút dạ – sổ tay, Sách tranh tiểu học). -->
+  <defs>
+    <symbol id="ht-goc-nguech" viewBox="0 0 240 200">
+      <path d="M20 60 C 40 20, 80 20, 70 55 S 30 90, 60 100 S 120 90, 110 60" fill="none" stroke="#1E2430" stroke-width="4"/>
+      <path d="M150 30 L157 48 L176 48 L161 60 L167 78 L150 67 L133 78 L139 60 L124 48 L143 48 Z" fill="none" stroke="#E4572E" stroke-width="4"/>
+      <circle cx="40" cy="150" r="8" fill="#2E86AB"/>
+      <circle cx="70" cy="175" r="5" fill="#F2A541"/>
+      <path d="M120 140 Q 150 120 180 140 T 230 140" fill="none" stroke="#3B8B5A" stroke-width="4"/>
+    </symbol>
+  </defs>
+  <use href="#ht-goc-nguech" x="0" y="0" width="240" height="200"/>
+</svg>

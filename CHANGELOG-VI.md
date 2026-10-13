@@ -2,11 +2,25 @@
 
 ## Chưa phát hành
 
+Slide và video đa dạng hơn, học ý tưởng từ các kho mẫu slide và video (chỉ học ý tưởng, mọi thứ tự viết lại): tám kiểu slide có tên, bộ hoạ tiết vẽ tay vẫn sửa được trong PowerPoint, khuôn bài giảng theo Công văn 5512; video Vox có thêm cột, chu trình, dòng thời gian, kim tự tháp, mạch hiểu sai → hiểu đúng, nhịp im, kiểu bản vẽ kỹ thuật và video ngắn; ảnh cắt dán theo prompt chi tiết với nhân vật cố định.
+
+### Slide
+- Danh mục tám kiểu slide có tên (`docs/vi/tro-ly/kieu-slide.md`): Học đường sáng, Bút dạ – sổ tay, Cắt dán giấy, Sách tranh tiểu học, Ruy băng hành chính, Lễ hội Đoàn, Học thuật – hội thảo, Kính mờ CLB. Mỗi kiểu có ba bảng màu đặt tên, font hiển thị đủ dấu, hoạ tiết, nhịp trang, "hợp với" và "không hợp với", và gợi ý style, layout của upstream. AI chọn kiểu mặc định theo loại việc, thầy cô gọi tên kiểu khác được ("làm kiểu Bút dạ"); không thêm câu hỏi.
+- Bộ 12 hoạ tiết vẽ tay (`tools/vi/hoa_tiet/`): băng dính, dải giấy xé, ruy băng, góc vẽ nguệch ngoạc, sao, mũi tên vẽ tay, vệt bút dạ, khung bút dạ, hoa giấy, chấm tram, giấy kẻ ô, dấu ngoặc kép. Đặt bằng `<symbol>`/`<use>` nên khi xuất thành hình PowerPoint gốc, sửa màu và kéo giãn được; đã thử qua bộ kiểm và bộ xuất của upstream (không ra ảnh).
+- Khuôn trang bài giảng theo Công văn 5512: vai từng trang (bìa, mục tiêu, mở đầu, hình thành kiến thức, luyện tập, vận dụng, tổng kết, dặn dò) kèm việc ghi chú người nói ghi lời giảng, câu hỏi gợi mở và thời gian.
+- Mục "Kiểu nhìn" trong `quy-trinh-hoi.md`, dòng "Kiểu nhìn" trong brief, một đoạn trong luật Antigravity.
+
 ### Đổi
 - Ảnh AI kiểu `phong-anh: cat-dan` (mặc định của video Vox) dùng prompt chi tiết theo video mẫu Vox, chia ba phần: phong cách chung (ảnh in chấm lưới và tranh khắc tông sepia, bảng năm màu cố định xanh than `#1F3A5F`, đỏ son `#D9472B`, vàng mù tạt `#E3A72F`, xanh két `#2A7F7A`, kem `#EFE6D2`, mép giấy xé có xơ trắng), bố cục nền (giấy kem, giữa và hai phần ba bên trái để trơn cho chữ, mảng giấy màu, giấy kẻ ô, chấm lưới chỉ ở rìa, không có người) và bố cục vật (đúng một vật, viền giấy trắng, mảng giấy màu lót sau, không thêm người hay vật lạ). Nền bớt rối, màu đậm và rõ hơn thay vì ngả nâu toàn bộ. `chup-that` và `minh-hoa` giữ nguyên.
 - Mô tả `ve:` chỉ cần tả nội dung; hướng dẫn bỏ cách viết "cụm cắt dán gồm…".
 
 ### Thêm
+- Bốn vật mới cho video Vox, hiện dần theo lời đọc: `cot` (cột tăng dần có số chạy), `chu-trinh` (các bước nối mũi tên, khép vòng), `moc` (dòng thời gian), `thap` (kim tự tháp, hiện từ đáy lên). Bố cục tự đo nhãn thật nên không lòi khỏi ô, chạy được cả khổ dọc.
+- Mạch "hiểu sai → hiểu đúng": tuỳ chọn `dung` cho con dấu (dấu xanh ĐÚNG, đối với dấu đỏ SAI), hướng dẫn dựng thành hai cảnh liền nhau.
+- Nhịp im: trường `giu: <giây>` (0,5–3) của cảnh giữ hình đứng im sau lời để nhấn ý; đã tính vào ước lượng thời lượng.
+- Phong cách ảnh `phong-anh: ban-ve` (bản vẽ kỹ thuật nét trắng trên giấy xanh, nhấn cam) và bảng màu `bang-mau: ban-ve`, tự đi cùng nhau; hợp Toán, Vật lí, Công nghệ.
+- Video Vox ngắn từ 10 giây (`thoi-luong` nay 10–600) và cách làm video dọc 10–20 giây cho Zalo, TikTok.
+- Bảng tra "ý cần nói → hình nên dùng" trong hướng dẫn cho AI.
 - Khoá đầu `nhan-vat-chinh` của video Vox: tả một lần nhân vật xuất hiện ở nhiều cảnh, rồi gọi `@nhan-vat` trong mô tả `ve:`; công cụ chèn mô tả đó vào mọi ảnh gọi nhân vật để người giống nhau giữa các cảnh. Gọi `@nhan-vat` mà chưa có khoá này là lỗi `parse`.
 
 ### Lưu ý

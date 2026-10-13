@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300">
+  <!-- Khung vẽ tay quanh một khối nội dung (co giãn bằng width, height của use). -->
+  <defs>
+    <symbol id="ht-khung-but-da" viewBox="0 0 600 300" preserveAspectRatio="none">
+      <polygon points="6,7.1 595,4.6 591.6,292.4 11.1,294.6" fill="none" stroke="#1E2430" stroke-width="4"/>
+      <polygon points="17.6,9.8 585.2,10.6 589.8,292.6 10.5,284.8" fill="none" stroke="#1E2430" stroke-width="2"/>
+    </symbol>
+  </defs>
+  <use href="#ht-khung-but-da" x="0" y="0" width="600" height="300"/>
+</svg>
