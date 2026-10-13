@@ -33,7 +33,8 @@ def uoc_tinh(video) -> float:
     giong = video.meta.get("giong", "nu")
     tu = sum(dem_tu(c.loi) + sum(dem_tu(x) for x in c.truong.get("loi-giai", [])) for c in video.canh)
     cho = sum(int(c.truong.get("cho", ["5"])[0]) + 0.4 for c in video.canh if c.loai == "cau-hoi")
-    moi = sum(MOI_CANH_VOX if c.loai == "vox" else MOI_CANH for c in video.canh)
+    moi = sum(MOI_CANH_VOX + float(c.truong.get("giu", ["0"])[0]) if c.loai == "vox" else MOI_CANH
+              for c in video.canh)
     nghi = 0.0
     if giong in GIONG_VIENEU:
         nghi = NGHI_CAU_VIENEU * sum(max(0, len([x for x in _CAU.split(c.loi.strip()) if x.strip()]) - 1)

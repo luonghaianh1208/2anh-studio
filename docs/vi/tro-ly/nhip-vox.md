@@ -37,10 +37,15 @@ Ví dụ: `nhip: để mai tính | anh: ve: bàn tay cầm điện thoại, ch�
 | `dau` | con dấu, thường viết hoa | 16 ký tự | mờ dần, thu nhẹ về đúng cỡ (không rung) |
 | `mui-ten` | `<ô> -> <ô>`, hai đầu là ô của bố cục, ví dụ `trai -> phai`; vẽ trên cả khung, không chiếm ô; bố cục `chong` không dùng được | | vẽ dần |
 | `so` | một số chạy `{{số}}` kèm chữ trước hoặc sau, ví dụ `{{48}} giờ mỗi tuần` | 24 ký tự | chạy số từ 0 lên |
+| `cot` | các cột `<nhãn> = <số><đơn vị>` cách nhau bằng `;`, ví dụ `2022 = 12; 2023 = 30,5; 2024 = 45%` | 2–5 cột; nhãn 14, đơn vị 6 ký tự; số không âm | cột mọc dần từng cột, số chạy |
+| `chu-trinh` | các bước cách nhau bằng `;`, ví dụ `Bốc hơi; Ngưng tụ; Mưa; Thấm xuống đất` | 3–6 bước, mỗi bước 16 ký tự | bước hiện lần lượt, cung mũi tên vẽ nối, khép vòng |
+| `moc` | các mốc `<mốc>: <nhãn>` cách nhau bằng `;`, ví dụ `1945: Độc lập; 1975: Thống nhất` | 2–5 mốc; mốc 10, nhãn 20 ký tự | trục vẽ dần, mốc hiện khi trục chạy tới |
+| `thap` | các tầng từ đỉnh xuống đáy, cách nhau bằng `;`, ví dụ `Tự thể hiện; Tôn trọng; Xã hội; An toàn` | 3–5 tầng, mỗi tầng 24 ký tự | tầng hiện từ đáy lên đỉnh |
 
 - Giới hạn đếm ký tự hiện ra. Vượt giới hạn là lỗi `parse` nêu đúng dòng.
 - `so`: viết dấu chấm thập phân (`{{2.5}}`), video hiện dấu phẩy ("2,5"). Cảnh có `so` hay có số liệu trong lời phải có dòng `nguon:` của cảnh.
 - `the` hợp với một con số hay một sự thật có ba tầng: tên, giá trị, ghi chú.
+- `cot`, `chu-trinh`, `moc`, `thap` cần một ô rộng: `giua` của `mot`, một bên của `hai-ben`, hoặc ô của `toan-canh`; không dùng trong `chong`. Số liệu của `cot` cũng phải có `nguon:` của cảnh.
 - `anh: ve:` là ảnh AI, kiểu cắt nền (một vật trên nền giấy, viền giấy xé trắng) trừ khi có tuỳ chọn `khung` hay ở ô `nen`. Mô tả chỉ tả nội dung, phong cách do `phong-anh` thêm; `@nhan-vat` trong mô tả là nhân vật chính của khoá đầu `nhan-vat-chinh`. Ảnh thật `tim:` và ảnh người dùng gửi luôn ở dạng khung.
 
 ## Bố cục và ô
@@ -70,6 +75,7 @@ Ví dụ: `nhip: để mai tính | anh: ve: bàn tay cầm điện thoại, ch�
 | `halftone` | ảnh in chấm tram |
 | `xa` | đặt vật ở lớp giữa (trôi ngang chậm cùng ảnh) |
 | `gan` | kéo vật lên lớp gần (trước) |
+| `dung` | chỉ cho `dau`: con dấu màu xanh (ĐÚNG), đối với con dấu đỏ mặc định (SAI) |
 
 Mặc định ảnh ở lớp giữa; chữ, thẻ, nhãn, dấu ở lớp gần. Ảnh cắt nền được tách trên nền xanh lá #00FF00: vật màu xanh lá (cây, lá, logo xanh) bị ăn mất một phần, công cụ tự chuyển sang `khung` kèm cảnh báo. Tả vật đó màu khác, hoặc ghi sẵn `khung`.
 
@@ -78,7 +84,8 @@ Mặc định ảnh ở lớp giữa; chữ, thẻ, nhãn, dấu ở lớp gần
 - Mỗi cảnh 1–6 nhịp; tối đa 2 nhịp `chu`; bố cục `chong` tối đa 5 vật.
 - `loi`: 1–3 câu trên một dòng; lời dài quá 700 ký tự có cảnh báo, nên tách cảnh.
 - `nguon:` của cảnh tối đa 90 ký tự. `chuyen:` của cảnh: `xe-giay`, `lia` hoặc `khong`, chỉ từ Cảnh 2.
-- `thoi-luong` là số nguyên 15–600 giây.
+- `thoi-luong` là số nguyên 10–600 giây.
+- `giu:` của cảnh (nhịp im) từ 0,5 đến 3 giây.
 - Ở bước `--xem-truoc` và dựng thật, công cụ đo trên hình và báo lỗi `canh` khi chữ của một nhịp tràn ô, hai vật đè nhau quá 30% (giữa hai vật chữ hay giữa hai ảnh; trừ bố cục `chong`, và trừ `dau`, `nhan` dán lên ảnh). Rút chữ, đổi ô hay đổi bố cục rồi chạy lại.
 
 ## Ví dụ từng bố cục

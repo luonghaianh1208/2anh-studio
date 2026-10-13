@@ -83,7 +83,7 @@ Lời:
 - Ý trừu tượng thì tìm vật ví von. Không tìm được vật nào đúng thì dùng `the`, `dau` hoặc `chu`, không chèn ảnh cho có.
 - **Nhân vật chính cố định**: video có một người xuất hiện ở nhiều cảnh (người kể, nhân vật trong tình huống) thì tả người đó một lần ở khoá đầu `nhan-vat-chinh:` (tuổi, giới, tóc, trang phục và màu áo, nét riêng; tối đa 300 ký tự), rồi gọi `@nhan-vat` trong `ve:`: "@nhan-vat cầm điện thoại, nhíu mày đọc tin nhắn". Công cụ chèn đúng mô tả đó vào mọi ảnh gọi nhân vật, để người giống nhau giữa các cảnh. Người khác trong cùng ảnh thì tả thẳng. Nền cảnh không vẽ người.
 - Ảnh cắt nền được tách trên nền xanh lá: vật màu xanh lá (cây, lá, chai xanh, logo xanh) bị ăn mất một phần. Tả vật đó màu khác, hoặc thêm tuỳ chọn `khung`.
-- Hai cảnh liền nhau không dùng cùng một bố cục và cùng kiểu vật; đổi nhịp cho mắt nghỉ.
+- Hai cảnh liền nhau không dùng cùng một bố cục và cùng kiểu vật; đổi nhịp cho mắt nghỉ (trừ cặp "hiểu sai → hiểu đúng").
 
 ## Chọn bố cục
 
@@ -97,6 +97,41 @@ Lời:
 
 Bảng ô đủ cho hai khổ ở `docs/vi/tro-ly/nhip-vox.md`.
 
+### Ý cần nói → hình nên dùng
+
+Chọn hình theo điều cần thay đổi trên màn hình khi lời nói tới, không theo thói quen:
+
+| Lời đang nói | Vật nên dùng | Bố cục gợi ý |
+|---|---|---|
+| Một sự vật, một hình ví von | `anh` | `mot` (`giua`) |
+| Một con số đáng nhớ | `so` hoặc `the` | `mot` (`duoi`) |
+| Số liệu tăng giảm qua các năm, so vài nhóm | `cot` | `mot` (`giua`) hoặc `hai-ben` |
+| Một vòng lặp: tuần hoàn, chu kỳ, quy trình khép kín | `chu-trinh` | `hai-ben` (một bên) hoặc `mot` (`giua`) |
+| Các mốc theo thời gian | `moc` | `mot` (`giua`) |
+| Thứ bậc, tầng lớp, nền móng → đỉnh | `thap` | `hai-ben` (một bên) |
+| Các bước, ba điều cần nhớ | `the` từng ô | `dan-hang` |
+| Hai cách làm, trước và sau | `anh` hoặc `chu` hai bên | `hai-ben` |
+| Một quan niệm sai và cách hiểu đúng | `chu` + `dau` (SAI, rồi ĐÚNG) | hai cảnh `mot` liền nhau (mục dưới) |
+| Nhấn câu chốt | `chu` hoặc `dau`, rồi `giu` | `mot` |
+
+### Hiểu sai → hiểu đúng
+
+Mạch hợp để sửa quan niệm sai của người học: cùng một ý vẽ hai lần.
+
+1. Cảnh A (`mot`): nhãn `Hiểu sai` ở `tren`, câu hiểu sai bằng `chu` (hoặc ảnh) ở `giua`, rồi `dau: SAI` ở `duoi` đúng lúc lời bác bỏ.
+2. Cảnh B (`mot`, ngay sau): nhãn `Hiểu đúng`, câu đúng ở `giua`, `dau: ĐÚNG | duoi | dung` (tuỳ chọn `dung` cho dấu màu xanh).
+3. Ghi `giu: 1` ở Cảnh A để người xem kịp đọc trước khi lật.
+
+Hai cảnh này cố ý giống bố cục để mắt so được; đây là ngoại lệ của luật "hai cảnh liền nhau không cùng bố cục".
+
+### Nhịp im
+
+`giu: <giây>` (0,5–3) ở một cảnh giữ hình đứng im thêm chừng ấy giây sau lời, không có giọng: dùng sau câu chốt hay một con số gây bất ngờ, tối đa một hai lần mỗi video. Thời gian này đã tính vào ước lượng `thoi-luong`.
+
+### Video ngắn 10–20 giây
+
+Cho thông báo, khẩu hiệu, nhắc việc trên Zalo, TikTok: `kho: doc`, `thoi-luong: 10`–`20`, 2–3 cảnh, lời 1 câu mỗi cảnh (Thu Giang khoảng 40–80 từ cả video), chữ lớn (`chu`, `nhan`, `dau`), mỗi cảnh một hình. Không cần nhạc trừ khi người dùng xin.
+
 ## Cấu trúc video.md
 
 Viết `video.md` trong `projects/_video/<tên_video>/`. File mở đầu bằng khối thông tin giữa hai dòng `---`, rồi mỗi cảnh một mục `## Cảnh N`, đánh số liên tiếp từ 1.
@@ -105,17 +140,17 @@ Viết `video.md` trong `projects/_video/<tên_video>/`. File mở đầu bằng
 |---|---|---|
 | `tieu-de` | có | tên video (không hiện thành cảnh riêng) |
 | `phong-cach` | có | `vox` |
-| `thoi-luong` | không | số giây mong muốn, số nguyên 15–600; có thì công cụ ước thời lượng và cảnh báo khi lệch quá +15% hay dưới −25% |
+| `thoi-luong` | không | số giây mong muốn, số nguyên 10–600; có thì công cụ ước thời lượng và cảnh báo khi lệch quá +15% hay dưới −25% |
 | `kho` | không | `ngang` (mặc định, 16:9) hoặc `doc` (9:16 cho TikTok, Reels, Shorts) |
 | `do-phan-giai` | không | `1080` (mặc định, Full HD) hoặc `720` (dựng nhanh hơn cho máy yếu) |
 | `giong` | không | `thu-giang` (mặc định: giọng Thu Giang của VieNeu, đọc trên máy, không cần mạng), `nu` hoặc `nam` (edge-tts, cần mạng) |
 | `toc-do` | không | `cham`, `vua` (mặc định) hoặc `nhanh` |
 | `phu-de` | không | `karaoke` (mặc định: in lên hình, tô vàng từng từ, một dòng một lúc), `hinh` (cả câu một màu), `file` (file `phu-de.srt` riêng) hoặc `khong` |
 | `am-thanh` | không | `co` (mặc định: tiếng "ting" nhỏ khi vật hiện, tiếng đóng dấu, tiếng chuyển cảnh, luôn nhỏ hơn giọng đọc) hoặc `khong` |
-| `phong-anh` | không | `cat-dan` (mặc định: cắt dán kiểu Vox, ảnh in chấm lưới và tranh khắc tông sepia, giấy xé năm màu xanh than, đỏ son, vàng mù tạt, xanh két, kem; nền giấy kem chừa khoảng trống giữa cho chữ), `chup-that` (ảnh AI kiểu ảnh chụp thật) hoặc `minh-hoa` (tranh minh hoạ phẳng, màu tươi); áp cho mọi ảnh AI của video |
+| `phong-anh` | không | `cat-dan` (mặc định: cắt dán kiểu Vox, ảnh in chấm lưới và tranh khắc tông sepia, giấy xé năm màu xanh than, đỏ son, vàng mù tạt, xanh két, kem; nền giấy kem chừa khoảng trống giữa cho chữ), `chup-that` (ảnh AI kiểu ảnh chụp thật), `minh-hoa` (tranh minh hoạ phẳng, màu tươi) hoặc `ban-ve` (bản vẽ kỹ thuật: nét trắng, đường kích thước trên giấy xanh, nhấn cam; hợp Toán, Vật lí, Công nghệ, kỹ thuật; tự đi cùng `bang-mau: ban-ve`); áp cho mọi ảnh AI của video |
 | `nhan-vat-chinh` | không | Mô tả nhân vật xuất hiện ở nhiều cảnh (tối đa 300 ký tự); mô tả `ve:` gọi bằng `@nhan-vat` |
 | `nen-canh` | không | `ve` (mặc định: mỗi cảnh một nền AI riêng) hoặc `khong` (nền giấy vẽ bằng mã, dùng khi máy không có nguồn vẽ ảnh) |
-| `bang-mau` | không | `kem` (mặc định: giấy kem, mực đậm, nhấn cam đỏ), `bao-cu` (giấy báo cũ ngả vàng, nhấn đỏ trầm), `dem` (nền xanh đêm, chữ kem, nhấn vàng) hoặc `tuoi` (giấy sáng, nhấn đỏ hồng) |
+| `bang-mau` | không | `kem` (mặc định: giấy kem, mực đậm, nhấn cam đỏ), `bao-cu` (giấy báo cũ ngả vàng, nhấn đỏ trầm), `dem` (nền xanh đêm, chữ kem, nhấn vàng), `tuoi` (giấy sáng, nhấn đỏ hồng) hoặc `ban-ve` (giấy xanh bản vẽ, chữ trắng, nhấn cam) |
 | `chuyen-canh` | không | `xen-ke` (mặc định: xé giấy và lia nhanh xen nhau), `xe-giay`, `lia` hoặc `khong` |
 | `nhac-nen` | không | tên file nhạc trong `nhac/` của video; không ghi thì không có nhạc |
 | `nguon-nhac` | không | dòng nguồn của nhạc người dùng gửi, chỉ ghi kèm `nhac-nen` khi `nhac/nguon.json` không có bản ghi cho file đó |

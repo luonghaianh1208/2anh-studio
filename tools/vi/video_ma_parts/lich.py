@@ -183,7 +183,9 @@ def dung_lich(cac_canh: list, cac_giong: list, fps: int = FPS, kiem_moc: bool = 
         vox = scene.loai == "vox"
         dan_dau = VOX_DAN_DAU if vox else DAN_DAU
         cau, moc_giong, moc_tu, uoc = _moc_loi(scene.so, scene.loi, giong, dan_dau, "", warnings)
-        thoi_luong = (thoi_luong_canh(giong.giay, fps, VOX_DAN_DAU, VOX_DUOI, VOX_TOI_THIEU) if vox
+        # Nhịp im (`giu` của cảnh Vox): giữ hình đứng im thêm sau lời, tiếng cảnh tự kéo dài bằng im lặng.
+        giu = float(scene.truong.get("giu", ["0"])[0]) if vox else 0.0
+        thoi_luong = (thoi_luong_canh(giong.giay, fps, VOX_DAN_DAU, VOX_DUOI + giu, VOX_TOI_THIEU) if vox
                       else thoi_luong_canh(giong.giay, fps))
         giai: dict = {}
         if scene.loai == "cau-hoi":

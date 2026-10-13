@@ -57,6 +57,31 @@ CAT_DAN = {
     ),
 }
 CAT_DAN_CAM = "No text, no letters, no numbers, no logos, no watermark."
+# `phong-anh: ban-ve`: bản vẽ kỹ thuật. Vật cắt rời vẽ trên một tấm thẻ giấy xanh (nét trắng mảnh không tách được
+# khỏi nền xanh lá), cả tấm thẻ được tách ra.
+BAN_VE_CHUNG = (
+    "Technical blueprint illustration in an engineering drafting style: crisp white and pale cyan line drawings with "
+    "thin precise strokes, hatching on shaded surfaces, dimension lines with small arrowheads, construction lines and "
+    "circle-centre marks, on deep blueprint blue paper #123A5C with a faint square grid and slight paper texture. The "
+    "only accent colour is safety orange #F28C28, used for one highlighted part."
+)
+BAN_VE = {
+    "nen": (
+        "Wide background plate. A large calm area of plain blueprint paper fills the centre and the left two thirds, "
+        "almost empty, reserved for text. Drafting details only along the edges and corners: partial technical drawings "
+        "about the theme: {mo_ta}, dimension lines, a title-block corner frame left blank, compass and ruler marks. "
+        "Low clutter, flat front-facing view, no people."
+    ),
+    "cat": (
+        "One single technical drawing showing exactly this and nothing else: {mo_ta}. Drawn on a rectangular card of "
+        "blueprint paper with clean straight edges and a thin white border, the card centered with wide margin on a "
+        "perfectly flat pure green #00FF00 background that fills the whole image edge to edge, no shadow on the green."
+    ),
+    "khung": "A single rectangular technical blueprint drawing filling the entire image edge to edge: {mo_ta}. No border.",
+    "phu": "A full-frame technical blueprint scene filling the entire image edge to edge: {mo_ta}.",
+}
+# Phong cách ảnh có prompt chi tiết: (phần chung, bố cục theo kiểu ảnh).
+PHONG_CHI_TIET = {"cat-dan": (CAT_DAN_CHUNG, CAT_DAN), "ban-ve": (BAN_VE_CHUNG, BAN_VE)}
 # Nhân vật chính cố định (`nhan-vat-chinh`): mô tả `ve:` gọi nhân vật bằng `vox.DAU_NHAN_VAT`.
 CAU_NHAN_VAT = ("the main character ({mo_ta}); draw the same main character with the same face, hair, clothes and "
                 "colours as in every other image of this video")
@@ -109,8 +134,9 @@ def _nen_canh(video, c) -> Muc:
     if not mo_ta:
         mo_ta = f"phông nền cho video «{video.meta['tieu-de']}», gợi ý nội dung: {c.loi[:LOI_TRONG_NEN]}"
     kt = KHO_ANH[("nen", video.meta["kho"])]
-    if video.meta["phong-anh"] == "cat-dan":
-        prompt = " ".join([CAT_DAN_CHUNG, CAT_DAN["nen"].format(mo_ta=mo_ta), CAT_DAN_CAM])
+    if video.meta["phong-anh"] in PHONG_CHI_TIET:
+        chung, bo = PHONG_CHI_TIET[video.meta["phong-anh"]]
+        prompt = " ".join([chung, bo["nen"].format(mo_ta=mo_ta), CAT_DAN_CAM])
     else:
         prompt = ", ".join([mo_ta, DUOI_PHONG[video.meta["phong-anh"]], DUOI_NEN, DUOI_CHUNG])
     return Muc(ma_anh(prompt, kt), c.so, CHI_SO_NEN, "nen", "ve", prompt, kt, ())
@@ -120,8 +146,9 @@ def _prompt_ve(video, mo_ta: str, kieu: str) -> str:
     nhan_vat = video.meta.get("nhan-vat-chinh")
     if nhan_vat and DAU_NHAN_VAT in mo_ta:
         mo_ta = mo_ta.replace(DAU_NHAN_VAT, CAU_NHAN_VAT.format(mo_ta=nhan_vat))
-    if video.meta["phong-anh"] == "cat-dan":
-        return " ".join([CAT_DAN_CHUNG, CAT_DAN[kieu].format(mo_ta=mo_ta), CAT_DAN_CAM])
+    if video.meta["phong-anh"] in PHONG_CHI_TIET:
+        chung, bo = PHONG_CHI_TIET[video.meta["phong-anh"]]
+        return " ".join([chung, bo[kieu].format(mo_ta=mo_ta), CAT_DAN_CAM])
     phan = [mo_ta, DUOI_PHONG[video.meta["phong-anh"]]]
     if kieu == "cat":
         phan.append(DUOI_CAT)

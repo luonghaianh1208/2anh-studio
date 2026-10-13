@@ -344,7 +344,7 @@ def _read_meta(lines: list, start: int) -> tuple:
                 _kiem_nhan_vat(value, i + 1)
             if key == "thoi-luong" and (not value.isascii() or not value.isdigit()
                                          or not vox.THOI_LUONG[0] <= int(value) <= vox.THOI_LUONG[1]):
-                raise ParseError(i + 1, "`thoi-luong` là số giây của video, số nguyên từ 15 đến 600, "
+                raise ParseError(i + 1, "`thoi-luong` là số giây của video, số nguyên từ 10 đến 600, "
                                         "ví dụ `thoi-luong: 60`.")
             meta[key] = value
             dong_meta[key] = i + 1
@@ -380,6 +380,9 @@ def _read_meta(lines: list, start: int) -> tuple:
     for key, default in META_DEFAULTS.items():
         meta.setdefault(key, default)
     if phong_cach == "vox":
+        # Ảnh bản vẽ kỹ thuật đi cùng bảng màu bản vẽ, trừ khi kịch bản chọn bảng khác.
+        if meta.get("phong-anh") == "ban-ve":
+            meta.setdefault("bang-mau", "ban-ve")
         for key, choices in VOX_META_CHOICES.items():
             meta.setdefault(key, choices[0])
         for key in vox.VOX_CAM:
@@ -387,7 +390,7 @@ def _read_meta(lines: list, start: int) -> tuple:
     return meta, dong_meta, i + 1
 
 
-_VOX_ALLOWED = {"loi", "bo-cuc", "nhip", "chuyen", "nguon", "nen"}
+_VOX_ALLOWED = {"loi", "bo-cuc", "nhip", "chuyen", "nguon", "nen", "giu"}
 
 
 def _finish_vox(so: int, dong0: int, truong: dict, dong_truong: dict, kho: str) -> Scene:
@@ -421,6 +424,18 @@ def _finish_vox(so: int, dong0: int, truong: dict, dong_truong: dict, kho: str) 
         if len(truong["nen"][0]) > vox.ANH_MO_TA:
             raise ParseError(dong_truong["nen"][0], f"`nen` (mô tả nền của cảnh) dài {len(truong['nen'][0])} ký tự, "
                                                     f"tối đa {vox.ANH_MO_TA}.")
+    if "giu" in truong:
+        if len(truong["giu"]) > 1:
+            raise ParseError(dong_truong["giu"][1], f"`giu` bị lặp trong Cảnh {so}.")
+        gia_tri = truong["giu"][0].replace(",", ".")
+        try:
+            giay = float(gia_tri)
+        except ValueError:
+            giay = -1.0
+        if not vox.GIU[0] <= giay <= vox.GIU[1]:
+            raise ParseError(dong_truong["giu"][0], f"`giu` là số giây giữ hình đứng im sau lời, từ {vox.GIU[0]:g} "
+                                                    f"đến {vox.GIU[1]:g}, ví dụ `giu: 1.5`.")
+        truong["giu"] = [str(giay)]
     loi = truong.pop("loi")[0]
     nhip = [vox.doc_nhip(v, no, k) for k, (v, no) in enumerate(zip(truong["nhip"], dong_truong["nhip"]))]
     scene = Scene(so=so, dong=dong0, loai="vox", loi=loi, truong=truong, dong_truong=dong_truong, nhip=nhip)

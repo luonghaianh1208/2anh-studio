@@ -20,7 +20,8 @@ from anh_vox_parts import ke_hoach
 GIAY = (247, 242, 230)        # màu giấy của viền và khung
 MUC_IN = (34, 30, 28)         # màu mực chấm halftone khi không có duotone
 MAU_DUOTONE = {"kem": ((38, 52, 94), (244, 236, 214)), "bao-cu": ((60, 48, 40), (236, 226, 204)),
-               "dem": ((16, 22, 40), (120, 180, 220)), "tuoi": ((120, 30, 60), (255, 214, 120))}
+               "dem": ((16, 22, 40), (120, 180, 220)), "tuoi": ((120, 30, 60), (255, 214, 120)),
+               "ban-ve": ((18, 58, 92), (234, 244, 255))}
 CANH_TOI_DA = 1400            # cạnh dài nhất của ảnh đã xử lý
 CANH_VAT_TOI_DA = 1100        # vật cắt nền trước khi thêm viền và lề bóng
 GOC = 16                      # cạnh ô góc khi kiểm alpha

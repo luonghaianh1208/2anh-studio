@@ -83,3 +83,28 @@ test('chuyển lia: trượt hết khung trong 0,35 giây', function () {
   assert.strictEqual(V.chuyenLia(1, DOC).dx, -720);
   assert.ok(V.chuyenLia(0.5, NGANG).mo > 20);
 });
+
+test('vật nhiều mục: các mục hiện nối nhau, mục cuối xong đúng lúc vật xong', function () {
+  [2, 3, 5].forEach(function (n) {
+    for (var i = 0; i < n; i++) {
+      assert.strictEqual(V.tienDoMuc(0, i, n), 0, 'chưa hiện ở đầu');
+      assert.strictEqual(V.tienDoMuc(1, i, n), 1, 'xong hết ở cuối');
+    }
+    assert.ok(V.tienDoMuc(0.3, 0, n) > V.tienDoMuc(0.3, n - 1, n), 'mục đầu đi trước mục cuối');
+    assert.strictEqual(V.tienDoMuc(0.999, n - 1, n) < 1, true);
+  });
+});
+
+test('kim tự tháp: đỉnh hẹp, đáy rộng đúng bề ngang ô, mép tầng liền nhau', function () {
+  var n = 4, w = 600;
+  assert.strictEqual(V.tangThap(n - 1, n, w).duoi, w);
+  assert.ok(V.tangThap(0, n, w).tren < w * 0.4);
+  for (var i = 0; i + 1 < n; i++) { assert.strictEqual(V.tangThap(i, n, w).duoi, V.tangThap(i + 1, n, w).tren); }
+});
+
+test('chu trình: điểm đầu ở đỉnh, quay theo chiều kim đồng hồ', function () {
+  assert.deepStrictEqual(V.diemTron(100, 100, 50, 0), [100, 50]);
+  assert.deepStrictEqual(V.diemTron(100, 100, 50, 90), [150, 100]);
+  assert.deepStrictEqual(V.diemTron(100, 100, 50, 180), [100, 150]);
+  ['cot', 'chu-trinh', 'moc', 'thap'].forEach(function (vat) { assert.ok(V.DAI[vat] >= 1, vat); });
+});

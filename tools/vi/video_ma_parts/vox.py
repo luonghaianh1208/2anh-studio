@@ -13,10 +13,11 @@ from pathlib import Path
 # Khoá đầu chỉ có ở Vox; giá trị đầu tiên là mặc định.
 VOX_META_CHOICES = {
     # `cat-dan`: tranh cắt dán kiểu tạp chí cổ (mặc định, giống video mẫu Vox).
-    "phong-anh": ("cat-dan", "chup-that", "minh-hoa"),
+    # `ban-ve`: bản vẽ kỹ thuật nét trắng trên giấy xanh (Toán, Vật lí, Công nghệ); đi cùng `bang-mau: ban-ve`.
+    "phong-anh": ("cat-dan", "chup-that", "minh-hoa", "ban-ve"),
     # Nền AI riêng cho từng cảnh (anh_vox.py); `khong`: nền giấy vẽ bằng mã (máy không có nguồn vẽ ảnh).
     "nen-canh": ("ve", "khong"),
-    "bang-mau": ("kem", "bao-cu", "dem", "tuoi"),
+    "bang-mau": ("kem", "bao-cu", "dem", "tuoi", "ban-ve"),
     "chuyen-canh": ("xen-ke", "xe-giay", "lia", "khong"),
 }
 # Khoá đầu tự do chỉ có ở Vox: nhân vật chính cố định, mô tả ≤ NHAN_VAT_CHINH_DAI ký tự; mô tả `ve:` gọi bằng `@nhan-vat`.
@@ -28,7 +29,7 @@ VOX_CAM = ("ban-tay", "nhan-vat", "mau-ao", "chu-dong", "may-quay")
 CHUYEN_CANH = ("xe-giay", "lia", "khong")
 # Chuyển cảnh xen kẽ (khoá đầu `chuyen-canh: xen-ke`, mặc định của Vox): cảnh chẵn/lẻ (kể từ Cảnh 2) luân phiên.
 CHUYEN_XEN_KE = ("xe-giay", "lia")
-THOI_LUONG = (15, 600)
+THOI_LUONG = (10, 600)
 # Giọng mặc định của Vox: "Thu Giang" (VieNeu); máy không có VieNeu thì video_ma lùi về giọng `nu` của edge-tts.
 GIONG_MAC_DINH = "thu-giang"
 # Vật đầu tiên của cảnh (không tính nền) phải hiện trong mấy từ đầu của lời, nếu không cảnh mở bằng nền trống.
@@ -46,10 +47,21 @@ BO_CUC = {
     "toan-canh": {"ngang": ("nen", "giua", "duoi"), "doc": ("nen", "giua", "duoi")},
 }
 # vật -> giới hạn ký tự hiện (None: không đếm)
-VAT = {"anh": None, "the": None, "chu": 40, "nhan": 30, "dau": 16, "mui-ten": None, "so": 24}
+VAT = {"anh": None, "the": None, "chu": 40, "nhan": 30, "dau": 16, "mui-ten": None, "so": 24,
+       "cot": None, "chu-trinh": None, "moc": None, "thap": None}
 GIOI_HAN_THE = (24, 16, 60)
 ANH_MO_TA = 300
-TUY_CHON = ("khung", "duotone", "halftone", "xa", "gan")
+# `dung`: con dấu màu xanh (ĐÚNG), đối với con dấu đỏ mặc định (SAI) trong mạch "hiểu sai → hiểu đúng".
+TUY_CHON = ("khung", "duotone", "halftone", "xa", "gan", "dung")
+# Vật nhiều mục (các mục cách nhau bằng `;`): số mục (tối thiểu, tối đa) và giới hạn ký tự từng phần.
+DANH_SACH = {"cot": (2, 5), "chu-trinh": (3, 6), "moc": (2, 5), "thap": (3, 5)}
+COT_NHAN, COT_DON_VI = 14, 6
+CHU_TRINH_BUOC = 16
+MOC_MOC, MOC_NHAN = 10, 20
+THAP_TANG = 24
+# Nhịp im (`giu: <giây>` của cảnh): giữ hình đứng im sau lời để nhấn ý.
+GIU = (0.5, 3.0)
+_COT_RE = re.compile(r"^(.+?)\s*=\s*(-?\d+(?:[.,]\d+)?)\s*(.*)$")
 _SO_RE = re.compile(r"\{\{(-?\d+(?:\.\d+)?)\}\}")
 _NHAN_RE = re.compile(r"==|\(\(|\)\)|__")
 
@@ -144,6 +156,9 @@ def _kiem_noi_dung(vat: str, nd: str, no: int) -> None:
             if len(hien(chu)) > toi_da:
                 raise _loi(no, f"{ten} của `the` dài {len(hien(chu))} ký tự, tối đa {toi_da}.")
         return
+    if vat in DANH_SACH:
+        tach_danh_sach(vat, nd, no)
+        return
     if vat == "mui-ten":
         if not re.match(r"^\S+\s*->\s*\S+$", nd):
             raise _loi(no, "`mui-ten` phải có dạng `<ô> -> <ô>`, ví dụ `trai -> phai`.")
@@ -153,6 +168,43 @@ def _kiem_noi_dung(vat: str, nd: str, no: int) -> None:
     toi_da = VAT[vat]
     if toi_da is not None and len(hien(nd)) > toi_da:
         raise _loi(no, f"Chữ của `{vat}` dài {len(hien(nd))} ký tự, tối đa {toi_da}. Rút gọn chữ; ý dài để ở lời.")
+
+
+def tach_danh_sach(vat: str, nd: str, no: int = 0) -> list:
+    """Các mục của `cot`, `chu-trinh`, `moc`, `thap` (cách nhau bằng `;`); kiểm số mục và độ dài. Trả danh sách dict
+    cho trang: cot {nhan, giaTri, thapPhan, donVi}; moc {moc, nhan}; chu-trinh và thap {nhan}."""
+    muc = [x.strip() for x in nd.split(";")]
+    it, nhieu = DANH_SACH[vat]
+    if any(not x for x in muc) or not it <= len(muc) <= nhieu:
+        mau = {"cot": "`cot: 2020 = 12; 2022 = 30; 2024 = 45%`", "chu-trinh": "`chu-trinh: Bốc hơi; Ngưng tụ; Mưa`",
+               "moc": "`moc: 1945: Độc lập; 1975: Thống nhất`", "thap": "`thap: Tự thể hiện; Tôn trọng; An toàn`"}[vat]
+        raise _loi(no, f"`{vat}` cần từ {it} đến {nhieu} mục cách nhau bằng `;`, ví dụ {mau}.")
+    ra = []
+    for x in muc:
+        if vat == "cot":
+            m = _COT_RE.match(x)
+            if m is None:
+                raise _loi(no, f"Mục `{x}` của `cot` phải có dạng `<nhãn> = <số><đơn vị>`, ví dụ `2024 = 45%`.")
+            nhan, so, don_vi = m.group(1).strip(), m.group(2).replace(",", "."), m.group(3).strip()
+            if len(nhan) > COT_NHAN or len(don_vi) > COT_DON_VI:
+                raise _loi(no, f"Mục `{x}` của `cot`: nhãn tối đa {COT_NHAN} ký tự, đơn vị tối đa {COT_DON_VI}.")
+            if float(so) < 0:
+                raise _loi(no, f"Mục `{x}` của `cot`: cột không vẽ được số âm.")
+            tp = len(so.split(".", 1)[1]) if "." in so else 0
+            ra.append({"nhan": nhan, "giaTri": float(so), "thapPhan": tp, "donVi": don_vi})
+        elif vat == "moc":
+            moc, _, nhan = x.partition(":")
+            moc, nhan = moc.strip(), nhan.strip()
+            if not moc or not nhan or len(moc) > MOC_MOC or len(nhan) > MOC_NHAN:
+                raise _loi(no, f"Mục `{x}` của `moc` phải có dạng `<mốc>: <nhãn>`, mốc tối đa {MOC_MOC} ký tự, "
+                               f"nhãn tối đa {MOC_NHAN}.")
+            ra.append({"moc": moc, "nhan": nhan})
+        else:
+            toi_da = CHU_TRINH_BUOC if vat == "chu-trinh" else THAP_TANG
+            if len(x) > toi_da:
+                raise _loi(no, f"Mục `{x}` của `{vat}` dài {len(x)} ký tự, tối đa {toi_da}.")
+            ra.append({"nhan": x})
+    return ra
 
 
 def kiem_canh(scene, kho: str) -> None:
@@ -180,6 +232,10 @@ def kiem_canh(scene, kho: str) -> None:
                 if dau_mui not in o_hop_le:
                     raise _loi(n.dong, f"Đầu mũi tên `{dau_mui}` không phải ô của bố cục `{bo_cuc}` khổ {kho}; "
                                        f"ô đúng: {', '.join(o_hop_le)}.")
+        if "dung" in n.tuy_chon and n.vat != "dau":
+            raise _loi(n.dong, "Tuỳ chọn `dung` (dấu xanh) chỉ dùng cho `dau`.")
+        if n.vat in DANH_SACH and bo_cuc == "chong":
+            raise _loi(n.dong, f"`{n.vat}` cần một ô rộng; dùng bố cục `mot`, `hai-ben` hoặc `toan-canh`, không dùng `chong`.")
         if n.vat == "chu":
             so_chu += 1
             if so_chu > CHU_TOI_DA:
@@ -266,7 +322,7 @@ def _o_cac_nhip(scene, kho_ten: str) -> list:
 
 def _nhip_du_lieu(n: Nhip, o: str, bat_dau: float) -> dict:
     d = {"batDau": bat_dau, "vat": n.vat, "o": o, "tuyChon": list(n.tuy_chon),
-         "chu": None, "the": None, "anh": None, "so": None}
+         "chu": None, "the": None, "anh": None, "so": None, "ds": None}
     if n.vat in ("chu", "nhan", "dau"):
         d["chu"] = hien(n.noi_dung)
     elif n.vat == "mui-ten":
@@ -275,6 +331,8 @@ def _nhip_du_lieu(n: Nhip, o: str, bat_dau: float) -> dict:
         from .parse import tach_the
         nhan, gia_tri, chu_thich = tach_the(n.noi_dung)
         d["the"] = {"nhan": nhan, "giaTri": gia_tri, "chuThich": chu_thich}
+    elif n.vat in DANH_SACH:
+        d["ds"] = tach_danh_sach(n.vat, n.noi_dung)
     elif n.vat == "so":
         m = _SO_RE.search(n.noi_dung)
         raw = m.group(1)

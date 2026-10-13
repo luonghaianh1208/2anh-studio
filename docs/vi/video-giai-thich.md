@@ -73,6 +73,10 @@ Dựng thật mất khoảng 1,5 lần thời lượng video trên máy 6 lõi: 
 
 ## Hiệu ứng
 
+- **Hình cho số liệu và quy trình:** cột tăng dần, chu trình khép vòng, dòng thời gian, kim tự tháp, hiện dần theo lời đọc.
+- **Hiểu sai → hiểu đúng:** con dấu đỏ "SAI" rồi dấu xanh "ĐÚNG" trên hai cảnh liền nhau, kèm một nhịp lặng ngắn để người xem kịp nghĩ.
+- **Bản vẽ kỹ thuật:** ghi `phong-anh: ban-ve` để ảnh thành nét trắng trên giấy xanh, hợp Toán, Vật lí, Công nghệ.
+- **Video ngắn 10–20 giây** khổ dọc cho thông báo, khẩu hiệu trên Zalo, TikTok.
 - **Chuyển động êm:** vật trượt nhẹ vào kèm mờ dần, nền trôi ngang rất chậm sau lớp hình; không rung, không nảy, không phóng giật.
 - **Số chạy:** con số cần nhớ chạy từ 0 lên giá trị thật, kèm nguồn.
 - **Chiều sâu:** nền giấy, mảng giấy xé và các vật nằm trên ba lớp; máy quay đẩy vào chậm và nghiêng nhẹ nên các lớp trượt lệch nhau.

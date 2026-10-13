@@ -84,5 +84,25 @@ class NhanVatChinhTest(unittest.TestCase):
         self.assertIn("300", str(c.exception))
 
 
+
+class BanVeTest(unittest.TestCase):
+    def test_blueprint_style_prompts_and_default_palette(self):
+        v = video(them="phong-anh: ban-ve\n")
+        self.assertEqual(v.meta["bang-mau"], "ban-ve")
+        m = muc(v)
+        for kieu in ("cat", "nen", "khung"):
+            with self.subTest(kieu=kieu):
+                self.assertIn("blueprint", m[kieu].prompt)
+                self.assertIn("#123A5C", m[kieu].prompt)
+                self.assertNotIn("halftone", m[kieu].prompt)
+        self.assertIn("#00FF00", m["cat"].prompt)
+        self.assertIn("card of blueprint paper", m["cat"].prompt)
+        self.assertIn("no people", m["nen"].prompt)
+
+    def test_an_explicit_palette_wins(self):
+        self.assertEqual(video(them="phong-anh: ban-ve\nbang-mau: dem\n").meta["bang-mau"], "dem")
+        self.assertEqual(video().meta["bang-mau"], "kem")
+
+
 if __name__ == "__main__":
     unittest.main()
