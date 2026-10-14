@@ -1,6 +1,6 @@
 # Nhật ký thay đổi — Bản Việt
 
-## Chưa phát hành
+## 6.3.2-vi.16 — 2026-10-14
 
 Slide và video đa dạng hơn, học ý tưởng từ các kho mẫu slide và video (chỉ học ý tưởng, mọi thứ tự viết lại): tám kiểu slide có tên, bộ hoạ tiết vẽ tay vẫn sửa được trong PowerPoint, khuôn bài giảng theo Công văn 5512; video Vox có thêm cột, chu trình, dòng thời gian, kim tự tháp, mạch hiểu sai → hiểu đúng, nhịp im, kiểu bản vẽ kỹ thuật và video ngắn; ảnh cắt dán theo prompt chi tiết với nhân vật cố định.
 

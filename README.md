@@ -18,7 +18,7 @@ Nhắn cho AI một câu như *"Làm bài giảng 12 slide về phản ứng oxi
 
 > **Dành cho AI agent:** người dùng nhờ cài bộ công cụ này (hoặc chỉ dán link repo) thì làm theo [docs/vi/cai-dat-bang-ai.md](docs/vi/cai-dat-bang-ai.md), không tự nghĩ cách cài khác.
 
-Phiên bản: **6.3.2-vi.15** · [Nhật ký thay đổi](CHANGELOG-VI.md)
+Phiên bản: **6.3.2-vi.16** · [Nhật ký thay đổi](CHANGELOG-VI.md)
 
 ## Video kiểu Vox, dựng từ một câu lệnh
 
@@ -31,6 +31,12 @@ Phiên bản: **6.3.2-vi.15** · [Nhật ký thay đổi](CHANGELOG-VI.md)
 </table>
 
 *Khung hình từ video 58 giây "Giao tiếp với đồng nghiệp": AI viết kịch bản, vẽ nền cắt dán cho từng cảnh qua API tạo ảnh, đọc bằng giọng Thu Giang, dựng xong trong khoảng 4–5 phút máy chạy.*
+
+## Tám kiểu slide có tên
+
+![Tám kiểu slide: Học đường sáng, Bút dạ – sổ tay, Cắt dán giấy, Sách tranh tiểu học, Ruy băng hành chính, Lễ hội Đoàn, Học thuật – hội thảo, Kính mờ CLB](docs/vi/anh/kieu-slide.jpg)
+
+*Nhắn "làm kiểu Bút dạ" hay "kiểu Lễ hội Đoàn" là AI dựng đúng màu, chữ và hoạ tiết của kiểu đó. Hoạ tiết vẽ tay là hình PowerPoint thật, bấm vào sửa được.*
 
 ## Điểm khác biệt
 
@@ -60,6 +66,7 @@ Hỏi thầy cô một lượt ngắn (môn, lớp, bộ sách, mục tiêu, đ�
 ### 🖥️ Trình chiếu và ấn phẩm
 
 - **Bài giảng, báo cáo – tổng kết, hoạt động Đoàn, tập huấn** ra PPTX từ PDF, Word, trang web, Markdown hoặc chỉ từ một chủ đề.
+- **Tám kiểu nhìn có tên**, mỗi kiểu ba bảng màu, cùng 12 hoạ tiết vẽ tay (băng dính, giấy xé, ruy băng, bút dạ, hoa giấy…) vẫn sửa được trong PowerPoint; bài giảng chia trang theo 4 hoạt động của Công văn 5512.
 - **Poster Zalo – Facebook** ở khổ bài đăng 3:4, ảnh vuông, story 9:16; slide 16:9 và 4:3.
 - **Hiệu ứng** theo mức chọn (không, vừa, nhiều): hiện từng ý khi bấm, bấm để hiện đáp án, Morph cho diễn biến thí nghiệm; bài có ảnh thật và sơ đồ thay vì toàn chữ.
 - **Làm đẹp** lại một file PPTX có sẵn, và **thuyết minh** bằng giọng tiếng Việt.
@@ -67,6 +74,10 @@ Hỏi thầy cô một lượt ngắn (môn, lớp, bộ sách, mục tiêu, đ�
 ### 🎬 Video
 
 - **Video giải thích kiểu Vox** từ một chủ đề hay đoạn nội dung, cho mọi ngành: nền giấy cắt dán riêng cho từng cảnh, ảnh AI cắt rời, thẻ số liệu, chữ hiện đúng lúc giọng đọc nói tới, phụ đề karaoke, khổ ngang hoặc dọc Full HD.
+- **Hình cho số liệu và quy trình** trong video: cột tăng dần, chu trình khép vòng, dòng thời gian, kim tự tháp; cặp cảnh "hiểu sai → hiểu đúng" với dấu SAI, ĐÚNG; kiểu bản vẽ kỹ thuật cho Toán, Lý, Công nghệ; video ngắn từ 10 giây.
+
+  ![Cột tăng dần, chu trình, dòng thời gian, kim tự tháp trong video Vox](docs/vi/anh/vox-vat-moi.jpg)
+
 - **Video bài giảng** từ slide đã có: gắn giọng đọc, phụ đề, giữ hoặc bỏ hiệu ứng chuyển cảnh.
 
 ### 📚 Dạy học
