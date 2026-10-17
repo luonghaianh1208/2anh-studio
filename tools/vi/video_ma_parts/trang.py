@@ -38,7 +38,9 @@ def dung_trang(du: dict, model=None) -> str:
     scripts.append(f"window.DU_CANH = {json_nhung(du)};\nTHI_KHO.dat(window.DU_CANH.kho);\nTHI_VIDEO.khoiDong(window.DU_CANH);")
     # Phong cách: viet-tay.css là nền chung; cat-dan thêm font Be Vietnam Pro và lớp da cat-dan.css.
     chu_de = du.get("chuDe", {}).get("ten", "viet-tay")
-    css_them = _doc(RUNTIME / "cat-dan.css") + "\n" if chu_de == "cat-dan" else ""
+    css_them = _doc(RUNTIME / "cat-dan.css") + "\n" if chu_de in ("cat-dan", "ngan") else ""
+    if chu_de == "ngan":
+        css_them += _doc(RUNTIME / "ngan.css") + "\n"
     body = "\n".join(f"<script>\n{s}\n</script>" for s in scripts)
     return ("<!doctype html>\n<html lang=\"vi\"><head><meta charset=\"utf-8\">"
             f"<style>\n:root {{ --rong: {kho['rong']}px; --cao: {kho['cao']}px; --day: {kho['day']}px; }}\n"

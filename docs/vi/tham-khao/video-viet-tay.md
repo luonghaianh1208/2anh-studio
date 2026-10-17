@@ -59,7 +59,7 @@ Khối thông tin:
 |---|---|---|
 | `tieu-de` | có | tên video |
 | `mon`, `lop` | có | môn và lớp |
-| `phong-cach` | không | `viet-tay` (mặc định: viết tay trên bảng) hoặc `cat-dan` (giấy cắt dán kiểu Vox, font Be Vietnam Pro; vài trường có giới hạn chữ thấp hơn một chút) |
+| `phong-cach` | không | `viet-tay` (mặc định: viết tay trên bảng), `cat-dan` (giấy cắt dán kiểu Vox, font Be Vietnam Pro; vài trường có giới hạn chữ thấp hơn một chút) hoặc `ngan` (video ngắn mạng xã hội: nền neon tối, cùng khung, cùng giới hạn chữ với `cat-dan`; không ghi `kho` thì khổ dọc 9:16; cách viết kịch bản ở `docs/vi/tro-ly/video-ngan.md`) |
 | `giong` | không | `nu` (mặc định), `nam`, hoặc `thu-giang` (giọng VieNeu đọc trên máy) |
 | `toc-do` | không | `cham`, `vua` (mặc định) hoặc `nhanh` |
 | `phu-de` | không | `karaoke` (mặc định: in lên hình, tô vàng từng từ theo giọng đọc), `hinh` (in lên hình kiểu cũ, cả câu một màu), `file` (file `phu-de.srt` riêng) hoặc `khong` |
@@ -76,7 +76,7 @@ Khối thông tin:
 | `nhan-vat` | không | `khong` (mặc định: không có nhân vật), `nguoi-que` (người que vẽ sẵn, đứng ở cột phụ của cảnh có `tu-the`) hoặc `ve: <mô tả>` (nhân vật do AI vẽ, mô tả tối đa 200 ký tự) |
 | `mau-ao` | không | màu áo người que: `vang` (mặc định), `do`, `xanh-duong`, `xanh-la`, `cam`, `tim`, `hong` hoặc `xam` |
 
-Các khoá `ban-tay`, `may-quay`, `chuyen-canh`, `chu-dong`, `am-thanh` chỉ ghi khi muốn đổi: không ghi thì đều bật (`chuyen-canh` là lau bảng ở `phong-cach: viet-tay`; ở `cat-dan` không ghi thì `ban-tay` mặc định `khong` và `chuyen-canh` mặc định `xe-giay`). Ghi `khong` khi thầy cô thấy rối mắt hay ồn và muốn tắt. Cảnh `thi-nghiem` không có bàn tay, máy quay chỉ đẩy chậm. Kịch bản cũ ghi `phu-de: hinh` vẫn giữ phụ đề kiểu cũ.
+Các khoá `ban-tay`, `may-quay`, `chuyen-canh`, `chu-dong`, `am-thanh` chỉ ghi khi muốn đổi: không ghi thì đều bật (`chuyen-canh` là lau bảng ở `phong-cach: viet-tay`; ở `cat-dan` không ghi thì `ban-tay` mặc định `khong` và `chuyen-canh` mặc định `xe-giay`; ở `ngan` thì `ban-tay` mặc định `khong` và `chuyen-canh` mặc định `truot`). Ghi `khong` khi thầy cô thấy rối mắt hay ồn và muốn tắt. Cảnh `thi-nghiem` không có bàn tay, máy quay chỉ đẩy chậm. Kịch bản cũ ghi `phu-de: hinh` vẫn giữ phụ đề kiểu cũ.
 
 Hiệu ứng âm thanh do công cụ tự tạo bằng FFmpeg (không dùng file ngoài, không vướng giấy phép), luôn thấp hơn giọng đọc khoảng 20 dB; tiếng bút không kéo dài quá 40% thời gian mỗi cảnh. Nhạc nền được lặp cho đủ dài, vào và ra dần 1,5 giây, tự nhỏ đi khi có giọng đọc (khoảng 14–24 dB), và dòng nguồn nhạc hiện ở góc dưới bên trái trong 4 giây cuối video (cảnh cuối ngắn hơn 4 giây thì hiện suốt cảnh cuối). Nhạc thiếu nguồn, thiếu file, sai định dạng hay hỏng là lỗi `canh` (thông báo "Cảnh 0: nhạc nền: …" nêu dòng khoá đầu).
 

@@ -11,8 +11,9 @@ from .vox import VOX_META_CHOICES
 
 META_REQUIRED = ("tieu-de", "mon", "lop")
 META_CHOICES = {
-    # Phong cách: viết tay trên bảng, cắt dán giấy kiểu Vox (runtime/cat-dan.css, cat-dan.js), hoặc Vox (nhịp).
-    "phong-cach": ("viet-tay", "cat-dan", "vox"),
+    # Phong cách: viết tay trên bảng, cắt dán giấy kiểu Vox (runtime/cat-dan.css, cat-dan.js), Vox (nhịp), hoặc
+    # video ngắn mạng xã hội `ngan` (khung của cat-dan, da neon tối runtime/ngan.css; mặc định khổ dọc).
+    "phong-cach": ("viet-tay", "cat-dan", "vox", "ngan"),
     # `thu-giang`: giọng "Thu Giang" của VieNeu (giong.py); máy không có VieNeu thì video_ma lùi về `nu`.
     "giong": ("nu", "nam", "thu-giang"),
     "toc-do": ("cham", "vua", "nhanh"),
@@ -377,6 +378,8 @@ def _read_meta(lines: list, start: int) -> tuple:
                                                   "`phong-cach: vox`; bỏ dòng này.")
     if phong_cach == "vox":
         meta.setdefault("giong", vox.GIONG_MAC_DINH)
+    if phong_cach == "ngan":
+        meta.setdefault("kho", "doc")
     for key, default in META_DEFAULTS.items():
         meta.setdefault(key, default)
     if phong_cach == "vox":

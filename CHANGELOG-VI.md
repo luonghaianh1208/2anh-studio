@@ -1,5 +1,16 @@
 # Nhật ký thay đổi — Bản Việt
 
+## 6.3.2-vi.17 — 2026-10-18
+
+Video ngắn mạng xã hội: phong cách mới `ngan`, gộp cách làm của ba mẫu video ngắn tiếng Việt (giải thích kiến thức hook → vấn đề → giải pháp → kêu gọi; so sánh hai khái niệm dễ nhầm; tin nhanh từ một bài báo). Viết lại trên bộ dựng sẵn có, không thêm Remotion hay HyperFrames.
+
+### Thêm
+- `phong-cach: ngan`: nền neon tối có lưới và quầng sáng, nhãn tiêu đề trên dải màu neon theo số cảnh (cyan, hồng, vàng chanh, tím), thẻ thông tin kính tối viền sáng, chữ trắng phát sáng, nhãn kênh (`loat`) dạng viên thuốc. Dùng khung, font và giới hạn chữ của `cat-dan` (đã đo), nên mọi loại cảnh dựng được và không tràn khung. Không ghi `kho` thì khổ dọc 9:16; chuyển cảnh mặc định trượt; không bàn tay.
+- Hướng dẫn cho AI `docs/vi/tro-ly/video-ngan.md`: nhịp video 30–60 giây, ba công thức kịch bản kèm bảng cảnh, cảnh kêu gọi cuối, quy tắc "chỉ dùng số liệu có trong bài" khi làm tin từ link.
+
+### Sửa
+- Giọng đọc video: cần `edge-tts>=7.3.1` (bản cũ bị máy chủ Microsoft từ chối, lỗi 403); đã thêm vào `tools/vi/requirements-vi.txt`.
+
 ## 6.3.2-vi.16 — 2026-10-14
 
 Slide và video đa dạng hơn, học ý tưởng từ các kho mẫu slide và video (chỉ học ý tưởng, mọi thứ tự viết lại): tám kiểu slide có tên, bộ hoạ tiết vẽ tay vẫn sửa được trong PowerPoint, khuôn bài giảng theo Công văn 5512; video Vox có thêm cột, chu trình, dòng thời gian, kim tự tháp, mạch hiểu sai → hiểu đúng, nhịp im, kiểu bản vẽ kỹ thuật và video ngắn; ảnh cắt dán theo prompt chi tiết với nhân vật cố định.

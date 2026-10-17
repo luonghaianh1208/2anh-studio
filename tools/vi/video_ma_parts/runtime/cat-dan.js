@@ -154,15 +154,42 @@
     return { opacity: String(Math.round(e * 1000) / 1000), transform: nhan ? 'translateX(' + (-lech) + 'px)' : 'translateY(' + lech + 'px)' };
   }
 
-  // Trang: đặt lớp và màu nhãn của cảnh, chèn nền giấy dưới mọi lớp, và bộ lọc bóng của sticker vào lớp vẽ.
+  // Nền của phong cách `ngan` (video ngắn mạng xã hội, kiểu auto-video-gen): nền tối chuyển màu, lưới mảnh, ba quầng
+  // sáng màu nhãn ở vị trí lấy từ prng(số cảnh) và một lớp hạt nhiễu nhẹ. Cùng cảnh luôn ra cùng hình.
+  function nenNeon(hat, kho, cd) {
+    var R = kho.rong, H = kho.cao, r = prng(hat * 7919 + 13);
+    var mau = cd.mauNhan || ['#22d3ee'];
+    var s = '<svg xmlns="' + NS + '" class="neon" width="' + R + '" height="' + H + '" viewBox="0 0 ' + R + ' ' + H + '">' +
+      '<defs><linearGradient id="nen-toi" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + (cd.giay || '#0b1020') + '"/>' +
+      '<stop offset="1" stop-color="' + (cd.giay2 || '#1b1033') + '"/></linearGradient>' +
+      '<pattern id="luoi-neon" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" ' +
+      'stroke="#ffffff" stroke-opacity="0.05" stroke-width="1"/></pattern>' +
+      '<filter id="hat-neon" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" ' +
+      'numOctaves="2" seed="' + hat + '"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0"/></filter>';
+    var quang = '';
+    for (var k = 0; k < 3; k++) {
+      var c = mau[(hat + k) % mau.length];
+      s += '<radialGradient id="quang-' + k + '"><stop offset="0" stop-color="' + c + '" stop-opacity="0.38"/>' +
+        '<stop offset="1" stop-color="' + c + '" stop-opacity="0"/></radialGradient>';
+      var bk = Math.max(R, H) * (0.32 + r() * 0.18);
+      quang += '<circle cx="' + lam(r() * R) + '" cy="' + lam(r() * H) + '" r="' + lam(bk) + '" fill="url(#quang-' + k + ')"/>';
+    }
+    return s + '</defs><rect width="' + R + '" height="' + H + '" fill="url(#nen-toi)"/>' + quang +
+      '<rect width="' + R + '" height="' + H + '" fill="url(#luoi-neon)"/>' +
+      '<rect width="' + R + '" height="' + H + '" filter="url(#hat-neon)"/></svg>';
+  }
+
+  // Trang: đặt lớp và màu nhãn của cảnh, chèn nền giấy (cat-dan) hoặc nền neon (ngan) dưới mọi lớp, và bộ lọc bóng
+  // của sticker vào lớp vẽ.
   function dung(khung, svg, du) {
     var cd = du.chuDe;
     var kho = root.THI_KHO.lay();
     khung.classList.add('cat-dan');
+    if (cd.ten === 'ngan') { khung.classList.add('ngan'); }
     khung.style.setProperty('--mau-nhan', mauCanh(du.so, cd.mauNhan));
     var nen = document.createElement('div');
     nen.className = 'nen-giay';
-    nen.innerHTML = nenGiay(du.so, kho, cd.giay);
+    nen.innerHTML = cd.ten === 'ngan' ? nenNeon(du.so, kho, cd) : nenGiay(du.so, kho, cd.giay);
     khung.insertBefore(nen, khung.firstChild);
     svg.insertAdjacentHTML('afterbegin', '<defs><filter id="bong-dan" x="-30%" y="-30%" width="160%" height="160%">' +
       '<feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#000" flood-opacity="0.25"/></filter></defs>');
@@ -170,7 +197,7 @@
 
   root.THI_CAT_DAN = {
     TRUOT: TRUOT, prng: prng, mauCanh: mauCanh, giayXe: giayXe, chamLuoi: chamLuoi, bangDinh: bangDinh,
-    bangTieuDe: bangTieuDe, vungNoiDung: vungNoiDung, cacManh: cacManh, vungCham: vungCham, nenGiay: nenGiay,
+    bangTieuDe: bangTieuDe, vungNoiDung: vungNoiDung, cacManh: cacManh, vungCham: vungCham, nenGiay: nenGiay, nenNeon: nenNeon,
     truotChu: truotChu, dung: dung
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

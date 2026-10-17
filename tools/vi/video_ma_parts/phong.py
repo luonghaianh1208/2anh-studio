@@ -26,6 +26,8 @@ CHU_DE = {
     "cat-dan": {"ten": "cat-dan", "font": TEN_CAT_DAN, "hienChu": "truot", "net": "nhanh",
                 "mauNhan": ["#b07419", "#1f6f78", "#c8452f", "#2f4f9e"], "giay": "#f3ead7"},
     "vox": {"ten": "vox", "font": TEN_VOX, "hienChu": "truot", "net": "nhanh"},
+    "ngan": {"ten": "ngan", "font": TEN_CAT_DAN, "hienChu": "truot", "net": "nhanh",
+             "mauNhan": ["#22d3ee", "#f472b6", "#a3e635", "#c084fc"], "giay": "#0b1020", "giay2": "#1b1033"},
 }
 
 _THUONG = "ạảãàáâậầấẩẫăặằắẳẵẹẻẽèéêệềếểễịỉĩìíọỏõòóôộồốổỗơợờớởỡụủũùúưựừứửữỵỷỹỳýđ"
@@ -119,7 +121,7 @@ def font_css(phong_cach: str = "viet-tay") -> str:
     """Khối @font-face nhúng data: của chủ đề. `cat-dan`/`vox` nhúng Be Vietnam Pro 400 và 800 (vox dùng tên họ
     `TEN_VOX` khớp `CHU_DE["vox"]["font"]`), và vẫn nhúng Itim."""
     css = _face(TEN, FONT)
-    if phong_cach in ("cat-dan", "vox"):
+    if phong_cach in ("cat-dan", "vox", "ngan"):
         ten = TEN_VOX if phong_cach == "vox" else TEN_CAT_DAN
         css += "".join(_face(ten, path, f"font-weight:{dam};") for dam, path in FONT_CAT_DAN.items())
     return css

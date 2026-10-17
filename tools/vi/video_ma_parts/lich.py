@@ -224,6 +224,8 @@ _MAC_DINH_CU = {"ban-tay": "co", "chuyen-canh": "lau-bang"}
 _MAC_DINH_CAT_DAN = {"ban-tay": "khong", "chuyen-canh": "xe-giay"}
 # `vox`: tay ẩn, chuyển cảnh mặc định xen kẽ hai kiểu (vox.CHUYEN_XEN_KE).
 _MAC_DINH_VOX = {"ban-tay": "khong", "chuyen-canh": "xen-ke"}
+# `ngan` (video ngắn mạng xã hội): tay ẩn, chuyển cảnh mặc định trượt nhanh.
+_MAC_DINH_NGAN = {"ban-tay": "khong", "chuyen-canh": "truot"}
 
 
 def mac_dinh(meta: dict, khoa: str) -> str:
@@ -235,6 +237,8 @@ def mac_dinh(meta: dict, khoa: str) -> str:
         return _MAC_DINH_VOX[khoa]
     if meta.get("phong-cach") == "cat-dan":
         return _MAC_DINH_CAT_DAN[khoa]
+    if meta.get("phong-cach") == "ngan":
+        return _MAC_DINH_NGAN[khoa]
     return _MAC_DINH_CU[khoa]
 
 

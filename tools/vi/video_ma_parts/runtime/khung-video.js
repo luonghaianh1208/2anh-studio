@@ -351,6 +351,8 @@
   }
   // Chủ đề của cảnh (du.chuDe từ phong.py); dữ liệu cũ không có chuDe là viet-tay.
   function chuDe(du) { return du.chuDe || { ten: 'viet-tay', hienChu: 'viet', net: 've' }; }
+  // `ngan` (video ngắn mạng xã hội) dùng khung của cat-dan (chữ trượt, sticker, nhãn trên dải màu), chỉ đổi da (neon).
+  function laDan(cd) { return !!cd && (cd.ten === 'cat-dan' || cd.ten === 'ngan'); }
   function tao(du) {
     var gh = du.thoiLuong;
     var sau = kieuChuyen(du) ? giayLau(du) + 0.05 : 0;
@@ -359,7 +361,7 @@
     // lấy lần lượt từ prng(số cảnh).
     var truot = cd.hienChu === 'truot';
     var nhanh = cd.net === 'nhanh';
-    var catDan = cd.ten === 'cat-dan';
+    var catDan = laDan(cd);
     var xoayDan = catDan ? root.THI_CAT_DAN.prng(du.so) : null;
     function dau(batDau, lui) { return Math.min(Math.max(batDau, sau), gh - lui); }
     // Chữ trượt: vào ở batDau (không sớm hơn 0,6 s; nhãn tiêu đề 0,4 s), trượt 0,35 s.
@@ -726,7 +728,7 @@
     svg.setAttribute('viewBox', '0 0 ' + kho.rong + ' ' + kho.cao);
     goc.appendChild(svg);
     // cat-dan: nền giấy dưới mọi lớp, màu nhãn của cảnh, bộ lọc bóng sticker (runtime/cat-dan.js).
-    if (chuDe(du).ten === 'cat-dan') { root.THI_CAT_DAN.dung(khung, svg, du); }
+    if (laDan(chuDe(du))) { root.THI_CAT_DAN.dung(khung, svg, du); }
     var ds = muc.map(function (m) {
       var el;
       if (m.kieu === 'net') {
@@ -1103,7 +1105,7 @@
         // Tiêu đề cảnh và nét gạch dưới của nó (viet-tay, chỉ khi cảnh có mục `tieu-de`).
         if (m.id === 'tieu-de' || (m.id === 'gach' && coTieuDe)) { tieuDe.push(h); }
       });
-      var catDanCanh = (du.chuDe || {}).ten === 'cat-dan';
+      var catDanCanh = laDan(du.chuDe);
       var ds = chrome.concat(chrome.length || catDanCanh ? tieuDe : []);
       if (!ds.length) { return null; }
       // Cảnh công thức: khung biểu thức cũng giữ trọn (máy quay phóng vào biểu thức không cắt viền khung).

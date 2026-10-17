@@ -236,6 +236,7 @@ def _kiem_hinh_anh(scene: Scene, thu_muc: Path) -> None:
 def bang_gioi_han(ten_kho: str, phong_cach: str = "viet-tay", co_the: bool = False) -> tuple:
     """(giới hạn trường đơn, giới hạn trường hai phần) theo khổ (`ngang`/`doc`) và phong cách (`viet-tay`/`cat-dan`);
     `co_the`: cảnh có thẻ hay dòng tài liệu (HA_CO_THE)."""
+    phong_cach = "cat-dan" if phong_cach == "ngan" else phong_cach
     doc = ten_kho == "doc"
     if phong_cach == "cat-dan":
         L, H = (LIMITS_CAT_DAN_DOC, LIMITS_HAI_PHAN_CAT_DAN_DOC) if doc else (LIMITS_CAT_DAN, LIMITS_HAI_PHAN_CAT_DAN)
@@ -451,6 +452,7 @@ def kiem(video: Video, thu_muc: Path, doc_nhac_nen: bool = True, chi_canh_bao: b
     da_doc: dict = {}
     da_bao: set = set()
     ten_kho, phong_cach = video.meta.get("kho", "ngang"), video.meta.get("phong-cach", "viet-tay")
+    phong_cach = "cat-dan" if phong_cach == "ngan" else phong_cach
     for scene in video.canh:
         bang, bang_hai_phan = bang_gioi_han(ten_kho, phong_cach, co_the(scene))
         ghi_chu = _ghi_chu_gioi_han(ten_kho, phong_cach, co_the(scene))

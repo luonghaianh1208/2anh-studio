@@ -1,0 +1,49 @@
+/* Phong cách video ngắn mạng xã hội (phong-cach: ngan): nạp sau viet-tay.css và cat-dan.css, chỉ ở trang ngan.
+   Cùng khung, font, cỡ chữ và giới hạn của cat-dan (đã đo bằng Chromium) — file này CHỈ đổi màu, bóng, viền phát
+   sáng; không đổi kích thước, lề hay độ dày viền nào ảnh hưởng bố cục. Nền neon tối do cat-dan.js (nenNeon) vẽ.
+   Màu nhãn của cảnh là --mau-nhan (cyan, hồng, vàng chanh, tím theo số cảnh). */
+html, body { background: #0b1020; }
+#khung.ngan { background: #0b1020; color: #f1f5ff; }
+.ngan .chu { color: #f1f5ff; }
+.ngan .chu.nhan { color: #ffffff; text-shadow: 0 0 18px var(--mau-nhan), 0 0 2px var(--mau-nhan); }
+.ngan .chu.do { color: #ff6b9a; }
+.ngan .chu.xanh { color: #4ade80; }
+/* Nhãn tiêu đề: chữ hoa tối trên dải màu neon (thay băng dính), dải có quầng sáng. */
+.ngan .chu.bang { color: #0b1020; }
+.ngan g.bang-dinh polygon { fill: var(--mau-nhan); filter: drop-shadow(0 0 10px var(--mau-nhan)); }
+/* Nét vẽ: sáng trên nền tối; nét nhấn theo màu nhãn, có quầng. */
+.ngan path.net { stroke: #e2e8f0; }
+.ngan path.net.nhan { stroke: var(--mau-nhan); filter: drop-shadow(0 0 6px var(--mau-nhan)); }
+.ngan path.net.do { stroke: #ff6b9a; }
+.ngan path.net.luoi { stroke: rgba(226, 232, 240, 0.18); }
+.ngan path.nhan-net { stroke: #ff6b9a; }
+.ngan path.net.m0 { stroke: #22d3ee; }
+.ngan path.net.m1 { stroke: #f472b6; }
+.ngan path.net.m2 { stroke: #a3e635; }
+.ngan path.net.m3 { stroke: #fbbf24; }
+.ngan path.net.m4 { stroke: #c084fc; }
+.ngan path.net.m5 { stroke: #2dd4bf; }
+/* Bút dạ quang: vàng chanh trong (42 %), chữ trắng vẫn đọc rõ trên nền nhấn. */
+.ngan .chu .cum.to { background-image: linear-gradient(rgba(250, 204, 21, 0.42), rgba(250, 204, 21, 0.42)); }
+/* Sticker: viền trắng thành viền sáng nhẹ; ảnh dán có viền neon. */
+.ngan g.vien-dan > * { stroke: rgba(255, 255, 255, 0.92); }
+.ngan .anh.dan .cua-anh { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.92), 0 0 24px var(--mau-nhan); }
+/* Thẻ thông tin: kính tối, viền 2 px màu nhãn, quầng sáng thay bóng lệch. */
+.ngan .chu.the-nen { background: rgba(15, 23, 42, 0.86); border-color: var(--mau-nhan);
+  box-shadow: 0 0 22px rgba(0, 0, 0, 0.45), 0 0 14px var(--mau-nhan); }
+.ngan .chu.the-nhan { color: var(--mau-nhan); }
+.ngan .chu.the-gia-tri { color: #ffffff; text-shadow: 0 0 14px var(--mau-nhan); }
+.ngan .chu.the-chu-thich { color: #cbd5e1; }
+/* Dòng tài liệu, nguồn nhạc: nền kính tối, chữ sáng. */
+.ngan .dong-nguon .dong, .ngan #nhac-nguon { background: rgba(2, 6, 23, 0.78); color: #e2e8f0; }
+.ngan .anh .nguon { background: rgba(2, 6, 23, 0.78); color: #e2e8f0; }
+/* Khung loạt = nhãn kênh (kiểu "⚡ TÊN KÊNH" của video ngắn): viên thuốc tối viền màu nhãn, số cảnh màu nhãn. */
+.ngan #khung-loat { color: #ffffff; }
+.ngan #khung-loat span { background: rgba(2, 6, 23, 0.72); border-radius: 999px; box-shadow: 0 0 0 1px var(--mau-nhan); }
+.ngan #khung-loat .so { color: var(--mau-nhan); }
+/* Đồng hồ câu hỏi, dấu đúng: trên nền tối. */
+.ngan #dong-ho .nen { fill: #0f172a; stroke: #1e293b; }
+.ngan #dong-ho .so { fill: #ffffff; }
+/* Tiêu đề lớn cảnh kể chuyện giữ viền đen sẵn có; thêm quầng màu nhãn. */
+.ngan .chu.ke-tieu-de { color: #ffffff; }
+.ngan .nhan-vat-anh.nhan-vat-dan { filter: drop-shadow(0 0 14px rgba(34, 211, 238, 0.45)); }

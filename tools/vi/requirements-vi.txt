@@ -5,3 +5,6 @@
 #
 # Dựng file Word cho đề kiểm tra (tools/vi/de_thi.py)
 python-docx>=1.1.0
+
+# Giọng đọc video (edge-tts): bản < 7.3.1 bị máy chủ Microsoft từ chối (403, Sec-MS-GEC) từ 10/2026.
+edge-tts>=7.3.1
