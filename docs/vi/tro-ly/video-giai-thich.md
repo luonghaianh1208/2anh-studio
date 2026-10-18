@@ -143,7 +143,7 @@ Viết `video.md` trong `projects/_video/<tên_video>/`. File mở đầu bằng
 | `thoi-luong` | không | số giây mong muốn, số nguyên 10–600; có thì công cụ ước thời lượng và cảnh báo khi lệch quá +15% hay dưới −25% |
 | `kho` | không | `ngang` (mặc định, 16:9) hoặc `doc` (9:16 cho TikTok, Reels, Shorts) |
 | `do-phan-giai` | không | `1080` (mặc định, Full HD) hoặc `720` (dựng nhanh hơn cho máy yếu) |
-| `giong` | không | `thu-giang` (mặc định: giọng Thu Giang của VieNeu, đọc trên máy, không cần mạng), một giọng VieNeu khác trong `chon-giong.md`, hoặc `nu`, `nam`, `nu-tuoi`, `nam-tram` (edge-tts, cần mạng) |
+| `giong` | không | `thu-giang` (mặc định: giọng Thu Giang của VieNeu, đọc trên máy, không cần mạng), hoặc một giọng VieNeu khác trong `chon-giong.md`; `nu`, `nam`, `nu-tuoi`, `nam-tram` (edge-tts) chỉ là dự phòng công cụ tự dùng khi máy không có VieNeu, không chọn |
 | `toc-do` | không | `cham`, `vua` (mặc định) hoặc `nhanh` |
 | `phu-de` | không | `karaoke` (mặc định: in lên hình, tô vàng từng từ, một dòng một lúc), `hinh` (cả câu một màu), `file` (file `phu-de.srt` riêng) hoặc `khong` |
 | `am-thanh` | không | `co` (mặc định: tiếng "ting" nhỏ khi vật hiện, tiếng đóng dấu, tiếng chuyển cảnh, luôn nhỏ hơn giọng đọc) hoặc `khong` |

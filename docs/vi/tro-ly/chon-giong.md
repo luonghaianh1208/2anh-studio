@@ -1,6 +1,6 @@
 # Chọn giọng đọc cho video (`giong:`)
 
-File dành cho AI viết `video.md` (mọi phong cách: `viet-tay`, `cat-dan`, `vox`, `ngan`). **Không mặc định một giọng cho mọi video.** Đọc chủ đề, người xem và không khí của kịch bản rồi chọn giọng hợp nhất, ghi vào khối thông tin đầu (`giong: <khoá>`). Người dùng đã nói rõ giọng (nam/nữ, tên giọng, miền) thì theo người dùng.
+File dành cho AI viết `video.md` (mọi phong cách: `viet-tay`, `cat-dan`, `vox`, `ngan`). **Không mặc định một giọng cho mọi video.** Đọc chủ đề, người xem và không khí của kịch bản rồi chọn **một giọng VieNeu** hợp nhất trong bảng dưới, ghi vào khối thông tin đầu (`giong: <khoá>`). Không chọn giọng edge-tts (`nu`, `nam`, `nu-tuoi`, `nam-tram`): đó chỉ là dự phòng công cụ tự dùng. Người dùng đã nói rõ giọng (nam/nữ, tên giọng, miền) thì theo người dùng.
 
 ## Danh mục
 
@@ -33,7 +33,7 @@ Giọng VieNeu đọc trên máy, tự nhiên, không cần mạng. Máy không 
 | `duc-tri` | Đức Trí | Nam · Nam | đọc truyện |
 | `adam` | Adam | Nam · Nam | tự nhiên |
 
-Giọng edge-tts (cần mạng): `nu` (nữ, trung tính), `nam` (nam, trung tính), `nu-tuoi` (nữ, cao và nhanh hơn chút — trẻ, vui), `nam-tram` (nam, trầm và chậm hơn chút — nghiêm, sâu).
+Giọng edge-tts (`nu`, `nam`, `nu-tuoi`, `nam-tram`) chỉ là **dự phòng**: máy không có VieNeu thì công cụ tự đổi giọng VieNeu đã chọn sang giọng edge-tts cùng giới. Kịch bản không ghi các khoá này.
 
 ## Chọn theo nội dung
 
@@ -43,7 +43,7 @@ Giọng edge-tts (cần mạng): `nu` (nữ, trung tính), `nam` (nam, trung tí
 | Tin nhanh, thời sự, số liệu, thông báo của trường | giọng tin tức: `mai-anh`, `minh-duc` (Bắc), `thuy-dung`, `minh-triet` (Nam) |
 | Kể chuyện lịch sử, nhân vật, hành trình khám phá, bí ẩn khoa học | giọng kể chuyện: `thanh-binh`, `anh-khoi`, `ngoc-linh` (Bắc), `thai-son`, `thuc-doan` (Nam) |
 | Văn học, đọc thơ, tóm tắt truyện, cảm xúc nhẹ nhàng | giọng đọc truyện: `quynh-anh`, `my-duyen`, `kim-thanh`, `duc-tri` |
-| Chủ đề nghiêm túc: an toàn, sức khoẻ, cảnh báo, tài liệu | `minh-duc`, `pham-tuyen`, hoặc `nam-tram` |
+| Chủ đề nghiêm túc: an toàn, sức khoẻ, cảnh báo, tài liệu | `minh-duc`, `pham-tuyen`, `xuan-vinh` |
 | Người xem ở miền Nam hoặc miền Trung (người dùng nói rõ) | giọng cùng miền trong bảng |
 | Video có nhân vật chính là nam/nữ, hoặc người dẫn xưng "anh"/"chị"/"thầy"/"cô" | giọng cùng giới với người dẫn |
 

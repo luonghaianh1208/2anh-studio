@@ -1,5 +1,10 @@
 # Nhật ký thay đổi — Bản Việt
 
+## 6.3.2-vi.19 — 2026-10-18
+
+### Đổi
+- Giọng VieNeu là giọng chính cho video: `chon-giong.md` chỉ cho AI chọn trong 24 giọng VieNeu; giọng edge-tts (`nu`, `nam`, `nu-tuoi`, `nam-tram`) chỉ còn là dự phòng công cụ tự dùng khi máy không có VieNeu.
+
 ## 6.3.2-vi.18 — 2026-10-18
 
 Video cuốn hút hơn: AI chọn giọng hợp nội dung trong 24 giọng VieNeu và 4 giọng edge-tts (không còn mặc định một giọng), có hướng dẫn hook, nhịp, đa dạng cảnh; sửa ba lỗi hiển thị ở khổ dọc 9:16.
