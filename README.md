@@ -18,7 +18,7 @@ Nhắn cho AI một câu như *"Làm bài giảng 12 slide về phản ứng oxi
 
 > **Dành cho AI agent:** người dùng nhờ cài bộ công cụ này (hoặc chỉ dán link repo) thì làm theo [docs/vi/cai-dat-bang-ai.md](docs/vi/cai-dat-bang-ai.md), không tự nghĩ cách cài khác.
 
-Phiên bản: **6.3.2-vi.16** · [Nhật ký thay đổi](CHANGELOG-VI.md)
+Phiên bản: **6.3.2-vi.22** · [Nhật ký thay đổi](CHANGELOG-VI.md)
 
 ## Video kiểu Vox, dựng từ một câu lệnh
 
@@ -74,6 +74,11 @@ Hỏi thầy cô một lượt ngắn (môn, lớp, bộ sách, mục tiêu, đ�
 ### 🎬 Video
 
 - **Video giải thích kiểu Vox** từ một chủ đề hay đoạn nội dung, cho mọi ngành: nền giấy cắt dán riêng cho từng cảnh, ảnh AI cắt rời, thẻ số liệu, chữ hiện đúng lúc giọng đọc nói tới, phụ đề karaoke, khổ ngang hoặc dọc Full HD.
+- **Cảnh kể chuyện nhiều lớp** như sân khấu giấy: hậu cảnh trôi chậm, nhân vật chính và phụ là hình cắt rời đứng trước sau, một cành lá hay con sóng sát ống kính che góc khung.
+
+  ![Cảnh nhiều lớp: Vua Hùng kén rể, Sơn Tinh và Thủy Tinh, Thủy Tinh dâng nước](docs/vi/anh/vox-dung-canh.jpg)
+
+- **Video ngắn dọc "nhịp hình"** cho TikTok, Reels: hình đổi theo từng cụm lời, nhân vật ghép, phụ đề từ khoá, tiếng hiệu ứng.
 - **Hình cho số liệu và quy trình** trong video: cột tăng dần, chu trình khép vòng, dòng thời gian, kim tự tháp; cặp cảnh "hiểu sai → hiểu đúng" với dấu SAI, ĐÚNG; kiểu bản vẽ kỹ thuật cho Toán, Lý, Công nghệ; video ngắn từ 10 giây.
 
   ![Cột tăng dần, chu trình, dòng thời gian, kim tự tháp trong video Vox](docs/vi/anh/vox-vat-moi.jpg)
