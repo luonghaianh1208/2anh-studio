@@ -26,7 +26,7 @@ Không hỏi mà dùng mặc định:
 |---|---|
 | Thời lượng | `thoi-luong: 60` |
 | Khổ | `kho: ngang` (16:9); "dọc", "TikTok", "Reels", "Shorts" thì `kho: doc` |
-| Giọng | giọng Thu Giang của VieNeu, tốc độ vừa (`giong: thu-giang`, mặc định, không cần ghi); máy không có VieNeu thì công cụ tự dùng giọng nữ edge-tts và báo trong `warnings` |
+| Giọng | chọn theo nội dung như `docs/vi/tro-ly/chon-giong.md` (không ghi thì mặc định Thu Giang của VieNeu, tốc độ vừa); máy không có VieNeu thì công cụ tự dùng giọng edge-tts cùng giới và báo trong `warnings` |
 | Phụ đề | `karaoke` (in lên hình, tô vàng từng từ) |
 | Tiếng hiệu ứng | có (`am-thanh: co`) |
 | Nhạc nền | không; chỉ thêm khi câu lệnh xin |
@@ -143,7 +143,7 @@ Viết `video.md` trong `projects/_video/<tên_video>/`. File mở đầu bằng
 | `thoi-luong` | không | số giây mong muốn, số nguyên 10–600; có thì công cụ ước thời lượng và cảnh báo khi lệch quá +15% hay dưới −25% |
 | `kho` | không | `ngang` (mặc định, 16:9) hoặc `doc` (9:16 cho TikTok, Reels, Shorts) |
 | `do-phan-giai` | không | `1080` (mặc định, Full HD) hoặc `720` (dựng nhanh hơn cho máy yếu) |
-| `giong` | không | `thu-giang` (mặc định: giọng Thu Giang của VieNeu, đọc trên máy, không cần mạng), `nu` hoặc `nam` (edge-tts, cần mạng) |
+| `giong` | không | `thu-giang` (mặc định: giọng Thu Giang của VieNeu, đọc trên máy, không cần mạng), một giọng VieNeu khác trong `chon-giong.md`, hoặc `nu`, `nam`, `nu-tuoi`, `nam-tram` (edge-tts, cần mạng) |
 | `toc-do` | không | `cham`, `vua` (mặc định) hoặc `nhanh` |
 | `phu-de` | không | `karaoke` (mặc định: in lên hình, tô vàng từng từ, một dòng một lúc), `hinh` (cả câu một màu), `file` (file `phu-de.srt` riêng) hoặc `khong` |
 | `am-thanh` | không | `co` (mặc định: tiếng "ting" nhỏ khi vật hiện, tiếng đóng dấu, tiếng chuyển cảnh, luôn nhỏ hơn giọng đọc) hoặc `khong` |

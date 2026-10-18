@@ -167,6 +167,16 @@ test('kho doc: tam la (360, 540), khung nhin luon nam trong [0,720]x[0,1280]', f
   K.dat(NGANG);
 });
 
+test('kho doc: may quay day nhe toi da ZMAX_DOC, kho ngang van toi ZMAX', function () {
+  var hop = { a: { x: 320, y: 520, w: 60, h: 30 } };
+  K.dat(DOC);
+  var zDoc = Q.tinh([muc('a', 1, 3)], hop, 3, 10, {}).z;
+  assert.ok(gan(zDoc, Q.ZMAX_DOC) && Q.ZMAX_DOC <= 1.15, String(zDoc));
+  K.dat(NGANG);
+  var zNgang = Q.tinh([muc('a', 1, 3)], { a: { x: 600, y: 290, w: 60, h: 30 } }, 3, 10, {}).z;
+  assert.ok(gan(zNgang, Q.ZMAX), String(zNgang));
+});
+
 test('ban tay: cho nghi va gie lau bang theo kho', function () {
   K.dat(NGANG);
   assert.deepStrictEqual(T.NGHI, { x: 1220, y: 760 });

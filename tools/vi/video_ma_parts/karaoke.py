@@ -48,8 +48,8 @@ _STYLE_KHUNG_NEN = ("Style: KhungNen,Itim,40,&H66000000,&H66000000,&H00000000,&H
 
 
 def _style_khung_chu(font: str) -> str:
-    """Kiểu chữ trong khung nền: chữ trắng (Primary), từ đang đọc tô vàng (Secondary, `\\kf` sáng dần từ
-    Secondary sang Primary); không viền/bóng riêng vì độ tương phản đã có từ hộp nền."""
+    """Kiểu chữ trong khung nền: chữ trắng (Primary), chỉ từ đang đọc sáng vàng (`_chu_tu_dang_doc`); không
+    viền/bóng riêng vì độ tương phản đã có từ hộp nền."""
     return f"Style: Khung,{font},40,&H00FFFFFF,&H0000D7FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1"
 
 
@@ -308,6 +308,23 @@ def _dialogue_tu_nhom(nhom_dong: list, tokens: list, texts: list, moc: list, bat
     return _dialogue(bat_dau_canh, g_start, g_end, style) + "".join(parts)
 
 
+MAU_TRANG = "&HFFFFFF&"
+MAU_DANG_DOC = "&H00D7FF&"   # vàng (BGR)
+
+
+def _chu_tu_dang_doc(kf: list, cac_tu: list, lech_cs: int = 0) -> str:
+    """Khung nền (video ngắn): chỉ từ ĐANG đọc sáng vàng trọn chữ, từ đã đọc và chưa đọc đều trắng — không tô chạy
+    giữa chữ như `\\kf` (người xem tưởng lỗi). Mỗi từ đổi màu bằng hai `\\t` tức thời, mốc mili-giây tính từ đầu sự
+    kiện; `lech_cs` là khoảng từ đầu sự kiện tới từ đầu dòng (dòng thứ hai của nhóm)."""
+    ra, t = [], lech_cs
+    for i, (cs, chu) in enumerate(zip(kf, cac_tu)):
+        a, b = t * 10, (t + cs) * 10
+        t += cs
+        ra.append(f"{{\\1c{MAU_TRANG}\\t({a},{a + 1},\\1c{MAU_DANG_DOC})\\t({b},{b + 1},\\1c{MAU_TRANG})}}{chu}"
+                  + (" " if i < len(cac_tu) - 1 else ""))
+    return "".join(ra)
+
+
 def _dialogues_khung_tu_nhom(nhom_dong: list, tokens: list, texts: list, moc: list, bat_dau_canh: float,
                               rong: int, cao: int) -> list:
     """Khung nền: mỗi dòng vật lý trong `nhom_dong` (1-2 dòng) ra 2 sự kiện cùng Start/End — hộp nền (Layer 0,
@@ -330,8 +347,7 @@ def _dialogues_khung_tu_nhom(nhom_dong: list, tokens: list, texts: list, moc: li
         ket.append(_dialogue(bat_dau_canh, g_start, g_end, "KhungNen", layer=0)
                    + f"{{\\an7\\pos({x0_hop:.0f},{y0_hop:.0f})\\p1}}{duong}{{\\p0}}")
         x0_chu, y0_chu = x0_hop + KHUNG_DEM_NGANG, y0_hop + KHUNG_DEM_DOC_CHU
-        chu = "".join(f"{{\\kf{kf[i]}}}{texts[idx]}" + (" " if i < len(dong_k) - 1 else "")
-                      for i, idx in enumerate(dong_k))
+        chu = _chu_tu_dang_doc(kf, [texts[idx] for idx in dong_k], max(round((moc[dong_k[0]] - g_start) * 100), 0))
         ket.append(_dialogue(bat_dau_canh, g_start, g_end, "Khung", layer=1)
                    + f"{{\\an7\\pos({x0_chu:.0f},{y0_chu:.0f})}}{chu}")
     return ket

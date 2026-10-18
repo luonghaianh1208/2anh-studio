@@ -17,14 +17,20 @@ from video_parts import media
 from .lich import GiongInfo, tach_cau
 from .lich import khoa_so_khop as _chuan_hoa
 
-VOICES = {"nu": "vi-VN-HoaiMyNeural", "nam": "vi-VN-NamMinhNeural"}
+VOICES = {"nu": "vi-VN-HoaiMyNeural", "nam": "vi-VN-NamMinhNeural",
+          "nu-tuoi": "vi-VN-HoaiMyNeural", "nam-tram": "vi-VN-NamMinhNeural"}
 RATES = {"cham": "-10%", "vua": "+0%", "nhanh": "+15%"}
+# Sắc giọng edge-tts từ hai giọng gốc: (cao độ, cộng thêm vào tốc độ %). `nu-tuoi` cao và nhanh hơn chút (video ngắn, vui);
+# `nam-tram` trầm và chậm hơn chút (tài liệu, chuyện nghiêm túc).
+SAC_EDGE = {"nu": ("+0Hz", 0), "nam": ("+0Hz", 0), "nu-tuoi": ("+8Hz", 6), "nam-tram": ("-6Hz", -4)}
 FIX_GIONG = "Có mạng rồi chạy lại, hoặc đặt sẵn file giọng giong/canh-<số>.mp3 cho từng cảnh."
 FIX_EDGE = "Cài edge-tts bằng: python -m pip install -r requirements.txt (ở thư mục gốc repo)."
 FIX_FILE = "Xoá hoặc thay file giọng đó rồi chạy lại."
 # Giọng VieNeu (đọc trên máy, không cần mạng): khoá `giong` -> tên giọng trong VieNeu. Python của môi trường VieNeu
 # lấy từ biến môi trường VIENEU_PYTHON, không đặt thì thử đường dẫn mặc định.
-VIENEU_GIONG = {"thu-giang": "Thu Giang"}
+from .giong_ds import VIENEU  # noqa: E402
+
+VIENEU_GIONG = {k: v[0] for k, v in VIENEU.items()}
 VIENEU_PYTHON_MAC_DINH = r"E:\vieneu-tts\Scripts\python.exe"
 VIENEU_TEMPO = {"cham": 0.92, "vua": 1.0, "nhanh": 1.1}
 VIENEU_NGHI = 0.22   # giây nghỉ giữa hai câu trong một cảnh
@@ -34,6 +40,22 @@ FIX_VIENEU = ("Kiểm tra VieNeu chạy được (biến môi trường VIENEU_P
 _MARKUP_RE = re.compile(r"\*\*|~|\^|==|\(\(|\)\)|__|\{\{|\}\}")
 _TOI_DA_SU_KIEN = 6
 _TOI_DA_TU = 3
+
+
+def giong_du_phong(giong: str) -> str:
+    """Giọng edge-tts thay cho giọng VieNeu `giong` khi máy không có VieNeu: cùng giới, sắc giọng gần nhất
+    (chất kể chuyện/đọc truyện của giọng nam → `nam-tram`, giọng nữ tự nhiên/MC → `nu-tuoi`)."""
+    _ten, gioi, _vung, chat = VIENEU[giong]
+    if gioi == "nam":
+        return "nam-tram" if chat in ("kể chuyện", "đọc truyện") else "nam"
+    return "nu-tuoi" if chat in ("tự nhiên", "MC dẫn chương trình") else "nu"
+
+
+def voice_rate(giong: str, toc_do: str) -> tuple:
+    """(giọng edge-tts, tốc độ, cao độ) của khoá `giong` edge-tts ở tốc độ `toc_do`."""
+    pitch, them = SAC_EDGE[giong]
+    rate = int(RATES[toc_do].rstrip("%")) + them
+    return VOICES[giong], f"{rate:+d}%", pitch
 
 
 def bam(loi: str, voice: str, rate: str) -> str:
@@ -139,9 +161,10 @@ def _moc_cau_theo_tu(text: str, tu: list) -> list:
 async def _tong_hop(text: str, voice: str, rate: str, out_path: Path) -> dict:
     import edge_tts
 
+    voice, _, pitch = voice.partition("|")
     tu: list = []
     with open(out_path, "wb") as f:
-        communicate = edge_tts.Communicate(text, voice, rate=rate, boundary="WordBoundary")
+        communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch or "+0Hz", boundary="WordBoundary")
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 f.write(chunk["data"])
@@ -315,7 +338,9 @@ def lay_giong(so: int, loi: str, thu_muc: Path, giong: str, toc_do: str,
         if tong_hop is tong_hop_edge:
             tong_hop = tong_hop_vieneu
     else:
-        voice, rate = VOICES[giong], RATES[toc_do]
+        voice, rate, pitch = voice_rate(giong, toc_do)
+        if pitch != "+0Hz":
+            voice = f"{voice}|{pitch}"
     doc = _MARKUP_RE.sub("", loi)
     ma_bam = bam(doc, voice, rate)
     if mp3.is_file():

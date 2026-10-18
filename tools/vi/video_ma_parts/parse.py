@@ -10,12 +10,16 @@ from . import vox
 from .vox import VOX_META_CHOICES
 
 META_REQUIRED = ("tieu-de", "mon", "lop")
+from .giong_ds import VIENEU as _VIENEU  # noqa: E402
+
+_GIONG_VIENEU = tuple(_VIENEU)
 META_CHOICES = {
     # Phong cách: viết tay trên bảng, cắt dán giấy kiểu Vox (runtime/cat-dan.css, cat-dan.js), Vox (nhịp), hoặc
     # video ngắn mạng xã hội `ngan` (khung của cat-dan, da neon tối runtime/ngan.css; mặc định khổ dọc).
     "phong-cach": ("viet-tay", "cat-dan", "vox", "ngan"),
-    # `thu-giang`: giọng "Thu Giang" của VieNeu (giong.py); máy không có VieNeu thì video_ma lùi về `nu`.
-    "giong": ("nu", "nam", "thu-giang"),
+    # Giọng: edge-tts `nu`, `nam`, `nu-tuoi`, `nam-tram` (giong.SAC_EDGE) hoặc một giọng VieNeu (giong.VIENEU, đọc trên máy);
+    # máy không có VieNeu thì video_ma lùi về giọng edge-tts cùng giới (giong.giong_du_phong).
+    "giong": ("nu", "nam", "nu-tuoi", "nam-tram", *_GIONG_VIENEU),
     "toc-do": ("cham", "vua", "nhanh"),
     "phu-de": ("hinh", "file", "khong", "karaoke"),
     "ban-tay": ("co", "khong"),

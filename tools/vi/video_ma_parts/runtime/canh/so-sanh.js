@@ -15,7 +15,8 @@
       var cao = chong ? 50 : 70, dau = chong ? 60 : 95, buoc = chong ? (a.h - 60) / 4 : 84, co = chong ? 26 : 28;
       if (chong) {
         var yGiua = (a.y + a.h + b.y) / 2;
-        kq.push(B.net('giua', V.duongQua([[a.x, yGiua], [a.x + a.w, yGiua]], 9), 0.3, 0.6, {}));
+        // Lùi 40 hai đầu: máy quay đẩy nhẹ ở khổ dọc thì vạch vẫn không chạm mép khung.
+        kq.push(B.net('giua', V.duongQua([[a.x + 40, yGiua], [a.x + a.w - 40, yGiua]], 9), 0.3, 0.6, {}));
       } else {
         var xGiua = (a.x + a.w + b.x) / 2;
         kq.push(B.net('giua', V.duongQua([[xGiua, a.y], [xGiua, a.y + a.h]], 9), 0.3, 0.6, {}));

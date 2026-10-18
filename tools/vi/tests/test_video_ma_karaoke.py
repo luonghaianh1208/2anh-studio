@@ -15,6 +15,7 @@ from video_ma_parts import ghep, karaoke, lich  # noqa: E402
 from video_ma_parts.phong import FONT as ITIM_FONT, FONT_CAT_DAN  # noqa: E402
 from video_parts import srt  # noqa: E402
 
+_T_RE = re.compile(r"\\t\((\d+),\d+,")
 _KF_RE = re.compile(r"\\kf(\d+)")
 _KF_TAG_RE = re.compile(r"\{\\kf\d+\}")
 # Dialogue: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
@@ -566,10 +567,24 @@ class KhoDocTest(unittest.TestCase):
         for d in dialogues:
             match = _DIALOGUE_RE.match(d)
             khoang = (match.group(1), match.group(2))
-            theo_phan.setdefault(khoang, []).append(sum(int(n) for n in _KF_RE.findall(match.group(3))))
-        for (start_nhan, end_nhan), kf_list in theo_phan.items():
+            # Khung nền: mỗi từ sáng vàng ở `\t(a,…)` rồi trắng lại ở `\t(b,…)` (ms từ đầu sự kiện); từ cuối của
+            # dòng cuối tắt đúng lúc phần kết thúc, các mốc không giảm.
+            moc = [int(n) for n in _T_RE.findall(match.group(3))]
+            self.assertEqual(moc, sorted(moc))
+            theo_phan.setdefault(khoang, []).append(moc[-1] if moc else 0)
+        for (start_nhan, end_nhan), cuoi in theo_phan.items():
             start, end = _thoi_gian_giay(start_nhan), _thoi_gian_giay(end_nhan)
-            self.assertLessEqual(abs(sum(kf_list) - round((end - start) * 100)), len(kf_list))
+            self.assertLessEqual(abs(max(cuoi) / 10 - round((end - start) * 100)), len(cuoi))
+
+    def test_khung_nen_chi_to_tu_dang_doc(self):
+        cl, _ = self._canh_dai()
+        text = karaoke.tao_ass([cl], chu_de="ngan", kho_ten="doc")
+        for d in _dialogues_chu(text):
+            noi_dung = _DIALOGUE_RE.match(d).group(3)
+            self.assertNotIn("\\kf", noi_dung)
+            so_tu = len(re.findall(r"\}[^{\s]+", noi_dung))
+            self.assertEqual(noi_dung.count("\\1c&H00D7FF&"), so_tu)
+            self.assertEqual(noi_dung.count("\\t("), 2 * so_tu)
 
     def test_long_sentence_in_doc_mode_warns_with_scene_number_and_part_count(self):
         cl, _ = self._canh_dai(so=7)

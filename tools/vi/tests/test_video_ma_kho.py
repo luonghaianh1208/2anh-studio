@@ -124,6 +124,7 @@ SO_LON_DUOC_PHEP = {
     ("so-do.js", 330): "bề rộng ô nhánh (kích thước; vị trí tính từ ô so-do)",
     ("khai-niem.js", 460): "độ dài nét gạch dưới thuật ngữ khi có cột phụ (kích thước)",
     ("khai-niem.js", 600): "độ dài nét gạch dưới thuật ngữ (kích thước)",
+    ("khai-niem.js", 360): "chiều cao tối thiểu của khung ôm định nghĩa ở khổ dọc (kích thước)",
     ("tieu-de.js", 600): "độ dài nét gạch dưới tiêu đề, đặt giữa ô bia (kích thước)",
     ("tieu-de.js", 300): "khổ dọc: chiều cao ô tiêu đề dưới hình (kích thước)",
     ("cong-thuc.js", 300): "khổ dọc: chiều cao khung biểu thức (kích thước)",

@@ -1,5 +1,22 @@
 # Nhật ký thay đổi — Bản Việt
 
+## 6.3.2-vi.18 — 2026-10-18
+
+Video cuốn hút hơn: AI chọn giọng hợp nội dung trong 24 giọng VieNeu và 4 giọng edge-tts (không còn mặc định một giọng), có hướng dẫn hook, nhịp, đa dạng cảnh; sửa ba lỗi hiển thị ở khổ dọc 9:16.
+
+### Thêm
+- Mọi giọng VieNeu dùng được trong `giong:` (`thu-giang`, `ngoc-huyen`, `truc-ly`, `doan-trang`, `ngoc-linh`, `mai-anh`, `quynh-anh`, `ngoc-tran`, `thuc-doan`, `thuy-dung`, `my-duyen`, `kim-thanh`, `pham-tuyen`, `xuan-vinh`, `manh-dung`, `minh-quan`, `minh-duc`, `thanh-binh`, `anh-khoi`, `quang-son`, `thai-son`, `minh-triet`, `duc-tri`, `adam`), danh mục ở `tools/vi/video_ma_parts/giong_ds.py` kèm giới, miền, chất giọng (tự nhiên, tin tức, kể chuyện, đọc truyện, MC).
+- Hai sắc giọng edge-tts: `nu-tuoi` (cao và nhanh hơn chút) và `nam-tram` (trầm và chậm hơn chút).
+- Máy không có VieNeu: tự lùi về giọng edge-tts cùng giới và gần chất giọng (giọng nam kể chuyện → `nam-tram`, giọng nữ tự nhiên/MC → `nu-tuoi`), báo trong `warnings`.
+- Hướng dẫn cho AI `docs/vi/tro-ly/chon-giong.md` (chọn giọng theo nội dung, người xem, miền; một loạt video giữ một giọng) và `docs/vi/tro-ly/video-hap-dan.md` (sáu kiểu hook 3 giây đầu, không có hai cảnh liền nhau cùng loại, mỗi cảnh có hình để nhìn, điểm đổi nhịp 5–8 giây, lời văn nói, kết có kêu gọi, bảng tự kiểm). `video-ngan.md`, `video-viet-tay.md`, `video-giai-thich.md` trỏ tới hai file này.
+
+### Sửa (khổ dọc 9:16)
+- Máy quay phóng tối đa 1,12 thay vì 1,35 ở khổ dọc: trước đây cắt mất gần 190 px hai bên, nét chia và khung tràn mép.
+- Phụ đề khung nền (cắt dán, Vox, video ngắn, mọi khổ dọc): chỉ từ đang đọc sáng vàng trọn chữ, thay cho kiểu `\kf` tô chạy giữa chữ (nhìn như lỗi). Phụ đề viết tay khổ ngang giữ nguyên.
+- Cảnh `khai-niem` khổ dọc không cột phụ: khung ôm theo độ dài định nghĩa (cao ít nhất 360) và nằm giữa ô thay vì cao cố định 720 để trống nửa khung; định nghĩa cỡ 36 thay cho 32.
+- Vạch chia của cảnh `so-sanh` khổ dọc lùi 40 px hai đầu, không chạm mép khi máy quay đẩy nhẹ.
+- Hướng dẫn: cụm khoanh `((…))` chỉ 1–2 từ ngắn để vòng khoanh không vắt qua hai dòng.
+
 ## 6.3.2-vi.17 — 2026-10-18
 
 Video ngắn mạng xã hội: phong cách mới `ngan`, gộp cách làm của ba mẫu video ngắn tiếng Việt (giải thích kiến thức hook → vấn đề → giải pháp → kêu gọi; so sánh hai khái niệm dễ nhầm; tin nhanh từ một bài báo). Viết lại trên bộ dựng sẵn có, không thêm Remotion hay HyperFrames.

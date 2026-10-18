@@ -5,6 +5,9 @@
   // Kết quả {z, tx, ty}: điểm (x, y) của lớp bảng hiện ở (z*x + tx, z*y + ty).
   // Rộng, cao, đáy vùng nội dung (mép trên phụ đề) và tâm lấy từ khổ hiện tại (kho.js), đọc lúc tính.
   var ZMAX = 1.35;
+  // Khổ dọc chỉ rộng 720: phóng 1,35 cắt mất gần 190 px hai bên (nét chia, khung, nhãn tràn mép). Đẩy nhẹ tối đa 1,12
+  // để ô nội dung rộng 624 vẫn gần trọn khung.
+  var ZMAX_DOC = 1.12;
   var CHUYEN = 0.6;
   var THU = 1.2;
   var XONG = 0.2;
@@ -41,6 +44,7 @@
   }
 
   function kho() { return root.THI_KHO.lay(); }
+  function zMax() { return kho().ten === 'doc' ? ZMAX_DOC : ZMAX; }
 
   // Z nhỏ nhất để hộp có đáy <= DAY mà lớp bảng vẫn phủ kín khung: z >= (CAO - DAY) / (CAO - đáy).
   // Khổ ngang (DAY 620, CAO 720): chỉ làm được khi đáy <= 720 - 100 / 1,35 ≈ 646; hộp thấp hơn thì z kẹp ở
@@ -48,7 +52,7 @@
   function zToiThieu(h) {
     var k = kho();
     var day = h.y + h.h;
-    return day > k.day ? Math.min(ZMAX, (k.cao - k.day) / (k.cao - day)) : 1;
+    return day > k.day ? Math.min(zMax(), (k.cao - k.day) / (k.cao - day)) : 1;
   }
 
   function kepKhoang(v, lo, hi, phuLo, phuHi) {
@@ -69,7 +73,7 @@
   // Z = 1 luôn vừa vì bố cục đặt chúng trong khung sẵn (hộp sát mép hơn LE_GIU thì lớp bảng đứng yên ở Z = 1).
   function kepHop(s, h, giu) {
     var k = kho();
-    var z = kep(Math.max(s.z, zToiThieu(h)), 1, ZMAX);
+    var z = kep(Math.max(s.z, zToiThieu(h)), 1, zMax());
     var tren = 0;
     var le = 0;
     if (giu && giu.hop) {
@@ -89,7 +93,7 @@
   // Ngưỡng cao khi ngắm mục tiêu: đáy vùng nội dung trừ 60 px lề trên (khổ ngang: 620 − 60 = 560, như cũ).
   function ngam(h, giu) {
     var k = kho();
-    var z = kep(Math.min(0.6 * k.rong / h.w, 0.6 * (k.day - 60) / h.h), 1, ZMAX);
+    var z = kep(Math.min(0.6 * k.rong / h.w, 0.6 * (k.day - 60) / h.h), 1, zMax());
     return kepHop({ z: z, tx: k.tamX - z * (h.x + h.w / 2), ty: k.tamY - z * (h.y + h.h / 2) }, h, giu);
   }
 
@@ -135,5 +139,5 @@
     return m ? m.id : null;
   }
 
-  root.THI_MAY_QUAY = { ZMAX: ZMAX, tinh: tinh, mucTieu: mucTieu, kepHop: kepHop };
+  root.THI_MAY_QUAY = { ZMAX: ZMAX, ZMAX_DOC: ZMAX_DOC, tinh: tinh, mucTieu: mucTieu, kepHop: kepHop };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -271,9 +271,11 @@ def _dung(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> dict:
             giong.tao_truoc_vieneu([(f"canh-{c.so}", c.loi) for c in video.canh], thu_muc / "giong",
                                    video.meta["giong"], video.meta["toc-do"])
         else:
-            meta_giong = {**video.meta, "giong": "nu"}
-            warnings.append("Máy không có VieNeu nên không dùng được giọng Thu Giang; đã dùng giọng nữ edge-tts. "
-                            "Đặt biến môi trường VIENEU_PYTHON trỏ tới python của VieNeu để dùng giọng Thu Giang.")
+            thay = giong.giong_du_phong(video.meta["giong"])
+            ten = giong.VIENEU_GIONG[video.meta["giong"]]
+            meta_giong = {**video.meta, "giong": thay}
+            warnings.append(f"Máy không có VieNeu nên không dùng được giọng {ten}; đã dùng giọng edge-tts `{thay}`. "
+                            f"Đặt biến môi trường VIENEU_PYTHON trỏ tới python của VieNeu để dùng giọng {ten}.")
     cac_giong = [_lay_giong(c, thu_muc / "giong", meta_giong) for c in video.canh]
     cac_lich, canh_bao = lich.dung_lich(video.canh, cac_giong)
     warnings.extend(canh_bao)

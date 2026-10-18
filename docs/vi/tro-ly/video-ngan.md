@@ -1,6 +1,6 @@
 # Video ngắn mạng xã hội (`phong-cach: ngan`)
 
-File dành cho AI viết `video.md`. Đọc cùng `docs/vi/tham-khao/video-viet-tay.md` (khối thông tin đầu, giọng, phụ đề) và `docs/vi/tham-khao/canh-video.md` (danh mục loại cảnh, trường, giới hạn chữ, nhấn ý). Phong cách `ngan` dùng đúng các loại cảnh, trường và giới hạn của `cat-dan`; chỉ khác "da": nền neon tối có lưới và quầng sáng, nhãn tiêu đề trên dải màu neon (cyan, hồng, vàng chanh, tím theo số cảnh), thẻ thông tin kiểu kính tối viền sáng, chữ trắng phát sáng. Không ghi `kho` thì khổ dọc 9:16 (TikTok, Reels, Shorts); không ghi `chuyen-canh` thì trượt nhanh; không có bàn tay.
+File dành cho AI viết `video.md`. Đọc cùng `docs/vi/tro-ly/video-hap-dan.md` (hook, nhịp, đa dạng cảnh), `docs/vi/tro-ly/chon-giong.md` (chọn giọng theo nội dung), `docs/vi/tham-khao/video-viet-tay.md` (khối thông tin đầu, giọng, phụ đề) và `docs/vi/tham-khao/canh-video.md` (danh mục loại cảnh, trường, giới hạn chữ, nhấn ý). Phong cách `ngan` dùng đúng các loại cảnh, trường và giới hạn của `cat-dan`; chỉ khác "da": nền neon tối có lưới và quầng sáng, nhãn tiêu đề trên dải màu neon (cyan, hồng, vàng chanh, tím theo số cảnh), thẻ thông tin kiểu kính tối viền sáng, chữ trắng phát sáng. Không ghi `kho` thì khổ dọc 9:16 (TikTok, Reels, Shorts); không ghi `chuyen-canh` thì trượt nhanh; không có bàn tay.
 
 Ba công thức dưới đây gộp cách làm của ba mẫu video ngắn tiếng Việt hay được dùng: giải thích kiến thức (hook → vấn đề → giải pháp → kêu gọi), so sánh hai khái niệm dễ nhầm, và tin nhanh từ một bài báo.
 
@@ -14,18 +14,19 @@ lop: <lớp, hoặc "Mọi người">
 phong-cach: ngan
 loat: <tên kênh hoặc tên loạt, tối đa 30 ký tự — hiện ở góc trái trên như nhãn kênh>
 toc-do: nhanh
-giong: nu
+giong: <khoá giọng chọn theo chon-giong.md>
 ---
 ```
 
 - `loat` là nhãn kênh (ví dụ `2ANH AI · HOÁ 11`); người dùng không nói tên kênh thì để tên chủ đề ngắn.
 - `toc-do: nhanh` hợp video ngắn; thầy cô muốn đọc chậm cho học sinh nhỏ thì `vua`.
-- `giong`: `nu`, `nam` hoặc `thu-giang` (giọng VieNeu, máy không có thì lùi về `nu`).
+- `giong`: chọn theo nội dung và người xem như `chon-giong.md` — không mặc định một giọng. Ví dụ: mẹo học → `ngoc-huyen`/`thu-giang`; tin nhanh → `mai-anh`/`minh-duc`; chuyện bí ẩn → `thanh-binh`.
 
 ## Nhịp chung
 
 - Tổng 30–60 giây, 4–7 cảnh. Mỗi cảnh 1–3 câu lời, mỗi câu tối đa khoảng 14 từ: phụ đề hiện từng dòng ngắn, câu dài bị tách và đọc vội.
 - Cảnh 1 là **hook**: câu hỏi gây tò mò hoặc một sự thật bất ngờ, lời đọc xong trong khoảng 3 giây đầu.
+- Không có hai cảnh liền nhau cùng `loai`; mỗi cảnh có biểu tượng `hinh`, thẻ số `the` hoặc sơ đồ để nhìn (xem `video-hap-dan.md`).
 - Mỗi cảnh nhấn **một** ý bằng `==…==` hoặc `((…))`; con số cần nhớ viết `{{số}}`.
 - Cảnh cuối luôn là **kêu gọi**: `loai: tieu-de`, `chu` kiểu "Theo dõi để học tiếp", `phu` nói kênh học gì; lời mời theo dõi, thả tim, lưu video.
 - Không chèn địa chỉ web vào bất kỳ trường nào; nguồn ghi ở `tai-lieu` (tên báo, ngày).
@@ -82,13 +83,14 @@ lop: 11
 phong-cach: ngan
 loat: 2ANH AI · HOÁ 11
 toc-do: nhanh
-giong: nu
+giong: ngoc-huyen
 ---
 
 ## Cảnh 1
 loai: tieu-de
 chu: Axit hay ((bazơ))?
 phu: Phân biệt trong 30 giây
+hinh: flask
 loi: Chanh chua, xà phòng trơn. Một bên là axit, một bên là bazơ. Phân biệt thế nào cho đúng?
 
 ## Cảnh 2

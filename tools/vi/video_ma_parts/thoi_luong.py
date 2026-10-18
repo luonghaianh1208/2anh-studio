@@ -6,9 +6,11 @@ import re
 
 # Từ/giây của giọng edge-tts tiếng Việt; đo trên video 9 cảnh, 288 từ (105 giây tiếng) ở tốc độ vừa.
 TOC_DO = {"cham": 2.4, "vua": 2.7, "nhanh": 3.1}
-# Giọng VieNeu (`giong: thu-giang`) đọc nhanh hơn; số đo ở docs/vi/phat-trien/2026-10-01-video-vox-kiem-thu.md.
+from .giong_ds import VIENEU
+
+# Giọng VieNeu (`giong: thu-giang`, …) đọc nhanh hơn; số đo ở docs/vi/phat-trien/2026-10-01-video-vox-kiem-thu.md.
 TOC_DO_VIENEU = {"cham": 4.0, "vua": 4.3, "nhanh": 4.7}
-GIONG_VIENEU = ("thu-giang",)
+GIONG_VIENEU = tuple(VIENEU)  # mọi giọng VieNeu (giong_ds.py) — số đo lấy trên Thu Giang
 # Đoạn dẫn đầu (lich.DAN_DAU 1,0 s) và đuôi mỗi cảnh, trung bình đo được.
 MOI_CANH = 1.1
 # Cảnh Vox: dẫn đầu 0,25 s và đuôi 0,3 s (lich.VOX_DAN_DAU, VOX_DUOI).
