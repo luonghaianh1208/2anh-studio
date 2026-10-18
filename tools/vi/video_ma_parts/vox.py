@@ -45,7 +45,13 @@ BO_CUC = {
     "dan-hang": {"ngang": ("1", "2", "3", "4"), "doc": ("1", "2", "3", "4")},
     "chong": {"ngang": (), "doc": ()},
     "toan-canh": {"ngang": ("nen", "giua", "duoi"), "doc": ("nen", "giua", "duoi")},
+    # Dựng cảnh nhiều lớp (kiểu giấy cắt có chiều sâu): mỗi ảnh một vai, chữ ở `tren`/`giua`.
+    "dung-canh": {"ngang": ("hau-canh", "chinh", "phu", "phu-2", "tien-canh", "tren", "giua"),
+                  "doc": ("hau-canh", "chinh", "phu", "phu-2", "tien-canh", "tren", "giua")},
 }
+# Ô ảnh của `dung-canh` theo vai, xếp từ xa tới gần; ô chữ của nó.
+VAI_DUNG_CANH = ("hau-canh", "phu-2", "phu", "chinh", "tien-canh")
+O_CHU_DUNG_CANH = ("tren", "giua")
 # vật -> giới hạn ký tự hiện (None: không đếm)
 VAT = {"anh": None, "the": None, "chu": 40, "nhan": 30, "dau": 16, "mui-ten": None, "so": 24,
        "cot": None, "chu-trinh": None, "moc": None, "thap": None}
@@ -234,6 +240,18 @@ def kiem_canh(scene, kho: str) -> None:
                                        f"ô đúng: {', '.join(o_hop_le)}.")
         if "dung" in n.tuy_chon and n.vat != "dau":
             raise _loi(n.dong, "Tuỳ chọn `dung` (dấu xanh) chỉ dùng cho `dau`.")
+        if bo_cuc == "dung-canh":
+            if n.o is None and n.vat != "mui-ten":
+                raise _loi(n.dong, "Bố cục `dung-canh` cần ghi rõ ô của từng nhịp: ảnh ở `hau-canh`, `chinh`, `phu`, "
+                                   "`phu-2`, `tien-canh`; chữ ở `tren` hoặc `giua`.")
+            if n.vat == "mui-ten":
+                raise _loi(n.dong, "Bố cục `dung-canh` không dùng `mui-ten`.")
+            if n.vat == "anh" and n.o not in VAI_DUNG_CANH:
+                raise _loi(n.dong, f"Ảnh của `dung-canh` đặt ở một vai: {', '.join(VAI_DUNG_CANH)}.")
+            if n.vat != "anh" and n.o not in O_CHU_DUNG_CANH:
+                raise _loi(n.dong, f"`{n.vat}` của `dung-canh` đặt ở `tren` hoặc `giua`; các ô vai chỉ dành cho ảnh.")
+            if n.vat == "anh" and n.o != "hau-canh" and "khung" in n.tuy_chon:
+                raise _loi(n.dong, "Nhân vật và tiền cảnh của `dung-canh` là ảnh cắt rời, không dùng `khung`.")
         if n.vat in DANH_SACH and bo_cuc == "chong":
             raise _loi(n.dong, f"`{n.vat}` cần một ô rộng; dùng bố cục `mot`, `hai-ben` hoặc `toan-canh`, không dùng `chong`.")
         if n.vat == "chu":
@@ -251,6 +269,14 @@ def kiem_canh(scene, kho: str) -> None:
             raise _loi(n.dong, f"Cụm \"{n.cum}\" không có trong lời của Cảnh {scene.so}: \"{scene.loi}\". "
                                "Chép đúng vài từ liền nhau trong lời.")
         vi_tri = i + len(khoa_tu(n.cum))
+    if bo_cuc == "dung-canh":
+        vai = [n.o for n in scene.nhip if n.vat == "anh"]
+        trung = sorted({o for o in vai if vai.count(o) > 1})
+        if trung:
+            n0 = next(n for n in scene.nhip if n.vat == "anh" and n.o == trung[0])
+            raise _loi(n0.dong, f"Vai `{trung[0]}` của `dung-canh` chỉ có một ảnh; thêm người thì dùng `phu-2`.")
+        if "chinh" not in vai and "hau-canh" not in vai:
+            raise _loi(scene.dong_truong["bo-cuc"][0], "Cảnh `dung-canh` cần ít nhất ảnh `hau-canh` hoặc nhân vật `chinh`.")
     if bo_cuc == "chong" and len(scene.nhip) > CHONG_TOI_DA:
         raise _loi(scene.nhip[CHONG_TOI_DA].dong, f"Bố cục `chong` tối đa {CHONG_TOI_DA} vật.")
 

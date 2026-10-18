@@ -94,8 +94,20 @@ Lời:
 | Danh sách, các bước, ba điều cần nhớ | `dan-hang` | ô `1`–`4` theo thứ tự lời, mỗi ô một thẻ hay một ảnh |
 | Nhiều thứ rối rắm cùng lúc | `chong` | không ghi ô, tối đa 5 vật tự xếp lệch nhau |
 | Nơi chốn, bối cảnh, một khoảnh khắc | `toan-canh` | ảnh phủ kín ở `nen`, chữ đè ở `giua` hoặc `duoi` |
+| Một cảnh có người đang làm gì đó: truyện, sự kiện lịch sử, tình huống công sở, lớp học | `dung-canh` | tranh giấy cắt nhiều lớp: hậu cảnh, vai phụ, vai chính, tiền cảnh, chữ (mục dưới) |
 
 Bảng ô đủ cho hai khổ ở `docs/vi/tro-ly/nhip-vox.md`.
+
+### Dựng cảnh nhiều lớp (`dung-canh`)
+
+Video kể chuyện đẹp nhất khi mỗi cảnh là một bức tranh giấy cắt tách thành nhiều lớp, như sân khấu giấy: lớp xa trôi chậm, nhân vật đứng trước và che nhau, một vật sát ống kính che một góc khung. Chiều sâu đến từ ba thứ: vào trước sau khác nhau, kích thước, và thứ tự che khuất; không cần dựng 3D.
+
+1. **Bố cục tĩnh trước, chuyển động sau.** Với mỗi cảnh, viết nháp trước: hậu cảnh là gì, vai chính là ai làm gì, vai phụ là ai, tiền cảnh là gì, chữ gì. Mỗi lớp phải có một vai trò kể chuyện rõ ràng; lớp nào không kể được gì thì bỏ.
+2. **Hậu cảnh không có người.** Mô tả `ve:` của `hau-canh` chỉ tả nơi chốn và thời điểm; người và vật kể chuyện là ảnh riêng ở lớp trước.
+3. **Mỗi ảnh vai đúng một người.** Không viết "A dắt tay B" trong một ảnh: vẽ A ở `chinh`, B ở `phu`. Tả đủ cả thân, tư thế, hướng nhìn (vai chính nhìn sang phải, vai phụ nhìn sang trái để hai người nhìn nhau).
+4. **Mỗi vai vào một nhịp.** Hậu cảnh và vai chính thường ở `@dau`; vai phụ vào khi lời gọi tên họ; tiền cảnh ở `@dau` để khung có chiều sâu ngay từ đầu.
+5. **Nhân vật lặp lại** giữa các cảnh: tả một lần ở `nhan-vat-chinh` và gọi `@nhan-vat`; nhân vật thứ hai thì chép nguyên một câu mô tả giống hệt nhau ở mọi cảnh.
+6. Ở bước xem trước, soát `canh-N.png` như một bức tranh đứng yên: các lớp có che nhau hợp lý không, có người lạ trong hậu cảnh không, tiền cảnh có che mặt nhân vật không. Sai thì sửa mô tả rồi vẽ lại đúng ảnh đó.
 
 ### Ý cần nói → hình nên dùng
 
@@ -103,6 +115,7 @@ Chọn hình theo điều cần thay đổi trên màn hình khi lời nói tớ
 
 | Lời đang nói | Vật nên dùng | Bố cục gợi ý |
 |---|---|---|
+| Một người đang làm gì, một cảnh trong câu chuyện | `anh` theo vai | `dung-canh` |
 | Một sự vật, một hình ví von | `anh` | `mot` (`giua`) |
 | Một con số đáng nhớ | `so` hoặc `the` | `mot` (`duoi`) |
 | Số liệu tăng giảm qua các năm, so vài nhóm | `cot` | `mot` (`giua`) hoặc `hai-ben` |

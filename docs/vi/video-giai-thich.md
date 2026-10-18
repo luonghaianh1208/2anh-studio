@@ -73,6 +73,7 @@ Dựng thật mất khoảng 1,5 lần thời lượng video trên máy 6 lõi: 
 
 ## Hiệu ứng
 
+- **Cảnh nhiều lớp như sân khấu giấy:** cảnh kể chuyện được dựng thành tranh giấy cắt nhiều lớp: hậu cảnh trôi chậm, nhân vật chính và phụ là các hình cắt rời đứng trước sau, che nhau, một cành lá hay con sóng sát ống kính che một góc khung. Mỗi lớp hiện vào một nhịp theo lời đọc.
 - **Hình cho số liệu và quy trình:** cột tăng dần, chu trình khép vòng, dòng thời gian, kim tự tháp, hiện dần theo lời đọc.
 - **Hiểu sai → hiểu đúng:** con dấu đỏ "SAI" rồi dấu xanh "ĐÚNG" trên hai cảnh liền nhau, kèm một nhịp lặng ngắn để người xem kịp nghĩ.
 - **Bản vẽ kỹ thuật:** ghi `phong-anh: ban-ve` để ảnh thành nét trắng trên giấy xanh, hợp Toán, Vật lí, Công nghệ.

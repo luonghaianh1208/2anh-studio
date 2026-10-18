@@ -41,7 +41,7 @@ html, body { margin: 0; padding: 0; background: #F4ECD8; }
 
 /* Chữ lớn: dải giấy trắng ngà sau từng dòng (cắt dán), mực đậm. */
 .vat-chu > .noi, .vat-so > .noi { font-weight: 800; line-height: 1.32; text-align: center; padding: 0.06em 0.12em;
-  white-space: normal; overflow-wrap: normal; }
+  white-space: normal; overflow-wrap: normal; text-wrap: balance; }
 .vat-chu .dong, .vat-so .dong { background: var(--the); color: #1E2430; padding: 0.02em 0.22em;
   -webkit-box-decoration-break: clone; box-decoration-break: clone; box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.18); }
 .vat-so .so-chay { color: var(--nhan); font-variant-numeric: tabular-nums; }

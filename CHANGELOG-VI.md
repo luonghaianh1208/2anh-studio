@@ -49,6 +49,16 @@ Video ngắn mạng xã hội: phong cách mới `ngan`, gộp cách làm của 
 ### Sửa
 - Giọng đọc video: cần `edge-tts>=7.3.1` (bản cũ bị máy chủ Microsoft từ chối, lỗi 403); đã thêm vào `tools/vi/requirements-vi.txt`.
 
+## Chưa phát hành
+
+Video Vox dựng thành tranh giấy cắt nhiều lớp, học cách làm của video "hoạt hình giấy cắt có chiều sâu" (Codex + Remotion): tách mỗi cảnh thành hậu cảnh, nhân vật, tiền cảnh, mỗi vai một nhịp.
+
+### Thêm
+- Bố cục `dung-canh`: ảnh đặt theo vai `hau-canh` (tranh phủ kín khung, không người), `phu-2`, `phu` (vai phụ), `chinh` (vai chính), `tien-canh` (vật sát ống kính); chữ ở `tren`, `giua`. Hậu cảnh trôi chậm, nhân vật đứng chân chạm đáy khung và che nhau theo thứ tự xa gần, tiền cảnh được phóng to, tràn ra góc khung và trôi ngược chiều. Mỗi vai một kiểu vào: vai chính trồi lên và thu nhẹ về cỡ, vai phụ trượt vào từ mép gần nó, tiền cảnh trượt lên.
+- Prompt ảnh theo vai: hậu cảnh là một bức tranh liền mạch không có người, chừa nửa dưới làm sân khấu; nhân vật vẽ cả thân, đúng một người, khổ dọc 1024×1536.
+- Hướng dẫn "Dựng cảnh nhiều lớp": bố cục tĩnh trước, chuyển động sau; mỗi lớp một vai kể chuyện; mỗi ảnh vai một người; soát ảnh xem trước như một bức tranh đứng yên.
+- Chữ lớn cân dòng khi xuống dòng (không để trơ một chữ ở dòng cuối).
+
 ## 6.3.2-vi.16 — 2026-10-14
 
 Slide và video đa dạng hơn, học ý tưởng từ các kho mẫu slide và video (chỉ học ý tưởng, mọi thứ tự viết lại): tám kiểu slide có tên, bộ hoạ tiết vẽ tay vẫn sửa được trong PowerPoint, khuôn bài giảng theo Công văn 5512; video Vox có thêm cột, chu trình, dòng thời gian, kim tự tháp, mạch hiểu sai → hiểu đúng, nhịp im, kiểu bản vẽ kỹ thuật và video ngắn; ảnh cắt dán theo prompt chi tiết với nhân vật cố định.

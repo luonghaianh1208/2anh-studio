@@ -11,7 +11,10 @@
   var CHUYEN = 0.35;
   // Vật vào êm: trượt ngắn kèm mờ dần, không nảy, không rung (chủ repo: rung gây nhức mắt).
   var DAI = { 'anh-cat': 0.5, 'anh-khung': 0.5, 'anh-phu': 0.6, the: 0.5, nhan: 0.4, dau: 0.4, chu: 0.5, so: 0.5, 'mui-ten': 0.5,
-    cot: 1.4, 'chu-trinh': 1.8, moc: 1.5, thap: 1.4 };
+    cot: 1.4, 'chu-trinh': 1.8, moc: 1.5, thap: 1.4, 'vai-chinh': 0.7, 'vai-phu': 0.8, 'tien-canh': 0.7 };
+  // Bố cục `dung-canh` (giấy cắt nhiều lớp): vai -> kiểu vật của trang; thứ tự che (z) từ xa tới gần.
+  var VAI = { 'hau-canh': 'anh-phu', 'phu-2': 'vai-phu', phu: 'vai-phu', chinh: 'vai-chinh', 'tien-canh': 'tien-canh' };
+  var Z_VAI = { 'phu-2': 1, phu: 2, chinh: 3 };
   // Vật nhiều mục: các mục hiện lần lượt trong DAI của vật.
   var DANH_SACH = ['cot', 'chu-trinh', 'moc', 'thap'];
   var SO_CHAY = 1.2;
@@ -65,7 +68,7 @@
   }
 
   // Kiểu vào của vật ở tiến độ p (0..1). Ở p = 1 luôn đúng chỗ: {dx 0, dy 0, s 1, goc cuối, a 1}.
-  function vao(vat, p) {
+  function vao(vat, p, huong) {
     var gocCuoi = vat === 'dau' ? -4 : 0;
     if (p >= 1) { return { dx: 0, dy: 0, s: 1, goc: gocCuoi, a: 1 }; }
     p = kep(p, 0, 1);
@@ -81,6 +84,15 @@
       kq.dx = -30 * (1 - e);
     } else if (vat === 'dau') {
       kq.s = 1.15 - 0.15 * e;
+    } else if (vat === 'vai-chinh') {
+      // Vai chính vào sớm và rõ: trồi lên, thu nhẹ về đúng cỡ.
+      kq.dy = 28 * (1 - e);
+      kq.s = 1.06 - 0.06 * e;
+    } else if (vat === 'vai-phu') {
+      // Vai phụ trượt vào từ phía mép gần nó (huong = -1 bên trái, 1 bên phải).
+      kq.dx = 90 * (huong || 1) * (1 - e);
+    } else if (vat === 'tien-canh') {
+      kq.dy = 70 * (1 - e);
     } else {
       kq.dy = 18 * (1 - e);
     }
@@ -90,7 +102,8 @@
   // Chuyển động máy quay của Vox rất nhẹ: không phóng, không xoay, không rung. Chỉ có thị sai trôi ngang chậm suốt
   // cảnh: nền (lớp xa) trôi ±TROI.xa điểm CSS, ảnh (lớp giữa) trôi ít hơn, chữ (lớp gần) đứng yên. Độ dời theo bước
   // điểm ảnh thiết bị `dpr`, nên khung là hàm thuần của t.
-  var TROI = { xa: 14, giua: 5, gan: 0 };
+  // Tiền cảnh (`dung-canh`) trôi ngược chiều và nhiều hơn: vật sát ống kính lệch mạnh nhất, tạo chiều sâu.
+  var TROI = { xa: 14, giua: 5, tien: -18, gan: 0 };
   var LE_NEN = 16;       // nền nướng rộng hơn khung mỗi phía LE_NEN điểm CSS để khi trôi không hở mép
   function lopCamera(ten, cam, dpr) {
     var k = dpr || 1;
@@ -142,8 +155,9 @@
     if (cha) { cha.appendChild(el); }
     return el;
   }
-  function vatCua(n) {
+  function vatCua(n, boCuc) {
     if (n.vat === 'anh') {
+      if (boCuc === 'dung-canh' && VAI[n.o]) { return VAI[n.o]; }
       var kieu = n.anh && n.anh.kieu;
       if (n.o === 'nen' || kieu === 'phu') { return 'anh-phu'; }
       return kieu === 'khung' ? 'anh-khung' : 'anh-cat';
@@ -156,6 +170,14 @@
     var k = Math.min(o.w / rong, h0 / cao);
     var w = rong * k, h = cao * k;
     return { x: o.x + (o.w - w) / 2, y: o.y + (h0 - h) / 2, w: w, h: h };
+  }
+  // Tiền cảnh `dung-canh`: vật sát ống kính, to gấp 1,6 lần ô và tràn ra ngoài khung ở góc gần ô (một phần năm bề
+  // ngang ra ngoài mép bên, một phần tư bề cao xuống dưới đáy), như nhìn qua một khung che.
+  function tienCanh(o, rong, cao, kho) {
+    var k = Math.min(o.w * 1.6 / rong, o.h * 1.6 / cao);
+    var w = rong * k, h = cao * k;
+    var trai = o.x + o.w / 2 < kho.rong / 2;
+    return { x: trai ? -w * 0.2 : kho.rong - w * 0.8, y: kho.cao - h * 0.75, w: w, h: h };
   }
   // Phủ kín khung, thừa 2 % mỗi phía để lớp xa dời theo camera (tối đa ~10 px) không hở mép.
   function phuKin(rong, cao, kho) {
@@ -245,8 +267,10 @@
     var lop = { xa: tao('div', 'lop lop-xa', k3) };
     var san = tao('div', 'san', k3);
     // Lớp giữa và gần: khung ngoài nhận độ dời, khung trong nhận zoom (zoom trên cùng phần tử sẽ nhân cả độ dời).
-    var ngoai = { giua: tao('div', 'lop lop-giua', san), gan: tao('div', 'lop lop-gan', san) };
+    // Lớp tiền cảnh (`dung-canh`) nằm giữa lớp ảnh và lớp chữ: đè lên nhân vật, dưới chữ.
+    var ngoai = { giua: tao('div', 'lop lop-giua', san), tien: tao('div', 'lop lop-tien', san), gan: tao('div', 'lop lop-gan', san) };
     lop.giua = tao('div', 'lop-zoom', ngoai.giua);
+    lop.tien = tao('div', 'lop-zoom', ngoai.tien);
     lop.gan = tao('div', 'lop-zoom', ngoai.gan);
     ngoai.xa = lop.xa;
     // Mọi hình raster (nền giấy SVG có feTurbulence, mảng giấy có pattern, ảnh PNG) được "nướng" một lần, trước khi
@@ -272,7 +296,7 @@
     } else {
       anhXa = nenXa(hat, kho, mau).map(function (svg) { return anhSvg(svg, lop.xa); });
     }
-    var coNen = cacNhip.some(function (n) { return vatCua(n) === 'anh-phu'; });
+    var coNen = cacNhip.some(function (n) { return vatCua(n, boCuc) === 'anh-phu'; });
     var anhGiua = coNen || coNenAI ? null : anhSvg(manhGiua(hat, kho, mau), lop.giua);
     function giaiMa(im) {
       return im.decode ? im.decode().then(function () { return im; }) : Promise.resolve(im);
@@ -324,12 +348,12 @@
       return oCua(boCuc, n.o, kho);
     }
     var cacVat = cacNhip.map(function (n, k) {
-      var vat = vatCua(n);
+      var vat = vatCua(n, boCuc);
       var tuy = n.tuyChon || [];
       // Ảnh phủ và mũi tên (không chiếm ô) nằm trên cả khung.
       var o = n.o === 'nen' || vat === 'anh-phu' || vat === 'mui-ten' ? { x: 0, y: 0, w: kho.rong, h: kho.cao } : hopO(n, k);
       // Ảnh phủ kín khung (`toan-canh` ô `nen`) là phông xa: lớp xa chỉ dời, không phóng (rẻ khi ghép).
-      var tenLop = vat === 'anh-phu' ? 'xa' :
+      var tenLop = vat === 'anh-phu' ? 'xa' : vat === 'tien-canh' ? 'tien' :
         (tuy.indexOf('xa') >= 0 ? 'giua' : (tuy.indexOf('gan') >= 0 ? 'gan' : (n.vat === 'anh' ? 'giua' : 'gan')));
       var el = tao('div', 'vat vat-' + vat);
       el.setAttribute('data-id', 'nhip-' + k);
@@ -337,11 +361,17 @@
       if (boCuc === 'mot' && (n.o === 'tren' || n.o === 'duoi')) { el.classList.add('canh-trai'); }
       var r = C().prng(hat * 101 + k);
       var v = { n: n, vat: vat, el: el, o: o, goc0: typeof o.goc === 'number' ? o.goc : 0, chong: /^chong-/.test(n.o || ''),
-        nen: vat === 'anh-phu', noi: null, k: k };
+        nen: vat === 'anh-phu', noi: null, k: k,
+        dc: vat === 'vai-chinh' || vat === 'vai-phu' || vat === 'tien-canh',
+        huong: o.x + o.w / 2 < kho.rong / 2 ? -1 : 1 };
+      if (Z_VAI[n.o] && boCuc === 'dung-canh') { el.style.zIndex = String(Z_VAI[n.o]); }
       if (n.vat === 'anh') {
         var a = n.anh || { dataUrl: '', rong: 4, cao: 3 };
         // Không hiện dòng nguồn ảnh trên hình: nguồn ghi vào nguon.txt cạnh video (video_ma.py).
-        var b = luoi(v.nen ? phuKin(a.rong, a.cao, kho) : vuaO(o, a.rong, a.cao, 0));
+        var hop = v.nen ? phuKin(a.rong, a.cao, kho) : (vat === 'tien-canh' ? tienCanh(o, a.rong, a.cao, kho) : vuaO(o, a.rong, a.cao, 0));
+        // Nhân vật `dung-canh` đứng chân chạm đáy ô (ô kéo tới mép dưới khung).
+        if (v.dc && vat !== 'tien-canh') { hop.y = o.y + o.h - hop.h; }
+        var b = luoi(hop);
         datHop(el, b);
         v.b = b;
         var img = tao('img', 'anh', el);
@@ -664,7 +694,7 @@
     }
 
     function datCamera(cam) {
-      ['xa', 'giua', 'gan'].forEach(function (ten) {
+      ['xa', 'giua', 'tien', 'gan'].forEach(function (ten) {
         var l = lopCamera(ten, cam, root.devicePixelRatio || 1);
         ngoai[ten].style.transform = l.x ? 'translate(' + l.x + 'px,0px)' : 'none';
       });
@@ -679,7 +709,7 @@
         // Ẩn cả bằng opacity: lớp hạt SVG có filter của con dấu vẫn được vẽ khi chỉ có visibility: hidden.
         if (p <= 0) { el.style.visibility = 'hidden'; el.style.opacity = '0'; return; }
         el.style.visibility = 'visible';
-        var a = vao(v.vat, p);
+        var a = vao(v.vat, p, v.huong);
         el.style.opacity = a.a >= 1 ? '' : String(a.a);
         var goc = lam(v.goc0 + a.goc);
         // Đứng yên đúng chỗ thì không để biến đổi nào (cùng cây thuộc tính vẽ như khi nhảy thẳng tới t).
@@ -727,7 +757,8 @@
         var id = 'nhip-' + v.k;
         if (['chu', 'the', 'nhan', 'dau', 'so'].indexOf(v.vat) >= 0 && tran(v.noi)) { loi.push(id); }
         if (v.muc && v.muc.some(function (m) { return m.kiem.some(function (x) { return hopRa(x, v.noi); }); })) { loi.push(id); }
-        if (v.nen || v.vat === 'mui-ten') { return; }
+        // Nhân vật, tiền cảnh `dung-canh` cố ý chạm đáy khung và che nhau: không kiểm vạch phụ đề, không kiểm đè.
+        if (v.nen || v.vat === 'mui-ten' || v.dc) { return; }
         var b = hcn(v.noi);
         if (b.left < -1 || b.top < -1 || b.right > R || b.bottom > Cc || b.bottom > D) {
           if (loi.indexOf(id) < 0) { loi.push(id); }
@@ -787,7 +818,7 @@
 
   root.THI_VOX = {
     oCua: oCua, xepChong: xepChong, vao: vao, camera: camera, lopCamera: lopCamera, chuyenLia: chuyenLia, dinhDangSo: dinhDangSo,
-    easeOutCubic: easeOutCubic, tienDoMuc: tienDoMuc, tangThap: tangThap, diemTron: diemTron, DAI: DAI, CHUYEN: CHUYEN,
+    easeOutCubic: easeOutCubic, tienCanh: tienCanh, tienDoMuc: tienDoMuc, tangThap: tangThap, diemTron: diemTron, DAI: DAI, CHUYEN: CHUYEN,
     TROI: TROI, khoiDong: khoiDong
   };
   // Trang Vox không nạp khung-video.js: vox.js tự cung cấp hợp đồng trang THI_VIDEO, luôn là đối tượng mới
