@@ -14,6 +14,7 @@ TEN = "Itim"
 # Be Vietnam Pro của phong cách `cat-dan`: độ đậm -> file (nguồn và SHA-256 ở runtime/fonts/README.md).
 TEN_CAT_DAN = "BeVietnamPro"
 FONT_CAT_DAN = {400: _FONTS / "BeVietnamPro-Regular.ttf", 800: _FONTS / "BeVietnamPro-ExtraBold.ttf"}
+FONT_PHUDU = _FONTS / "Phudu-ExtraBold.ttf"   # chỉ phụ đề video ngắn (karaoke.FONT_PHUDU)
 # Cùng font Be Vietnam Pro, nhưng tên họ đúng như trong file (có khoảng trắng): dùng cho chủ đề `vox` để khớp tên
 # font mà karaoke.py/ffmpeg đọc từ bảng `name` của chính TTF.
 TEN_VOX = "Be Vietnam Pro"

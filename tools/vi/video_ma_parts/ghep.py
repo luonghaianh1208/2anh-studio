@@ -15,6 +15,7 @@ from .giong import _MARKUP_RE  # cùng bộ dấu giọng đọc bỏ đi: ** ~ 
 from .lich import DAN_DAU, FPS, doan_loi
 from .phong import FONT as ITIM_FONT, TEN as ITIM_TEN
 from .phong import FONT_CAT_DAN as _BE_VIETNAM_PRO_FILES
+from .phong import FONT_PHUDU as _PHUDU_FILE
 
 BIEN_DO_NHIEU = 0.002
 HAT_NHIEU = 1234
@@ -203,6 +204,8 @@ def ghep_video(thu_muc: Path, cac_lich: list, cac_giong: list, phu_de: str, fps:
         fonts_dir = lam / "fonts"
         fonts_dir.mkdir(exist_ok=True)
         shutil.copy2(ITIM_FONT, fonts_dir / ITIM_FONT.name)
+        if karaoke.kieu_phu_de(chu_de, kho_ten)["font"] == karaoke.FONT_PHUDU:
+            shutil.copy2(_PHUDU_FILE, fonts_dir / _PHUDU_FILE.name)
         if karaoke.kieu_phu_de(chu_de, kho_ten)["font"] == karaoke.FONT_CAT_DAN:
             for duong_dan in _BE_VIETNAM_PRO_FILES.values():
                 shutil.copy2(duong_dan, fonts_dir / duong_dan.name)

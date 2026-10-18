@@ -51,7 +51,25 @@ class KhoaDauNganTest(unittest.TestCase):
         self.assertEqual(cd["font"], phong.TEN_CAT_DAN)
         self.assertEqual(len(cd["mauNhan"]), 4)
         kieu = karaoke.kieu_phu_de("ngan", "doc")
-        self.assertEqual((kieu["font"], kieu["khung"]), (karaoke.FONT_CAT_DAN, True))
+        self.assertEqual((kieu["font"], kieu["khung"], kieu["vien"]), (karaoke.FONT_PHUDU, False, True))
+        self.assertTrue(phong.FONT_PHUDU.is_file())
+
+    def test_phu_de_ngan_moi_luc_mot_dong_vang_vien_den(self):
+        from video_ma_parts import lich
+
+        loi = "Người ta đồn lực hút bí ẩn nuốt chửng tàu bè ngoài khơi xa."
+        tu = [{"t": round(k * 0.35, 3), "d": 0.3, "chu": w} for k, w in enumerate(loi.split())]
+        cl = lich.CanhLich(so=1, bat_dau=0.0, thoi_luong=6.0, so_khung=180, giay_giong=5.0, cau=[loi], moc_cau=[0.0],
+                           moc_cau_giong=[0.0], uoc_luong=False, moc_tu=tu)
+        ass = karaoke.tao_ass([cl], rong=720, cao=1280, chu_de="ngan", kho_ten="doc")
+        self.assertIn("Style: Vien,Phudu ExtraBold,58,&H0000D7FF", ass)
+        chu = [d for d in ass.splitlines() if d.startswith("Dialogue:")]
+        self.assertGreater(len(chu), 1)
+        # Không có hai dòng hiện cùng lúc: mỗi sự kiện bắt đầu khi sự kiện trước kết thúc.
+        moc = [d.split(",")[1:3] for d in chu]
+        for (_a, het), (dau, _b) in zip(moc, moc[1:]):
+            self.assertLessEqual(het, dau)
+        self.assertTrue(all("\\an2" in d and "\\p1" not in d for d in chu))
 
 
 class TrangNganTest(unittest.TestCase):

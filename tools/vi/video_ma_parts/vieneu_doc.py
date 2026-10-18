@@ -18,7 +18,9 @@ import soundfile as sf
 
 SR = 48000
 NGUONG = 0.012   # biên độ coi là lặng khi cắt hai đầu câu
-DEM = 0.03       # giữ lại 30 ms trước và sau tiếng
+DEM = 0.03       # giữ lại 30 ms trước tiếng
+DEM_SAU = 0.18   # và 180 ms sau tiếng: âm cuối, thanh hỏi/ngã nhỏ dần dưới ngưỡng — cắt sát thì cụt tiếng cuối câu
+MO = 0.012       # làm to dần / nhỏ dần hai đầu (giây), tránh tiếng tách ở chỗ cắt
 
 
 def cat_lang(a: np.ndarray) -> np.ndarray:
@@ -26,8 +28,14 @@ def cat_lang(a: np.ndarray) -> np.ndarray:
     if co.size == 0:
         return a
     dau = max(0, int(co[0] - DEM * SR))
-    cuoi = min(len(a), int(co[-1] + DEM * SR))
-    return a[dau:cuoi]
+    cuoi = min(len(a), int(co[-1] + DEM_SAU * SR))
+    a = a[dau:cuoi].copy()
+    n = min(int(MO * SR), len(a) // 2)
+    if n:
+        ram = np.linspace(0.0, 1.0, n, dtype=a.dtype)
+        a[:n] *= ram
+        a[-n:] *= ram[::-1]
+    return a
 
 
 def main(path: str) -> int:

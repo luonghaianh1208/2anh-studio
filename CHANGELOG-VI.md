@@ -1,5 +1,13 @@
 # Nhật ký thay đổi — Bản Việt
 
+## 6.3.2-vi.21 — 2026-10-18
+
+### Sửa
+- Giọng VieNeu cụt âm cuối câu và có tiếng tách: `vieneu_doc.py` giữ 180 ms sau tiếng (trước là 30 ms) và làm to dần / nhỏ dần 12 ms ở hai đầu mỗi câu.
+
+### Đổi
+- Phụ đề video ngắn (`phong-cach: ngan`) kiểu mạng xã hội: font Phudu ExtraBold (OFL, `runtime/fonts/Phudu-ExtraBold.ttf`) chữ vàng viền đen, mỗi lúc chỉ một dòng ngắn, từ đang đọc sáng trắng, nằm cao hơn đáy khung dọc 150 px để không bị thanh nút của ứng dụng che. Các phong cách khác giữ phụ đề hộp nền.
+
 ## 6.3.2-vi.20 — 2026-10-18
 
 ### Đổi

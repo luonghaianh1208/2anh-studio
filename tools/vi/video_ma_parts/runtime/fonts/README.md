@@ -11,3 +11,10 @@ Be Vietnam Pro (phong cách `cat-dan`), tác giả Lâm Bảo, Tony Le, ViệtAn
 | `OFL-BeVietnamPro.txt` (`OFL.txt` của thư mục trên) | — | `6b7f8f73609a25ea78c891e34cf37b06f8a676b7ea986e941e43b009110f2a85` |
 
 Trang dựng nhúng font dưới dạng `data:` (base64), không tải gì từ mạng.
+
+Phudu (phụ đề video ngắn `phong-cach: ngan`), tác giả Dương Trần (The Phudu Project Authors), giấy phép SIL Open Font License 1.1 (xem `OFL-Phudu.txt`). Tải từ kho `google/fonts`, `ofl/phudu/Phudu[wght].ttf` (font biến thiên 300–900), cắt bản tĩnh độ đậm 800 bằng `fontTools.varLib.instancer` (`updateFontNames=True`, họ font "Phudu ExtraBold").
+
+| File | Độ đậm |
+|---|---|
+| `Phudu-ExtraBold.ttf` | 800 |
+| `OFL-Phudu.txt` (`OFL.txt` của thư mục trên) | — |
