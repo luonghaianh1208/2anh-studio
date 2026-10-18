@@ -1,148 +1,238 @@
-"""Phong cách video ngắn mạng xã hội (`phong-cach: ngan`): khung của cat-dan với da neon tối. Kiểm khoá đầu và mặc
-định (khổ dọc, chuyển trượt, ẩn tay), giới hạn chữ dùng đúng bảng cat-dan, trang nạp ngan.css và nền neon, và trên
-Chromium: mọi loại cảnh ở đúng giới hạn khổ dọc nằm gọn, nền neon dựng lặp lại ra cùng ảnh.
+"""Video ngắn "nhịp hình" (`phong-cach: ngan`, ngan.py + runtime/ngan.js): khoá đầu, dàn nhân vật ghép từ bộ phận,
+vật mới, phụ đề trong trang (từ khoá, ngắt dòng), trang HTML, tiếng hiệu ứng, và trên Chromium: không tràn chữ,
+phụ đề hiện, nhân vật đổi tư thế, dựng lặp lại ra cùng ảnh. Phần Chromium tự bỏ qua nếu máy thiếu."""
 
-Phần Chromium tự bỏ qua nếu máy thiếu."""
-
-import re
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 
 TOOLS_VI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_VI))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import video_ma  # noqa: E402
-from do_gioi_han import LOAI_CO_COT, meta, ngoai_vung  # noqa: E402
-from test_video_ma_cat_dan import trang_cua  # noqa: E402
-from test_video_ma_kho_doc import canh_toi_da, thu_muc_bai, video_md  # noqa: E402
-from video_ma_parts import chup, karaoke, kho, kiem, lich, parse, phong  # noqa: E402
+from video_ma_parts import am_thanh, chup, kho, lich, ngan, parse, trang  # noqa: E402
 
 CO_CHROMIUM = video_ma.co_chromium()
-TOI_THIEU = "---\ntieu-de: Tin nhanh\nmon: Tin học\nlop: 10\nphong-cach: ngan\n---\n\n## Cảnh 1\nloai: tieu-de\nchu: Chào\nloi: Xin chào.\n"
+
+MAU = """---
+tieu-de: Từ chối khéo
+phong-cach: ngan
+{dau}
+---
+
+## Cảnh 1
+tieu-de: Bị nhờ vả
+chuong: 1 · VÍ DỤ
+loi: Bạn có hay bị bạn bè / ==nhờ vả== liên tục / mà **không dám** từ chối? Bảy trên mười bạn / sẽ ((thông cảm)).
+nhip: @dau | nguoi: an dung
+nhip: bạn bè | nguoi: linh chi-tay
+nhip: không dám | nguoi: an vo-dau
+nhip: Bảy trên mười | luoi-cham: 7/10 | bạn sẽ thông cảm
+nhip: thông cảm | nguoi: linh an-mung
+"""
+VAI = "vai: an = hoc-sinh-nam; linh = hoc-sinh-nu, ao so-mi hong"
 
 
-class KhoaDauNganTest(unittest.TestCase):
-    def test_ngan_mac_dinh_kho_doc_truot_an_tay(self):
-        video = parse.parse(TOI_THIEU)
-        self.assertEqual(video.meta["phong-cach"], "ngan")
-        self.assertEqual(video.meta["kho"], "doc")
-        self.assertEqual(lich.mac_dinh(video.meta, "chuyen-canh"), "truot")
-        self.assertEqual(lich.mac_dinh(video.meta, "ban-tay"), "khong")
-
-    def test_ngan_ghi_kho_ngang_thi_giu(self):
-        video = parse.parse(TOI_THIEU.replace("phong-cach: ngan\n", "phong-cach: ngan\nkho: ngang\n"))
-        self.assertEqual(video.meta["kho"], "ngang")
-
-    def test_phong_cach_khac_khong_doi_mac_dinh(self):
-        video = parse.parse(TOI_THIEU.replace("phong-cach: ngan", "phong-cach: cat-dan"))
-        self.assertEqual(video.meta["kho"], "ngang")
-
-    def test_gioi_han_ngan_bang_cat_dan(self):
-        for ten_kho in ("ngang", "doc"):
-            for co_the in (False, True):
-                self.assertEqual(kiem.bang_gioi_han(ten_kho, "ngan", co_the), kiem.bang_gioi_han(ten_kho, "cat-dan", co_the))
-
-    def test_chu_de_va_phu_de(self):
-        cd = phong.chu_de("ngan") if hasattr(phong, "chu_de") else phong.CHU_DE["ngan"]
-        self.assertEqual(cd["ten"], "ngan")
-        self.assertEqual(cd["font"], phong.TEN_CAT_DAN)
-        self.assertEqual(len(cd["mauNhan"]), 4)
-        kieu = karaoke.kieu_phu_de("ngan", "doc")
-        self.assertEqual((kieu["font"], kieu["khung"], kieu["vien"]), (karaoke.FONT_PHUDU, False, True))
-        self.assertTrue(phong.FONT_PHUDU.is_file())
-
-    def test_phu_de_ngan_moi_luc_mot_dong_vang_vien_den(self):
-        from video_ma_parts import lich
-
-        loi = "Người ta đồn lực hút bí ẩn nuốt chửng tàu bè ngoài khơi xa."
-        tu = [{"t": round(k * 0.35, 3), "d": 0.3, "chu": w} for k, w in enumerate(loi.split())]
-        cl = lich.CanhLich(so=1, bat_dau=0.0, thoi_luong=6.0, so_khung=180, giay_giong=5.0, cau=[loi], moc_cau=[0.0],
-                           moc_cau_giong=[0.0], uoc_luong=False, moc_tu=tu)
-        ass = karaoke.tao_ass([cl], rong=720, cao=1280, chu_de="ngan", kho_ten="doc")
-        self.assertIn("Style: Vien,Phudu ExtraBold,58,&H0000D7FF", ass)
-        chu = [d for d in ass.splitlines() if d.startswith("Dialogue:")]
-        self.assertGreater(len(chu), 1)
-        # Không có hai dòng hiện cùng lúc: mỗi sự kiện bắt đầu khi sự kiện trước kết thúc.
-        moc = [d.split(",")[1:3] for d in chu]
-        for (_a, het), (dau, _b) in zip(moc, moc[1:]):
-            self.assertLessEqual(het, dau)
-        self.assertTrue(all("\\an2" in d and "\\p1" not in d for d in chu))
+def video(dau=VAI, them=""):
+    return parse.parse(MAU.format(dau=dau) + them)
 
 
-class TrangNganTest(unittest.TestCase):
-    def test_trang_ngan_nap_cat_dan_va_ngan_css_khong_dia_chi_web(self):
-        html = trang_cua("chu: Tin nóng\n", phong_cach="ngan")
-        self.assertIn("#khung.ngan", html)
-        self.assertIn(".nen-giay", html)
-        self.assertIn("nenNeon", html)
-        self.assertEqual(html.count("font-family:'BeVietnamPro'"), 2)
-        self.assertIsNone(re.search(r"https://|url\((?!data:|#)", html))
-
-    def test_cat_dan_khong_nap_ngan_css(self):
-        self.assertNotIn("#khung.ngan", trang_cua("chu: Giấy\n", phong_cach="cat-dan"))
+def du_canh(v, k=0, giay=6.0):
+    canh = v.canh[k]
+    giong = lich.GiongInfo(mp3=None, giay=giay, moc_cau=[], uoc_luong=True, nguon="may")
+    plan, _ = lich.dung_lich([canh], [giong])
+    return lich.du_lieu_canh(canh, plan[0], tai_nguyen={"meta": v.meta})
 
 
-@unittest.skipUnless(CO_CHROMIUM, "máy không có Chromium hoặc playwright")
+class KhoaDauTest(unittest.TestCase):
+    def test_mac_dinh(self):
+        v = video()
+        self.assertEqual((v.meta["kho"], v.meta["giao-dien"]), ("doc", "phang-sang"))
+        self.assertEqual(v.canh[0].loai, "vox")
+        self.assertEqual([n.vat for n in v.canh[0].nhip], ["nguoi", "nguoi", "nguoi", "luoi-cham", "nguoi"])
+
+    def test_chi_tieu_de_bat_buoc(self):
+        self.assertNotIn("mon", video().meta)
+
+    def test_kho_ngang_bi_tu_choi(self):
+        with self.assertRaises(parse.ParseError):
+            video(VAI + "\nkho: ngang")
+
+    def test_giao_dien_va_vai_chi_cho_ngan(self):
+        for dong in ("giao-dien: toi-du-lieu", "vai: a = hoc-sinh-nam"):
+            with self.subTest(dong=dong), self.assertRaises(parse.ParseError):
+                parse.parse(f"---\ntieu-de: A\nmon: B\nlop: 1\n{dong}\n---\n\n## Cảnh 1\nloai: tieu-de\nchu: A\nloi: B.\n")
+
+    def test_giao_dien_toi(self):
+        self.assertEqual(video(VAI + "\ngiao-dien: toi-du-lieu").meta["giao-dien"], "toi-du-lieu")
+
+    def test_goi_y_ngat_khong_doc(self):
+        c = video().canh[0]
+        self.assertNotIn(" / ", c.loi)
+        self.assertIn(" / ", c.truong["loi-phu-de"][0])
+
+
+class VaiTest(unittest.TestCase):
+    def test_vai_lam_san_va_ghep(self):
+        d = ngan.doc_dan_vai("a = co-giao; b = nam, toc troc, ao vest xam, duoi quan den, mu ke-pi, phu phu-hieu kinh")
+        self.assertEqual(d["a"]["ao"]["kieu"], "ao-dai")
+        self.assertEqual((d["b"]["toc"], d["b"]["ao"]["kieu"], d["b"]["mu"]), ("troc", "vest", "ke-pi"))
+        self.assertEqual(d["b"]["ao"]["mau"], ngan.MAU["xam"])
+        self.assertEqual(d["b"]["phu"], ["phu-hieu", "kinh"])
+
+    def test_vai_nu_mac_dinh_toc_dai_va_ma_mau(self):
+        d = ngan.doc_dan_vai("x = nu, ao the-thao #12AB34")
+        self.assertEqual((d["x"]["toc"], d["x"]["ao"]["mau"]), ("dai", "#12AB34"))
+
+    def test_bo_phan_sai_va_ten_sai(self):
+        for gia_tri in ("a = nam, ao ao-giap", "A = nam", "a = nam; a = nu", "a = nam, mau-ao do"):
+            with self.subTest(gia_tri=gia_tri), self.assertRaises(ngan.VaiError):
+                ngan.doc_dan_vai(gia_tri)
+
+    def test_vai_chua_khai_bao(self):
+        with self.assertRaises(parse.ParseError):
+            video(VAI, "\n## Cảnh 2\nloi: Chào bạn.\nnhip: @dau | nguoi: bac-si-la dung\n")
+
+    def test_tu_the_sai(self):
+        with self.assertRaises(parse.ParseError):
+            video(VAI, "\n## Cảnh 2\nloi: Chào bạn.\nnhip: @dau | nguoi: an nhay-mua\n")
+
+    def test_vai_lam_san_goi_thang(self):
+        v = video(VAI, "\n## Cảnh 2\nloi: Chào bạn.\nnhip: @dau | nguoi: bac-si chao\n")
+        self.assertEqual(v.canh[1].nhip[0].noi_dung, "bac-si chao")
+
+
+class VatMoiTest(unittest.TestCase):
+    def canh(self, nhip, loi="Chào các bạn nhé."):
+        return video(VAI, f"\n## Cảnh 2\nloi: {loi}\nnhip: @dau | {nhip}\n").canh[1]
+
+    def test_vat_hop_le(self):
+        for nhip, vat in (("bieu-tuong: bulb | Ý tưởng", "bieu-tuong"), ("truoc-sau: 80,4% -> 71,8% | trước | sau", "truoc-sau"),
+                          ("tin-nhan: ban: Đi chơi không?; minh: Ok luôn | dien-thoai", "tin-nhan"),
+                          ("thong-bao: Zalo | Lớp 10A | Mai nghỉ học | tren", "thong-bao"),
+                          ("trich-dan: \"Học, học nữa\" | Lênin", "trich-dan"), ("nhom: an dung; linh chao", "nhom"),
+                          ("so: {{30}} mét", "so")):
+            with self.subTest(vat=vat):
+                n = self.canh(nhip).nhip[0]
+                self.assertEqual(n.vat, vat)
+        n = self.canh("thong-bao: Zalo | Lớp 10A | Mai nghỉ học | tren").nhip[0]
+        self.assertEqual((n.o, n.noi_dung), ("tren", "Zalo | Lớp 10A | Mai nghỉ học"))
+        self.assertEqual(self.canh("tin-nhan: ban: A; minh: B | dien-thoai").nhip[0].tuy_chon, ("dien-thoai",))
+
+    def test_vat_sai(self):
+        for nhip in ("luoi-cham: 12/10 | x", "luoi-cham: 5/300 | x", "thong-bao: Ứng dụng quá dài mười bảy | a | b",
+                     "tin-nhan: ho: chào", "bieu-tuong: khong-co-bieu-tuong-nay", "nhom: an dung",
+                     "anh: ve: một con mèo", "the: A | B | C | dien-thoai"):
+            with self.subTest(nhip=nhip), self.assertRaises(parse.ParseError):
+                self.canh(nhip)
+
+
+class PhuDeTest(unittest.TestCase):
+    def dong(self, loi):
+        return [" ".join(w["chu"] for w in d) for d in ngan.chia_dong(ngan.tach_tu(loi))]
+
+    def test_tu_khoa_theo_dau_nhan(self):
+        ws = ngan.tach_tu("Có ==lực hút== và ((sóng)) cao {{30.5}} mét, **nguyên nhân** __bão__?")
+        kieu = {w["chu"]: w["kieu"] for w in ws}
+        self.assertEqual((kieu["lực"], kieu["sóng"], kieu["30,5"], kieu["nguyên"], kieu["bão?"]),
+                         ("to", "khoanh", "so", "nhan", "gach"))
+        self.assertEqual(kieu["Có"], None)
+
+    def test_khong_ngat_giua_cum_nhan_va_tu_ghep(self):
+        for loi, cum in (("Người ta đồn có ((lực hút)) ma quái rất đáng sợ.", "lực hút"),
+                         ("Nhưng khoa học chỉ ra bão lớn và sóng dữ mới là nguyên nhân.", "sóng dữ")):
+            with self.subTest(loi=loi):
+                dong = self.dong(loi)
+                self.assertTrue(any(cum in d for d in dong), dong)
+                self.assertTrue(all(len(d) <= ngan.PHU_DE_DONG for d in dong), dong)
+
+    def test_goi_y_ngat_duoc_ton_trong(self):
+        self.assertEqual(self.dong("Hãy nói rõ / lý do của mình."), ["Hãy nói rõ", "lý do của mình."])
+
+    def test_moc_thoi_gian_va_dong(self):
+        du = du_canh(video())
+        pd = du["phuDe"]
+        self.assertGreater(len(pd), 2)
+        self.assertEqual([d["tu"] for d in pd], sorted(d["tu"] for d in pd))
+        for a, b in zip(pd, pd[1:]):
+            self.assertLessEqual(a["den"], b["tu"] + 1e-6)
+        self.assertTrue(any(w["kieu"] == "to" for d in pd for w in d["chu"]))
+
+
+class TrangTest(unittest.TestCase):
+    def test_du_lieu_va_trang(self):
+        du = du_canh(video())
+        self.assertEqual((du["loai"], du["giaoDien"], du["tieuDe"], du["chuong"]), ("ngan", "phang-sang", "Bị nhờ vả", "1 · VÍ DỤ"))
+        self.assertEqual(set(du["vai"]), {"an", "linh"})
+        self.assertEqual(du["vai"]["linh"]["ao"]["mau"], ngan.MAU["hong"])
+        html = trang.dung_trang(du)
+        for chuoi in ("THI_NHAN_VAT_PHANG", "THI_NGAN", "font-family:'Baloo'", "font-family:'Lobster'", "font-family:'Phudu'",
+                      'class="phang-sang"'):
+            self.assertIn(chuoi, html)
+        self.assertNotRegex(html, r"https?://(?!www\.w3\.org)")
+
+
+class AmThanhTest(unittest.TestCase):
+    def test_loai_moi_co_cong_thuc(self):
+        for loai in ("vut", "pop", "bup", "dem", "ding"):
+            self.assertIn(loai, am_thanh.LOAI)
+            self.assertIn(loai, am_thanh.CONG_THUC)
+            self.assertIn(loai, am_thanh.DINH_MAU)
+
+
+@unittest.skipUnless(CO_CHROMIUM, "cần Chromium")
 class NganChromiumTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.tmp = tempfile.TemporaryDirectory()
         cls.cm = chup.trinh_duyet()
         cls.browser = cls.cm.__enter__()
 
     @classmethod
     def tearDownClass(cls):
         cls.cm.__exit__(None, None, None)
-        cls.tmp.cleanup()
 
-    def test_moi_loai_canh_kho_doc_o_gioi_han_nam_gon(self):
-        L, H = kiem.bang_gioi_han("doc", "ngan")
-        ds = canh_toi_da(L, H) + [c for c in canh_toi_da(L, H, cot=True) if c[0] in LOAI_CO_COT]
-        thu_muc = thu_muc_bai(Path(self.tmp.name) / "doc", video_md(ds, meta("doc", "ngan")))
-        video = parse.parse((thu_muc / "video.md").read_text(encoding="utf-8"))
-        self.assertEqual(kiem.kiem(video, thu_muc), [])
+    def mo(self, du):
         page = chup.trang_moi(self.browser, kho.Kho("doc", 720))
-        try:
-            for canh, html in zip(video.canh, video_ma._trang_tam(video, thu_muc, video_ma._mo_hinh(video, thu_muc))):
-                with self.subTest(so=canh.so, loai=canh.loai):
-                    tran, ra = ngoai_vung(page, html, "doc")
-                    self.assertEqual(tran, [])
-                    self.assertEqual(ra, [])
-        finally:
-            page.close()
+        chup.mo_trang(page, trang.dung_trang(du))
+        return page
 
-    def test_nen_neon_toi_va_nhan_mau_canh(self):
-        page = chup.trang_moi(self.browser, kho.Kho("doc", 720))
-        try:
-            chup.mo_trang(page, trang_cua("tieu-de: Ba ý\ny: Một\ny: Hai\n", "y-tung-y", phong_cach="ngan", so=2, ten_kho="doc"))
-            page.evaluate("() => window.datThoiDiem(window.THI_VIDEO.thoiDiemCuoi())")
-            kq = page.evaluate("""() => ({
-              lop: document.querySelector('#khung').className,
-              neon: !!document.querySelector('.nen-giay svg.neon'),
-              mauNhan: getComputedStyle(document.querySelector('#khung')).getPropertyValue('--mau-nhan').trim(),
-              chu: getComputedStyle(document.querySelector('.chu[data-id="tieu-de"]')).color })""")
-            self.assertIn("ngan", kq["lop"])
-            self.assertTrue(kq["neon"])
-            self.assertEqual(kq["mauNhan"], "#f472b6")  # cảnh 2
-            self.assertEqual(kq["chu"], "rgb(11, 16, 32)")  # chữ tối trên dải neon
-        finally:
-            page.close()
+    def test_khong_tran_phu_de_hien_va_doi_tu_the(self):
+        for gd in ("phang-sang", "toi-du-lieu"):
+            with self.subTest(giao_dien=gd):
+                du = du_canh(video(VAI + f"\ngiao-dien: {gd}"))
+                page = self.mo(du)
+                try:
+                    self.assertEqual(page.evaluate("() => window.THI_VIDEO.kiemTran()"), [])
+                    t = du["phuDe"][1]["tu"] + 0.05
+                    kq = page.evaluate("""(t) => { window.datThoiDiem(t);
+                      var d = [...document.querySelectorAll('.dong-pd')].filter(e => e.style.display === 'block');
+                      var r = d.length ? d[0].getBoundingClientRect() : null;
+                      return {so: d.length, giua: r ? (r.left + r.right) / 2 : -1,
+                              svg: document.querySelector('.lop-nv').innerHTML.length,
+                              lop: document.querySelector('#khung').className}; }""", t)
+                    self.assertEqual(kq["so"], 1)
+                    self.assertAlmostEqual(kq["giua"], 360, delta=2)
+                    self.assertIn(gd, kq["lop"])
+                    self.assertGreater(kq["svg"], 500)
+                    su = page.evaluate("() => window.THI_VIDEO.suKien().map(e => e.loai)")
+                    self.assertIn("bup", su)     # nhân vật đổi tư thế
+                    self.assertIn("dem", su)     # lưới chấm
+                    # Nhân vật `an`: tư thế lúc đầu khác lúc vò đầu.
+                    hinh = page.evaluate("""(ts) => ts.map(t => { window.datThoiDiem(t);
+                        return document.querySelector('.lop-nv g').innerHTML; })""",
+                                         [1.5, du["nhip"][2]["batDau"] + 1.5])
+                    self.assertNotEqual(hinh[0], hinh[1])
+                finally:
+                    page.close()
 
-    def test_hai_lan_dung_cung_canh_cho_cung_anh(self):
-        html = trang_cua("tieu-de: Ba ý\ny: Một\ny: ==Hai==\n", "y-tung-y", phong_cach="ngan", so=3, ten_kho="doc")
+    def test_dung_lap_lai_cung_anh(self):
+        du = du_canh(video())
         anh = []
         for _ in range(2):
-            page = chup.trang_moi(self.browser, kho.Kho("doc", 720))
+            page = self.mo(du)
             try:
-                chup.mo_trang(page, html)
-                khung = []
-                for t in (0.35, 1.3, 4.0):
-                    page.evaluate("(t) => window.datThoiDiem(t)", t)
-                    khung.append(page.screenshot(type="png"))
-                anh.append(khung)
+                page.evaluate("(t) => window.datThoiDiem(t)", du["nhip"][3]["batDau"] + 0.7)
+                anh.append(page.screenshot(type="png"))
             finally:
                 page.close()
         self.assertEqual(anh[0], anh[1])

@@ -77,8 +77,22 @@ def _do_rong_dong(chi_so: list, tokens: list) -> float:
     return _do_dai_dong(chi_so, tokens) * KHUNG_RONG_KY_TU
 
 
-def _style_vien(font: str, co: int) -> str:
-    """Chữ vàng (Primary), viền đen 4, bóng mờ 2, đậm; neo giữa-dưới (`\\an2`)."""
+# Video ngắn "nhịp hình" (ngan.py): phụ đề theo giao diện, Be Vietnam Pro đậm, mỗi lúc một dòng.
+# `phang-sang`: chữ đen trên viên trắng bo tròn (vẽ `\\p1` từng dòng), từ đang đọc đỏ cam.
+# `toi-du-lieu`: chữ trắng không nền (bóng mờ), từ đang đọc cam nhấn.
+GIAO_DIEN_NGAN = {
+    "ngan-phang-sang": {"chu": "&H1E1E1E&", "sang": "&H0F48D9&", "hop": "&H00FFFFFF", "vien_chu": 0, "bong": 0},
+    "ngan-toi-du-lieu": {"chu": "&HFFFFFF&", "sang": "&H4A70E8&", "hop": None, "vien_chu": 1, "bong": 3},
+}
+
+
+def _style_vien(font: str, co: int, kieu: dict | None = None) -> str:
+    """Chữ vàng (Primary), viền đen 4, bóng mờ 2, đậm; neo giữa-dưới (`\\an2`). Video ngắn theo giao diện: màu chữ,
+    viền, bóng theo `GIAO_DIEN_NGAN`."""
+    if kieu and "chu" in kieu:
+        mau = "&H00" + kieu["chu"][2:-1]
+        return (f"Style: Vien,{font},{co},{mau},&H00FFFFFF,&H00000000,&H90000000,"
+                f"-1,0,0,0,100,100,0,0,1,{kieu['vien_chu']},{kieu['bong']},2,20,20,0,1")
     return (f"Style: Vien,{font},{co},&H0000D7FF,&H00FFFFFF,&H00000000,&H80000000,"
             "-1,0,0,0,100,100,0,0,1,4,2,2,20,20,0,1")
 
@@ -86,6 +100,9 @@ def _style_vien(font: str, co: int) -> str:
 def kieu_phu_de(chu_de: str, kho_ten: str) -> dict:
     """Kiểu phụ đề karaoke theo chủ đề (`viet-tay`/`cat-dan`) và khổ (`ngang`/`doc`): font, cỡ chữ, có khung nền
     hay không, giới hạn ký tự một dòng. `cat-dan` hoặc bất kỳ khổ `doc` đều có khung."""
+    if chu_de in GIAO_DIEN_NGAN:
+        return {"font": FONT_CAT_DAN, "co": 44, "khung": False, "vien": True, "gioi_han": GIOI_HAN_DOC,
+                **GIAO_DIEN_NGAN[chu_de]}
     if chu_de == "ngan":
         return {"font": FONT_PHUDU, "co": VIEN_CO.get(kho_ten, 54), "khung": False, "vien": True,
                 "gioi_han": GIOI_HAN_DOC if kho_ten == "doc" else GIOI_HAN_NGANG}
@@ -340,13 +357,29 @@ def _chu_tu_dang_doc(kf: list, cac_tu: list, lech_cs: int = 0, nen: str = MAU_TR
 
 
 def _dialogues_vien_tu_nhom(nhom_dong: list, texts: list, moc: list, bat_dau_canh: float, rong: int, cao: int,
-                            kho_ten: str) -> list:
+                            kho_ten: str, kieu: dict | None = None, tokens: list | None = None) -> list:
     """Video ngắn: MỖI dòng vật lý là một sự kiện riêng (hiện từ từ đầu dòng tới từ đầu dòng sau), nên trên hình chỉ
     có một dòng; chữ vàng viền đen, từ đang đọc trắng."""
     ket: list = []
     for dong_k in nhom_dong:
         dau, het = moc[dong_k[0]], moc[dong_k[-1] + 1]
         kf = _kf_cs(dau, [moc[j] for j in dong_k] + [het])
+        if kieu and "chu" in kieu:
+            chu = _chu_tu_dang_doc(kf, [texts[idx] for idx in dong_k], 0, nen=kieu["chu"], sang=kieu["sang"])
+            co = kieu["co"]
+            tam_y = cao - 220   # khổ dọc 1280: tâm dòng ~1060, chừa đáy cho thanh nút của ứng dụng
+            if kieu.get("hop"):
+                # Viên trắng bo tròn vẽ `\\p1`, chữ neo `\\an7` cùng góc (như khung nền, tránh lỗi lệch của `\\an5`).
+                w = _do_rong_dong(dong_k, tokens) * co / 40 + 2 * 22
+                h = co * 1.45
+                x0, y0 = rong / 2 - w / 2, tam_y - h / 2
+                ket.append(_dialogue(bat_dau_canh, dau, het, "VienHop", layer=0)
+                           + f"{{\\an7\\pos({x0:.0f},{y0:.0f})\\p1}}{_duong_ve_hop(w, h, h / 2.6)}{{\\p0}}")
+                ket.append(_dialogue(bat_dau_canh, dau, het, "Vien", layer=1)
+                           + f"{{\\an7\\pos({x0 + 22:.0f},{y0 + co * 0.16:.0f})}}{chu}")
+            else:
+                ket.append(_dialogue(bat_dau_canh, dau, het, "Vien") + f"{{\\an2\\pos({rong / 2:.0f},{tam_y + co * 0.6:.0f})}}{chu}")
+            continue
         chu = _chu_tu_dang_doc(kf, [texts[idx] for idx in dong_k], 0, nen=MAU_VIEN, sang=MAU_TRANG)
         y = cao - VIEN_DAY.get(kho_ten, 48)
         ket.append(_dialogue(bat_dau_canh, dau, het, "Vien") + f"{{\\an2\\pos({rong / 2:.0f},{y})}}{chu}")
@@ -384,7 +417,8 @@ def _dialogues_khung_tu_nhom(nhom_dong: list, tokens: list, texts: list, moc: li
 def _dialogues_cau(bat_dau_canh: float, start: float, end: float, tu: list, cau_text: str,
                     gioi_han: int = GIOI_HAN_NGANG, style: str = "Itim", khung: bool = False,
                     rong: int = 1280, cao: int = 720, tach_menh_de: bool = False,
-                    canh_bao: list | None = None, so_canh=None, vien: bool = False, kho_ten: str = "ngang") -> list:
+                    canh_bao: list | None = None, so_canh=None, vien: bool = False, kho_ten: str = "ngang",
+                    kieu: dict | None = None) -> list:
     tokens = _MARKUP_RE.sub("", cau_text).split()
     if not tokens:
         return []
@@ -401,7 +435,7 @@ def _dialogues_cau(bat_dau_canh: float, start: float, end: float, tu: list, cau_
     if vien:
         ket = []
         for nhom in cac_phan:
-            ket.extend(_dialogues_vien_tu_nhom(nhom, texts, moc, bat_dau_canh, rong, cao, kho_ten))
+            ket.extend(_dialogues_vien_tu_nhom(nhom, texts, moc, bat_dau_canh, rong, cao, kho_ten, kieu, tokens))
         return ket
     if khung:
         ket: list = []
@@ -417,7 +451,10 @@ def tao_ass(cac_lich: list, rong: int = 1280, cao: int = 720, chu_de: str = "vie
     (`kieu_phu_de`); mặc định giữ đúng đường `viet-tay` khổ ngang cũ (Itim, không khung, 42 ký tự)."""
     kieu = kieu_phu_de(chu_de, kho_ten)
     if kieu.get("vien"):
-        style_name, style_lines = "Vien", [_style_vien(kieu["font"], kieu["co"])]
+        style_name, style_lines = "Vien", [_style_vien(kieu["font"], kieu["co"], kieu)]
+        if kieu.get("hop"):
+            style_lines.append(f"Style: VienHop,{kieu['font']},{kieu['co']},{kieu['hop']},{kieu['hop']},&H00000000,"
+                               "&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1")
     elif kieu["khung"]:
         style_name, style_lines = "Khung", [_style_khung_chu(kieu["font"]), _STYLE_KHUNG_NEN]
     else:
@@ -429,5 +466,6 @@ def tao_ass(cac_lich: list, rong: int = 1280, cao: int = 720, chu_de: str = "vie
             dialogues.extend(_dialogues_cau(cl.bat_dau, start, end, tu, cau_text, gioi_han=kieu["gioi_han"],
                                             style=style_name, khung=kieu["khung"], rong=rong, cao=cao,
                                             tach_menh_de=tach_menh_de, canh_bao=canh_bao, so_canh=cl.so,
-                                            vien=bool(kieu.get("vien")), kho_ten=kho_ten))
+                                            vien=bool(kieu.get("vien")), kho_ten=kho_ten,
+                                            kieu=kieu if "chu" in kieu else None))
     return _header(rong, cao, style_lines) + "\n".join(dialogues) + ("\n" if dialogues else "")

@@ -140,6 +140,11 @@ def _cac_du(video, cac_lich, models, thu_muc: Path, nhac=None) -> list:
         lich.gan_dong_nguon(cac_du[-1], dongs)
     if video.meta.get("loat"):
         lich.gan_loat(cac_du, video.meta["loat"])
+    if video.meta["phong-cach"] == "ngan":
+        # Thanh tiến độ và "02 / 06" của video ngắn: mốc đầu cảnh và tổng thời lượng cả video.
+        tong = sum(cl.thoi_luong for cl in cac_lich)
+        for du, cl in zip(cac_du, cac_lich):
+            du.update({"tongCanh": len(cac_du), "batDauVideo": cl.bat_dau, "tongVideo": tong, "loatTen": video.meta.get("loat")})
     return cac_du
 
 
@@ -302,8 +307,11 @@ def _dung(video: parse.Video, thu_muc: Path, warnings: list, nhac=None) -> dict:
                                       thu_muc_su_kien=lam / "su-kien" if co_am else None, kho=k)
         su_kien = [ket.get(du["so"], []) for du in cac_du] if co_am and ket is not None else None
         log("Ghép video bằng FFmpeg...")
-        files = ghep.ghep_video(thu_muc, cac_lich, cac_giong, video.meta["phu-de"], su_kien=su_kien, nhac=nhac, kho=k,
-                                chu_de=video.meta["phong-cach"], canh_bao=warnings)
+        # Video ngắn vẽ phụ đề ngay trong trang (ngan.js: căn giữa, từ khoá nhiều kiểu): không đốt phụ đề ASS nữa.
+        phu_de = "khong" if video.meta["phong-cach"] == "ngan" else video.meta["phu-de"]
+        files = ghep.ghep_video(thu_muc, cac_lich, cac_giong, phu_de, su_kien=su_kien, nhac=nhac, kho=k,
+                                chu_de=(f"ngan-{video.meta['giao-dien']}" if video.meta["phong-cach"] == "ngan"
+                                        else video.meta["phong-cach"]), canh_bao=warnings)
     finally:
         shutil.rmtree(lam, ignore_errors=True)
     if video.meta["phu-de"] != "file":

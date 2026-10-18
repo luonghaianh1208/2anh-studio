@@ -13,7 +13,7 @@ from pathlib import Path
 from video_parts import media
 
 TAN_SO = 44100
-LOAI = ("chuyen", "but", "ting", "nhan", "tictac", "dung")
+LOAI = ("chuyen", "but", "ting", "nhan", "tictac", "dung", "vut", "pop", "bup", "dem", "ding")
 # Công thức (filtergraph nguồn, ra nhãn [o]) và độ dài (giây) của từng mẫu. Nhiễu có hạt cố định nên xác định.
 CONG_THUC = {
     # Bút: nhiễu trắng lọc thông dải quanh 3 kHz, điều biên 11 Hz và 3 Hz (nét sột soạt). Dài đúng 1 s, số chu kì
@@ -36,10 +36,27 @@ CONG_THUC = {
              "afade=t=in:d=0.004,afade=t=out:st=0.75:d=0.15[o]", 0.9),
     # Nhấn: sine quét lên 500 → 1100 Hz trong 0,3 s, bao hình sin (vào/ra bằng 0).
     "nhan": ("aevalsrc='0.6*sin(2*PI*(500*t+1000*t*t))*sin(PI*t/0.3)':s=44100:d=0.3[o]", 0.3),
+    # Video ngắn (ngan.js gán theo loại vật):
+    # Vút: nhiễu hồng lọc dải quanh 1,8 kHz, to dần rồi nhỏ dần (gió lướt khi vật trượt vào).
+    "vut": ("anoisesrc=d=0.4:c=pink:r=44100:a=0.6:seed=31,bandpass=f=1800:width_type=q:w=0.7,"
+            "afade=t=in:d=0.16,afade=t=out:st=0.18:d=0.22[o]", 0.4),
+    # Pop: sine quét xuống nhanh 900 Hz, tắt rất nhanh (bong bóng, biểu tượng bật ra).
+    "pop": ("aevalsrc='0.8*sin(2*PI*(900*t-1500*t*t))*exp(-30*t)':s=44100:d=0.15,"
+            "afade=t=in:d=0.003,afade=t=out:st=0.12:d=0.03[o]", 0.15),
+    # Bụp: như pop nhưng trầm và mềm (nhân vật đổi tư thế).
+    "bup": ("aevalsrc='0.7*sin(2*PI*(420*t-300*t*t))*exp(-18*t)':s=44100:d=0.2,"
+            "afade=t=in:d=0.004,afade=t=out:st=0.16:d=0.04[o]", 0.2),
+    # Đếm: chuỗi tiếng tích cách 70 ms trong 0,75 s (số chạy, chấm sáng dần).
+    "dem": ("aevalsrc='0.6*sin(2*PI*2200*t)*exp(-90*mod(t,0.07))*lt(t,0.75)':s=44100:d=0.8,"
+            "afade=t=in:d=0.003,afade=t=out:st=0.74:d=0.06[o]", 0.8),
+    # Ding: chuông thông báo hai nốt Son 6 → Đô 7.
+    "ding": ("aevalsrc='0.5*sin(2*PI*1568*t)*exp(-6*t)+0.5*gte(t,0.09)*sin(2*PI*2093*(t-0.09))*exp(-6*(t-0.09))':s=44100:d=0.7,"
+             "afade=t=in:d=0.004,afade=t=out:st=0.6:d=0.1[o]", 0.7),
 }
 DAI_MAU = {loai: dai for loai, (_, dai) in CONG_THUC.items()}
 # Đỉnh của từng mẫu sau chuẩn hoá (tuyến tính). Bút kéo dài nên nhỏ hơn 6 dB.
-DINH_MAU = {"but": 0.25, "ting": 0.5, "chuyen": 0.5, "tictac": 0.5, "dung": 0.5, "nhan": 0.5}
+DINH_MAU = {"but": 0.25, "ting": 0.5, "chuyen": 0.5, "tictac": 0.5, "dung": 0.5, "nhan": 0.5,
+            "vut": 0.4, "pop": 0.5, "bup": 0.45, "dem": 0.35, "ding": 0.5}
 # Kênh hiệu ứng qua bộ giới hạn đỉnh 0,5 (−6,02 dBFS) rồi hạ để đỉnh thấp hơn đỉnh giọng DUOI_GIONG_DB.
 GIOI_HAN = 0.5
 DINH_BUS_DB = 20 * math.log10(GIOI_HAN)

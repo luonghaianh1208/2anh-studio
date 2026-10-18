@@ -59,7 +59,7 @@ Khối thông tin:
 |---|---|---|
 | `tieu-de` | có | tên video |
 | `mon`, `lop` | có | môn và lớp |
-| `phong-cach` | không | `viet-tay` (mặc định: viết tay trên bảng), `cat-dan` (giấy cắt dán kiểu Vox, font Be Vietnam Pro; vài trường có giới hạn chữ thấp hơn một chút) hoặc `ngan` (video ngắn mạng xã hội: nền neon tối, cùng khung, cùng giới hạn chữ với `cat-dan`; không ghi `kho` thì khổ dọc 9:16; cách viết kịch bản ở `docs/vi/tro-ly/video-ngan.md`) |
+| `phong-cach` | không | `viet-tay` (mặc định: viết tay trên bảng), `cat-dan` (giấy cắt dán kiểu Vox, font Be Vietnam Pro; vài trường có giới hạn chữ thấp hơn một chút) hoặc `ngan` (video ngắn mạng xã hội "nhịp hình", luôn khổ dọc 9:16, viết bằng dòng `nhip` như Vox với nhân vật minh hoạ và vật riêng; ngữ pháp riêng ở `docs/vi/tro-ly/video-ngan.md`) |
 | `giong` | không | một giọng VieNeu đọc trên máy (mặc định `thu-giang` khi không ghi); `nu`, `nam`, `nu-tuoi`, `nam-tram` là giọng edge-tts dự phòng (cần mạng). Giọng VieNeu: `thu-giang`, `ngoc-huyen`, `truc-ly`, `doan-trang`, `ngoc-linh`, `mai-anh`, `quynh-anh`, `ngoc-tran`, `thuc-doan`, `thuy-dung`, `my-duyen`, `kim-thanh`, `pham-tuyen`, `xuan-vinh`, `manh-dung`, `minh-quan`, `minh-duc`, `thanh-binh`, `anh-khoi`, `quang-son`, `thai-son`, `minh-triet`, `duc-tri`, `adam` (giới, miền, chất giọng và cách chọn theo nội dung ở `docs/vi/tro-ly/chon-giong.md`); máy không có VieNeu thì lùi về edge-tts cùng giới |
 | `toc-do` | không | `cham`, `vua` (mặc định) hoặc `nhanh` |
 | `phu-de` | không | `karaoke` (mặc định: in lên hình, tô vàng từng từ theo giọng đọc), `hinh` (in lên hình kiểu cũ, cả câu một màu), `file` (file `phu-de.srt` riêng) hoặc `khong` |
@@ -74,6 +74,8 @@ Khối thông tin:
 | `nguon-nhac` | không | dòng nguồn của nhạc nền, chỉ ghi kèm `nhac-nen` khi `nhac/nguon.json` không có bản ghi cho file đó (nhạc thầy cô gửi) |
 | `loat` | không | tên loạt video, tối đa 30 ký tự; có thì mỗi cảnh hiện tên loạt ở góc trái trên và số cảnh "03/08" ở góc phải trên; không ghi thì không hiện |
 | `nhan-vat` | không | `khong` (mặc định: không có nhân vật), `nguoi-que` (người que vẽ sẵn, đứng ở cột phụ của cảnh có `tu-the`) hoặc `ve: <mô tả>` (nhân vật do AI vẽ, mô tả tối đa 200 ký tự) |
+| `giao-dien` | không | chỉ `phong-cach: ngan`: `phang-sang` (mặc định: nền pastel đổi theo cảnh, nhân vật minh hoạ) hoặc `toi-du-lieu` (nền tối, một màu nhấn cam, hợp số liệu, tin công nghệ) |
+| `vai` | không | chỉ `phong-cach: ngan`: dàn nhân vật `<tên> = <vai làm sẵn hoặc bộ phận>; …` (xem `docs/vi/tro-ly/video-ngan.md`) |
 | `mau-ao` | không | màu áo người que: `vang` (mặc định), `do`, `xanh-duong`, `xanh-la`, `cam`, `tim`, `hong` hoặc `xam` |
 
 Các khoá `ban-tay`, `may-quay`, `chuyen-canh`, `chu-dong`, `am-thanh` chỉ ghi khi muốn đổi: không ghi thì đều bật (`chuyen-canh` là lau bảng ở `phong-cach: viet-tay`; ở `cat-dan` không ghi thì `ban-tay` mặc định `khong` và `chuyen-canh` mặc định `xe-giay`; ở `ngan` thì `ban-tay` mặc định `khong` và `chuyen-canh` mặc định `truot`). Ghi `khong` khi thầy cô thấy rối mắt hay ồn và muốn tắt. Cảnh `thi-nghiem` không có bàn tay, máy quay chỉ đẩy chậm. Kịch bản cũ ghi `phu-de: hinh` vẫn giữ phụ đề kiểu cũ.

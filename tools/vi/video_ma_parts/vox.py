@@ -45,7 +45,13 @@ BO_CUC = {
     "dan-hang": {"ngang": ("1", "2", "3", "4"), "doc": ("1", "2", "3", "4")},
     "chong": {"ngang": (), "doc": ()},
     "toan-canh": {"ngang": ("nen", "giua", "duoi"), "doc": ("nen", "giua", "duoi")},
+    # Dựng cảnh nhiều lớp (kiểu giấy cắt có chiều sâu): mỗi ảnh một vai, chữ ở `tren`/`giua`.
+    "dung-canh": {"ngang": ("hau-canh", "chinh", "phu", "phu-2", "tien-canh", "tren", "giua"),
+                  "doc": ("hau-canh", "chinh", "phu", "phu-2", "tien-canh", "tren", "giua")},
 }
+# Ô ảnh của `dung-canh` theo vai, xếp từ xa tới gần; ô chữ của nó.
+VAI_DUNG_CANH = ("hau-canh", "phu-2", "phu", "chinh", "tien-canh")
+O_CHU_DUNG_CANH = ("tren", "giua")
 # vật -> giới hạn ký tự hiện (None: không đếm)
 VAT = {"anh": None, "the": None, "chu": 40, "nhan": 30, "dau": 16, "mui-ten": None, "so": 24,
        "cot": None, "chu-trinh": None, "moc": None, "thap": None}
@@ -80,6 +86,7 @@ class Nhip:
 def khoa_tu(text: str) -> list:
     """Từ đã chuẩn hoá để so cụm với lời: NFC, chữ thường, bỏ dấu câu (giữ dấu thanh) — như lich.khoa_so_khop."""
     s = unicodedata.normalize("NFC", text).lower()
+    s = _NHAN_RE.sub(" ", s.replace("**", " "))   # dấu nhấn (`__` là ký tự chữ với \w) không thuộc cụm từ
     return re.sub(r"[^\w\s]", " ", s).split()
 
 
@@ -103,30 +110,45 @@ def _loi(no: int, message: str):
     return ParseError(no, message)
 
 
-def doc_nhip(value: str, no: int, chi_so: int) -> Nhip:
+def doc_nhip(value: str, no: int, chi_so: int, ngan: bool = False) -> Nhip:
+    """`ngan`: nhịp của video ngắn — vật và tuỳ chọn theo ngan.py, nội dung vật mới kiểm ở ngan.kiem_canh."""
+    from . import ngan as _ngan
+
+    vat_hop_le = _ngan.VAT if ngan else VAT
+    tuy_hop_le = TUY_CHON + _ngan.TUY_CHON if ngan else TUY_CHON
     phan = [p.strip() for p in value.split(" | ")]
     if len(phan) < 2 or not phan[0]:
         raise _loi(no, "`nhip` phải có dạng `<cụm từ trong lời> | <vật>: <nội dung> | <ô> | <tuỳ chọn>`, "
                        "ví dụ `nhip: để mai tính | anh: ve: nhân viên nhún vai | trai`.")
     cum, vat_noi = phan[0], phan[1]
     m = re.match(r"^([a-z-]+):\s*(.*)$", vat_noi)
-    if m is None or m.group(1) not in VAT:
-        raise _loi(no, f"Vật của nhịp phải là một trong: {', '.join(VAT)} (dạng `vat: nội dung`).")
+    if m is None or m.group(1) not in vat_hop_le:
+        raise _loi(no, f"Vật của nhịp phải là một trong: {', '.join(vat_hop_le)} (dạng `vat: nội dung`).")
     vat, noi_dung = m.group(1), m.group(2).strip()
     # Với `the`, chính nội dung chứa " | ": gộp lại 3 phần sau vật.
     du = phan[2:]
     if vat == "the":
         the = [noi_dung] + du
-        cat = 3 if len(the) >= 3 and the[2] not in TUY_CHON and not _la_o(the[2]) else 2
+        cat = 3 if len(the) >= 3 and the[2] not in tuy_hop_le and not _la_o(the[2]) else 2
         noi_dung, du = " | ".join(the[:cat]), the[cat:]
-    o = du[0] if du and du[0] and not set(du[0].split()) <= set(TUY_CHON) else None
+    if ngan and vat in _ngan.VAT_MOI:
+        # Nội dung các vật mới có ` | ` bên trong (thong-bao, truoc-sau, trich-dan…): tách ô/tuỳ chọn ở cuối (tối đa
+        # hai phần), phần còn lại gộp về nội dung.
+        duoi: list = []
+        while du and len(duoi) < 2 and (du[-1] in _ngan.O or (du[-1] and set(du[-1].split()) <= set(tuy_hop_le))):
+            duoi.insert(0, du.pop())
+        if du:
+            noi_dung = " | ".join([noi_dung] + du)
+        du = duoi
+    o = du[0] if du and du[0] and not set(du[0].split()) <= set(tuy_hop_le) else None
     if len(du) > (2 if o is not None else 1):
         raise _loi(no, "Tuỳ chọn viết chung một phần, cách nhau bằng khoảng trắng, ví dụ `| phai | khung duotone`.")
     tuy = tuple((du[1] if o is not None and len(du) > 1 else (du[0] if o is None and du else "")).split())
     for t in tuy:
-        if t not in TUY_CHON:
-            raise _loi(no, f"Tuỳ chọn `{t}` không có; tuỳ chọn của nhịp: {', '.join(TUY_CHON)}.")
-    _kiem_noi_dung(vat, noi_dung, no)
+        if t not in tuy_hop_le:
+            raise _loi(no, f"Tuỳ chọn `{t}` không có; tuỳ chọn của nhịp: {', '.join(tuy_hop_le)}.")
+    if not (ngan and vat in _ngan.VAT_MOI):
+        _kiem_noi_dung(vat, noi_dung, no)
     return Nhip(cum=cum, vat=vat, noi_dung=noi_dung, o=o, tuy_chon=tuy, dong=no, chi_so=chi_so)
 
 
@@ -234,6 +256,18 @@ def kiem_canh(scene, kho: str) -> None:
                                        f"ô đúng: {', '.join(o_hop_le)}.")
         if "dung" in n.tuy_chon and n.vat != "dau":
             raise _loi(n.dong, "Tuỳ chọn `dung` (dấu xanh) chỉ dùng cho `dau`.")
+        if bo_cuc == "dung-canh":
+            if n.o is None and n.vat != "mui-ten":
+                raise _loi(n.dong, "Bố cục `dung-canh` cần ghi rõ ô của từng nhịp: ảnh ở `hau-canh`, `chinh`, `phu`, "
+                                   "`phu-2`, `tien-canh`; chữ ở `tren` hoặc `giua`.")
+            if n.vat == "mui-ten":
+                raise _loi(n.dong, "Bố cục `dung-canh` không dùng `mui-ten`.")
+            if n.vat == "anh" and n.o not in VAI_DUNG_CANH:
+                raise _loi(n.dong, f"Ảnh của `dung-canh` đặt ở một vai: {', '.join(VAI_DUNG_CANH)}.")
+            if n.vat != "anh" and n.o not in O_CHU_DUNG_CANH:
+                raise _loi(n.dong, f"`{n.vat}` của `dung-canh` đặt ở `tren` hoặc `giua`; các ô vai chỉ dành cho ảnh.")
+            if n.vat == "anh" and n.o != "hau-canh" and "khung" in n.tuy_chon:
+                raise _loi(n.dong, "Nhân vật và tiền cảnh của `dung-canh` là ảnh cắt rời, không dùng `khung`.")
         if n.vat in DANH_SACH and bo_cuc == "chong":
             raise _loi(n.dong, f"`{n.vat}` cần một ô rộng; dùng bố cục `mot`, `hai-ben` hoặc `toan-canh`, không dùng `chong`.")
         if n.vat == "chu":
@@ -251,6 +285,14 @@ def kiem_canh(scene, kho: str) -> None:
             raise _loi(n.dong, f"Cụm \"{n.cum}\" không có trong lời của Cảnh {scene.so}: \"{scene.loi}\". "
                                "Chép đúng vài từ liền nhau trong lời.")
         vi_tri = i + len(khoa_tu(n.cum))
+    if bo_cuc == "dung-canh":
+        vai = [n.o for n in scene.nhip if n.vat == "anh"]
+        trung = sorted({o for o in vai if vai.count(o) > 1})
+        if trung:
+            n0 = next(n for n in scene.nhip if n.vat == "anh" and n.o == trung[0])
+            raise _loi(n0.dong, f"Vai `{trung[0]}` của `dung-canh` chỉ có một ảnh; thêm người thì dùng `phu-2`.")
+        if "chinh" not in vai and "hau-canh" not in vai:
+            raise _loi(scene.dong_truong["bo-cuc"][0], "Cảnh `dung-canh` cần ít nhất ảnh `hau-canh` hoặc nhân vật `chinh`.")
     if bo_cuc == "chong" and len(scene.nhip) > CHONG_TOI_DA:
         raise _loi(scene.nhip[CHONG_TOI_DA].dong, f"Bố cục `chong` tối đa {CHONG_TOI_DA} vật.")
 

@@ -1,5 +1,22 @@
 # Nhật ký thay đổi — Bản Việt
 
+## 6.3.2-vi.22 — 2026-10-19
+
+Video ngắn làm lại thành "nhịp hình" (thiết kế `docs/vi/phat-trien/2026-10-19-video-ngan-nhip-hinh-thiet-ke.md`), học từ các kênh TikTok tham khảo: hình đổi theo từng cụm lời, mỗi màn một hình chính, nhân vật minh hoạ, phụ đề từ khoá nổi bật. Thay hẳn bản nền neon (vi.17).
+
+### Thêm
+- `phong-cach: ngan` dùng ngữ pháp nhịp (`nhip: <cụm từ> | <vật>: <nội dung> | <ô>`), không có `loai`/`bo-cuc`; luôn khổ dọc. Khoá đầu `giao-dien`: `phang-sang` (nền pastel đổi theo cảnh, nhân vật) hoặc `toi-du-lieu` (nền tối, nhấn cam). Trường cảnh `tieu-de`, `chuong`. Mã: `video_ma_parts/ngan.py`, `runtime/ngan.js`, `runtime/ngan.css`.
+- Nhân vật minh hoạ phẳng ghép từ bộ phận (`runtime/nhan-vat-phang.js`, 10 tư thế của người que): khoá đầu `vai: <tên> = <vai làm sẵn hoặc bộ phận>; …` — giới, 6 kiểu tóc, da, 11 kiểu áo (có áo dài, áo bà ba, đồng phục, tạp dề, vest), quần/váy, 6 loại mũ (kê-pi, nón lá, mũ đầu bếp…), phụ kiện; 13 vai làm sẵn. Gọi lại cùng vai = đổi tư thế.
+- Vật mới: `nguoi`, `nhom`, `bieu-tuong`, `luoi-cham`, `truoc-sau`, `tin-nhan` (tuỳ chọn `dien-thoai`), `thong-bao`, `trich-dan`; dùng lại `chu`, `so`, `the`, `nhan`, `dau`, `cot`, `moc`, `chu-trinh`, `thap`. Vật mới ở ô chính thay vật trước; vật tự thu nhỏ vừa ô; nhãn tiêu đề tự thu nhỏ.
+- Phụ đề vẽ ngay trong trang: mỗi lúc một dòng, căn giữa theo bề rộng thật, từ đang đọc đổi màu; từ khoá theo dấu nhấn của lời — `==…==` tô nền (Baloo 2), `((…))` khoanh vẽ tay, `__…__` gạch chân, `**…**` chữ to (xen kẽ Phudu / Lobster), `{{số}}` số to. Ngắt dòng theo gợi ý ` / ` của AI (không đọc), không cắt giữa cụm nhấn và từ hai tiếng, không để hư từ treo cuối dòng.
+- Font Baloo 2 ExtraBold và Lobster (OFL, đủ dấu tiếng Việt) trong `runtime/fonts/`.
+- Tiếng hiệu ứng mới tự tạo (`am_thanh.py`): `vut`, `pop`, `bup`, `dem`, `ding`, gán theo loại vật (nhân vật lướt vào, đổi tư thế, bong bóng tin nhắn, số chạy, thông báo); chuyển cảnh có tiếng.
+- Hướng dẫn AI `docs/vi/tro-ly/video-ngan.md` viết lại: chọn giao diện theo nội dung, tự ghép nhân vật đúng vai, bảng vật, phụ đề, ba công thức, ví dụ.
+
+### Sửa
+- VieNeu đọc sai tiếng đầu mỗi câu ("Người ta" → "Thế ta"; kiểm bằng nhận dạng giọng): `vieneu_doc.py` đọc kèm tiếng mồi "À, " rồi cắt bỏ ở khoảng lặng; giữ 120 ms trước tiếng (phụ âm đầu nhỏ); temperature 0,6 cho giọng đều hơn.
+- So cụm từ của nhịp bỏ qua dấu nhấn `__` (trước đây `__…__` làm cụm không khớp).
+
 ## 6.3.2-vi.21 — 2026-10-18
 
 ### Sửa
@@ -48,6 +65,16 @@ Video ngắn mạng xã hội: phong cách mới `ngan`, gộp cách làm của 
 
 ### Sửa
 - Giọng đọc video: cần `edge-tts>=7.3.1` (bản cũ bị máy chủ Microsoft từ chối, lỗi 403); đã thêm vào `tools/vi/requirements-vi.txt`.
+
+## Chưa phát hành
+
+Video Vox dựng thành tranh giấy cắt nhiều lớp, học cách làm của video "hoạt hình giấy cắt có chiều sâu" (Codex + Remotion): tách mỗi cảnh thành hậu cảnh, nhân vật, tiền cảnh, mỗi vai một nhịp.
+
+### Thêm
+- Bố cục `dung-canh`: ảnh đặt theo vai `hau-canh` (tranh phủ kín khung, không người), `phu-2`, `phu` (vai phụ), `chinh` (vai chính), `tien-canh` (vật sát ống kính); chữ ở `tren`, `giua`. Hậu cảnh trôi chậm, nhân vật đứng chân chạm đáy khung và che nhau theo thứ tự xa gần, tiền cảnh được phóng to, tràn ra góc khung và trôi ngược chiều. Mỗi vai một kiểu vào: vai chính trồi lên và thu nhẹ về cỡ, vai phụ trượt vào từ mép gần nó, tiền cảnh trượt lên.
+- Prompt ảnh theo vai: hậu cảnh là một bức tranh liền mạch không có người, chừa nửa dưới làm sân khấu; nhân vật vẽ cả thân, đúng một người, khổ dọc 1024×1536.
+- Hướng dẫn "Dựng cảnh nhiều lớp": bố cục tĩnh trước, chuyển động sau; mỗi lớp một vai kể chuyện; mỗi ảnh vai một người; soát ảnh xem trước như một bức tranh đứng yên.
+- Chữ lớn cân dòng khi xuống dòng (không để trơ một chữ ở dòng cuối).
 
 ## 6.3.2-vi.16 — 2026-10-14
 

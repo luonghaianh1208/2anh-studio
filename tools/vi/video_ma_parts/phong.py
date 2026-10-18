@@ -118,6 +118,16 @@ def _face(ten: str, path: Path, dam: str = "") -> str:
     return f"@font-face{{font-family:'{ten}';{dam}src:url(data:font/ttf;base64,{b64});}}"
 
 
+# Font từ khoá của phụ đề video ngắn (ngan.css): Baloo 2 (tô nền, số), Phudu (chữ nhấn đậm), Lobster (chữ nhấn kiểu viết).
+FONT_PHU_DE_NGAN = {"Baloo": _FONTS / "Baloo2-ExtraBold.ttf", "Phudu": _FONTS / "Phudu-ExtraBold.ttf",
+                    "Lobster": _FONTS / "Lobster-Regular.ttf"}
+
+
+def font_css_ngan() -> str:
+    """Be Vietnam Pro (như cat-dan) và ba font từ khoá của phụ đề video ngắn, nhúng data:."""
+    return font_css("cat-dan") + "".join(_face(ten, path) for ten, path in FONT_PHU_DE_NGAN.items())
+
+
 def font_css(phong_cach: str = "viet-tay") -> str:
     """Khối @font-face nhúng data: của chủ đề. `cat-dan`/`vox` nhúng Be Vietnam Pro 400 và 800 (vox dùng tên họ
     `TEN_VOX` khớp `CHU_DE["vox"]["font"]`), và vẫn nhúng Itim."""

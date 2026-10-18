@@ -27,6 +27,8 @@ def dung_trang(du: dict, model=None) -> str:
     scripts = [f"window.THI_O_BO_CUC = {json_nhung(kho_py.O)};\n", _doc(RUNTIME / "kho.js")]
     if du["loai"] == "vox":
         return _trang_vox(du, kho, scripts)
+    if du["loai"] == "ngan":
+        return _trang_ngan(du, kho, scripts)
     if du["loai"] == "thi-nghiem":
         scripts.append(_doc(NGHIEM / "khung.js"))
         scripts.append(model.js)
@@ -46,6 +48,18 @@ def dung_trang(du: dict, model=None) -> str:
             f"<style>\n:root {{ --rong: {kho['rong']}px; --cao: {kho['cao']}px; --day: {kho['day']}px; }}\n"
             f"{phong.font_css(chu_de)}\n{_doc(RUNTIME / 'viet-tay.css')}\n{css_them}</style></head>\n"
             f"<body><div id=\"khung\"></div>\n{body}\n</body></html>\n")
+
+
+def _trang_ngan(du: dict, kho: dict, scripts: list) -> str:
+    # Video ngắn: người que (bộ khớp + tư thế) vẽ lại bằng nhân vật minh hoạ phẳng; ngan.js tự cung cấp THI_VIDEO.
+    for ten in ("dong.js", "nhan-vat.js", "nhan-vat-phang.js", "ngan.js"):
+        scripts.append(_doc(RUNTIME / ten))
+    scripts.append(f"window.DU_CANH = {json_nhung(du)};\nTHI_KHO.dat(window.DU_CANH.kho);\nTHI_VIDEO.khoiDong(window.DU_CANH);")
+    body = "\n".join(f"<script>\n{s}\n</script>" for s in scripts)
+    return ("<!doctype html>\n<html lang=\"vi\"><head><meta charset=\"utf-8\">"
+            f"<style>\n:root {{ --rong: {kho['rong']}px; --cao: {kho['cao']}px; --day: {kho['day']}px; }}\n"
+            f"{phong.font_css_ngan()}\n{_doc(RUNTIME / 'ngan.css')}\n</style></head>\n"
+            f"<body class=\"{du['giaoDien']}\"><div id=\"khung\"></div>\n{body}\n</body></html>\n")
 
 
 def _trang_vox(du: dict, kho: dict, scripts: list) -> str:

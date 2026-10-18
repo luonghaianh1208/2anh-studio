@@ -279,6 +279,10 @@ def tai_lieu_hien(chu: str) -> str:
 
 
 def du_lieu_canh(scene: Scene, cl: CanhLich, model=None, tai_nguyen: dict | None = None) -> dict:
+    if scene.loai == "vox" and (tai_nguyen or {}).get("meta", {}).get("phong-cach") == "ngan":
+        from . import ngan
+        meta = tai_nguyen["meta"]
+        return ngan.du_lieu_canh(scene, cl, meta, ngan.doc_dan_vai(meta.get("vai", "")))
     if scene.loai == "vox":
         from . import vox
         return vox.du_lieu_canh(scene, cl, tai_nguyen or {"anh": {}}, (tai_nguyen or {}).get("meta", {}))

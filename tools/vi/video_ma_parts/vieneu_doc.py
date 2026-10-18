@@ -18,9 +18,12 @@ import soundfile as sf
 
 SR = 48000
 NGUONG = 0.012   # biên độ coi là lặng khi cắt hai đầu câu
-DEM = 0.03       # giữ lại 30 ms trước tiếng
+DEM = 0.12       # giữ lại 120 ms trước tiếng: phụ âm đầu nhỏ ("Ng", "Nh") dưới ngưỡng — cắt sát thì mất tiếng đầu
 DEM_SAU = 0.18   # và 180 ms sau tiếng: âm cuối, thanh hỏi/ngã nhỏ dần dưới ngưỡng — cắt sát thì cụt tiếng cuối câu
 MO = 0.012       # làm to dần / nhỏ dần hai đầu (giây), tránh tiếng tách ở chỗ cắt
+# Độ ngẫu nhiên khi sinh giọng: mặc định của VieNeu v3 Turbo là 0,8, giọng dễ "trôi" âm sắc giữa câu; 0,6 đều hơn mà
+# vẫn tự nhiên.
+NHIET = 0.6
 
 
 def cat_lang(a: np.ndarray) -> np.ndarray:
@@ -38,6 +41,40 @@ def cat_lang(a: np.ndarray) -> np.ndarray:
     return a
 
 
+# VieNeu hay đọc sai TIẾNG ĐẦU của câu ("Người ta" → "Thế ta", "Thủ phạm" → "Hồ phạm"; đã kiểm bằng nhận dạng giọng):
+# đọc kèm tiếng mồi "À, " rồi cắt bỏ mồi ở khoảng lặng của dấu phẩy. Không thấy khoảng lặng thì đọc lại không mồi.
+MOI = "À, "
+MOI_LANG = 0.06                  # khoảng lặng tối thiểu (giây) sau tiếng mồi
+MOI_TRONG = (0.12, 1.2)          # khoảng lặng đó phải nằm trong đoạn này (giây từ đầu)
+
+
+def bo_moi(a: np.ndarray) -> np.ndarray | None:
+    """Cắt phần mồi: tìm khoảng lặng ≥ MOI_LANG đầu tiên sau khi đã có tiếng, trong MOI_TRONG; trả phần sau khoảng
+    lặng (None nếu không thấy)."""
+    khung = int(0.01 * SR)
+    if len(a) < khung * 20:
+        return None
+    nang = np.sqrt(np.convolve(a.astype(np.float64) ** 2, np.ones(khung) / khung, mode="same"))
+    lang = nang < NGUONG
+    da_co_tieng, chuoi = False, 0
+    for i in range(int(MOI_TRONG[0] * SR), min(len(a), int(MOI_TRONG[1] * SR)), khung):
+        if not lang[i]:
+            if da_co_tieng and chuoi * khung >= MOI_LANG * SR:
+                return a[i - int(DEM * SR):]
+            da_co_tieng, chuoi = True, 0
+        elif da_co_tieng:
+            chuoi += 1
+    return None
+
+
+def doc_cau(tts, cau: str, giong: str) -> np.ndarray:
+    tho = np.asarray(tts.infer(MOI + cau, voice=giong, temperature=NHIET), dtype=np.float32).squeeze()
+    sau = bo_moi(tho)
+    if sau is None:
+        sau = np.asarray(tts.infer(cau, voice=giong, temperature=NHIET), dtype=np.float32).squeeze()
+    return cat_lang(sau)
+
+
 def main(path: str) -> int:
     viec = json.loads(Path(path).read_text(encoding="utf-8"))
     from vieneu import Vieneu
@@ -48,7 +85,7 @@ def main(path: str) -> int:
     for v in viec["viec"]:
         doan, moc, dai, t = [], [], [], 0.0
         for k, cau in enumerate(v["cau"]):
-            a = cat_lang(np.asarray(tts.infer(cau, voice=viec["giong"]), dtype=np.float32).squeeze())
+            a = doc_cau(tts, cau, viec["giong"])
             if k:
                 doan.append(nghi)
                 t += len(nghi) / SR

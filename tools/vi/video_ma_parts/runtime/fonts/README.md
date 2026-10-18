@@ -18,3 +18,10 @@ Phudu (phụ đề video ngắn `phong-cach: ngan`), tác giả Dương Trần (
 |---|---|
 | `Phudu-ExtraBold.ttf` | 800 |
 | `OFL-Phudu.txt` (`OFL.txt` của thư mục trên) | — |
+
+Baloo 2 và Lobster (từ khoá trong phụ đề video ngắn `phong-cach: ngan`), giấy phép SIL Open Font License 1.1 (`OFL-Baloo2.txt`, `OFL-Lobster.txt`), tải từ kho `google/fonts` (`ofl/baloo2/Baloo2[wght].ttf` cắt bản tĩnh độ đậm 800 bằng `fontTools.varLib.instancer`, họ "Baloo 2 ExtraBold"; `ofl/lobster/Lobster-Regular.ttf`). Cả hai đủ dấu tiếng Việt.
+
+| File | Dùng cho |
+|---|---|
+| `Baloo2-ExtraBold.ttf` | từ khoá tô nền `==…==`, số `{{…}}` |
+| `Lobster-Regular.ttf` | từ khoá nhấn kiểu chữ viết `**…**` (xen kẽ với Phudu) |

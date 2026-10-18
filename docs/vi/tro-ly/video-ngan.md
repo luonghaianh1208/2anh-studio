@@ -1,121 +1,145 @@
-# Video ngắn mạng xã hội (`phong-cach: ngan`)
+# Video ngắn "nhịp hình" (`phong-cach: ngan`)
 
-File dành cho AI viết `video.md`. Đọc cùng `docs/vi/tro-ly/video-hap-dan.md` (hook, nhịp, đa dạng cảnh), `docs/vi/tro-ly/chon-giong.md` (chọn giọng theo nội dung), `docs/vi/tham-khao/video-viet-tay.md` (khối thông tin đầu, giọng, phụ đề) và `docs/vi/tham-khao/canh-video.md` (danh mục loại cảnh, trường, giới hạn chữ, nhấn ý). Phong cách `ngan` dùng đúng các loại cảnh, trường và giới hạn của `cat-dan`; chỉ khác "da": nền neon tối có lưới và quầng sáng, nhãn tiêu đề trên dải màu neon (cyan, hồng, vàng chanh, tím theo số cảnh), thẻ thông tin kiểu kính tối viền sáng, chữ trắng phát sáng. Không ghi `kho` thì khổ dọc 9:16 (TikTok, Reels, Shorts); không ghi `chuyen-canh` thì trượt nhanh; không có bàn tay.
+File dành cho AI viết `video.md` cho video ngắn mạng xã hội (TikTok, Reels, Shorts), khổ dọc 9:16. Đọc cùng `video-hap-dan.md` (hook, nhịp, kết) và `chon-giong.md` (chọn giọng). Ngữ pháp ở đây **khác** viết tay/cắt dán: không có `loai`, không có `bo-cuc`; mỗi cảnh là lời đọc + các dòng `nhip`, mỗi nhịp làm hình thay đổi đúng lúc giọng đọc tới một cụm từ.
 
-Ba công thức dưới đây gộp cách làm của ba mẫu video ngắn tiếng Việt hay được dùng: giải thích kiến thức (hook → vấn đề → giải pháp → kêu gọi), so sánh hai khái niệm dễ nhầm, và tin nhanh từ một bài báo.
+Nguyên tắc vàng (học từ các kênh triệu lượt xem): **hình đổi theo từng cụm lời, 1–2 giây một lần**; mỗi màn có **một hình chính** to, rõ; chữ trên hình ít, lời đọc kể chuyện.
 
 ## Khối thông tin đầu
 
 ```
 ---
-tieu-de: <tên video, cũng là tiêu đề tệp>
-mon: <môn hoặc chủ đề>
-lop: <lớp, hoặc "Mọi người">
+tieu-de: <tên video>
 phong-cach: ngan
-loat: <tên kênh hoặc tên loạt, tối đa 30 ký tự — hiện ở góc trái trên như nhãn kênh>
+giao-dien: phang-sang
+loat: <tên kênh, ≤ 30 ký tự>
+giong: <khoá giọng theo chon-giong.md>
 toc-do: nhanh
-giong: <khoá giọng chọn theo chon-giong.md>
+vai: an = hoc-sinh-nam; linh = hoc-sinh-nu, ao so-mi hong
 ---
 ```
 
-- `loat` là nhãn kênh (ví dụ `2ANH AI · HOÁ 11`); người dùng không nói tên kênh thì để tên chủ đề ngắn.
-- `toc-do: nhanh` hợp video ngắn; thầy cô muốn đọc chậm cho học sinh nhỏ thì `vua`.
-- `giong`: chọn theo nội dung và người xem như `chon-giong.md` — không mặc định một giọng. Ví dụ: mẹo học → `ngoc-huyen`/`thu-giang`; tin nhanh → `mai-anh`/`minh-duc`; chuyện bí ẩn → `thanh-binh`.
+- Chỉ `tieu-de` bắt buộc. Khổ luôn dọc (không ghi `kho`).
+- `giao-dien` — chọn theo nội dung:
 
-## Nhịp chung
-
-- Tổng 30–60 giây, 4–7 cảnh. Mỗi cảnh 1–3 câu lời, mỗi câu tối đa khoảng 14 từ: phụ đề hiện từng dòng ngắn, câu dài bị tách và đọc vội.
-- Cảnh 1 là **hook**: câu hỏi gây tò mò hoặc một sự thật bất ngờ, lời đọc xong trong khoảng 3 giây đầu.
-- Không có hai cảnh liền nhau cùng `loai`; mỗi cảnh có biểu tượng `hinh`, thẻ số `the` hoặc sơ đồ để nhìn (xem `video-hap-dan.md`).
-- Mỗi cảnh nhấn **một** ý bằng `==…==` hoặc `((…))`; con số cần nhớ viết `{{số}}`.
-- Cảnh cuối luôn là **kêu gọi**: `loai: tieu-de`, `chu` kiểu "Theo dõi để học tiếp", `phu` nói kênh học gì; lời mời theo dõi, thả tim, lưu video.
-- Không chèn địa chỉ web vào bất kỳ trường nào; nguồn ghi ở `tai-lieu` (tên báo, ngày).
-
-## Công thức 1 — Giải thích ngắn
-
-Hợp với một khái niệm, một hiện tượng, một công cụ.
-
-| Cảnh | Loại | Nội dung |
+| Giao diện | Hợp với | Nhìn |
 |---|---|---|
-| 1 Hook | `tieu-de` | `chu`: câu hỏi tò mò ≤ 40 ký tự; `phu`: lời hứa ("Hiểu trong 45 giây") |
-| 2 Vấn đề | `y-tung-y` hoặc `khai-niem` | nỗi khó / hiểu lầm hay gặp, 2–3 ý |
-| 3 Giải pháp | `khai-niem` | `thuat-ngu` + `dinh-nghia` ngắn; thêm `the` nếu có một con số đắt giá |
-| 4 Cách làm | `quy-trinh` | 3 bước, mỗi bước ≤ 6 từ |
-| 5 Lợi ích | `y-tung-y` | 3 ý, mỗi ý bắt đầu bằng động từ |
-| 6 Kết | `tieu-de` | kêu gọi |
+| `phang-sang` | kỹ năng sống, giao tiếp, giáo dục, mẹo học, chuyện đời thường, tình huống có người | nền pastel đổi màu theo cảnh, nhân vật minh hoạ, nhãn tiêu đề trong khung trắng, phụ đề chữ đen trên viên trắng |
+| `toi-du-lieu` | tin công nghệ, số liệu, khoa học, bí ẩn, sự kiện, so sánh trước/sau | nền gần đen, một màu nhấn cam, số khổng lồ, lưới chấm, thẻ thông báo, phụ đề chữ trắng |
 
-## Công thức 2 — So sánh A và B
+- `vai` — dàn nhân vật của video (bỏ được nếu chỉ dùng vai làm sẵn). Mỗi vai `<tên> = <mô tả>`, cách nhau bằng `;`. Tên viết thường không dấu, nối `-`.
 
-Hợp với cặp khái niệm hay nhầm (axit/bazơ, oxi hoá/khử, thiên thạch/sao băng, Dev/DevOps). Một loạt video giữ cùng nhịp, chỉ đổi nội dung.
+### Nhân vật: tự nghĩ ra đúng vai nội dung cần
 
-| Cảnh | Loại | Nội dung |
+Nội dung có ai thì dựng người đó — công an, đầu bếp, nông dân, vận động viên, ông bà, bác sĩ… Không có sẵn thì **ghép từ bộ phận**:
+
+| Bộ phận | Viết | Lựa chọn |
 |---|---|---|
-| 1 Hook | `tieu-de` | `chu`: "A hay ((B))?"; `phu`: "Phân biệt trong 30 giây" |
-| 2 So sánh | `so-sanh` | `trai`: A, `phai`: B; 3 dòng `y-trai` và 3 dòng `y-phai` **cùng tiêu chí, cùng thứ tự** (định nghĩa, dấu hiệu nhận biết, ví dụ) |
-| 3 Mẹo nhớ | `khai-niem` | một câu mẹo phân biệt; `the` nếu có ngưỡng số (`pH | {{7}} | trung tính`) |
-| 4 Kiểm tra nhanh | `cau-hoi` | một câu hỏi 2–3 lựa chọn, `cho: 4` |
-| 5 Kết | `tieu-de` | kêu gọi ("Cặp tiếp theo: …?") |
+| giới | `nam` hoặc `nu` | (nữ mặc định tóc dài) |
+| tóc | `toc <kiểu> [màu]` | kiểu: `ngan`, `re-ngoi`, `dai`, `duoi-ngua`, `bui`, `troc`; màu: `den`, `nau`, `bac`, `vang` |
+| da | `da <màu>` | `sang`, `vua`, `ngam` |
+| áo | `ao <kiểu> [màu]` | `so-mi`, `so-mi-dai`, `ao-thun`, `hoodie`, `blouse`, `ao-dai`, `ao-ba-ba`, `vest`, `tap-de`, `dong-phuc`, `the-thao` |
+| dưới | `duoi <kiểu> [màu]` | `quan`, `quan-short`, `vay` |
+| mũ | `mu <kiểu>` | `mu-bao-ho`, `ke-pi`, `non-la`, `mu-dau-bep`, `luoi-trai`, `bao-hiem` |
+| phụ kiện | `phu <a> <b> …` | `kinh`, `ca-vat`, `khan-do`, `ong-nghe`, `phu-hieu`, `cap-sach` |
 
-Muốn có người dẫn: thêm `nhan-vat: nguoi-que` ở khối đầu và `tu-the` (`chi-tay`, `suy-nghi`, `an-mung`…) ở cảnh `tieu-de`, `khai-niem`, `y-tung-y` (cảnh có `tu-the` không có `hinh`).
+Màu: `do`, `cam`, `vang`, `xanh-la`, `xanh-reu`, `xanh-duong`, `xanh-nhat`, `xanh-than`, `tim`, `hong`, `nau`, `be`, `xam`, `den`, `trang` hoặc mã `#RRGGBB`.
 
-## Công thức 3 — Tin nhanh từ một bài báo
+13 vai làm sẵn (gọi thẳng tên, hoặc lấy làm gốc rồi đổi vài bộ phận): `hoc-sinh-nam`, `hoc-sinh-nu`, `thay-giao`, `co-giao` (áo dài), `bac-si`, `nha-khoa-hoc`, `ky-su`, `van-phong-nu`, `ban-tre`, `ban-tre-nu`, `phu-huynh-nu`, `ong`, `ba`.
 
-Người dùng gửi link bài báo hoặc dán nội dung: đọc kỹ bài, chỉ dùng thông tin và con số **có trong bài**, không thêm, không đoán.
+Ví dụ ghép: `cong-an = nam, toc ngan, ao dong-phuc xanh-reu, duoi quan xanh-reu, mu ke-pi, phu phu-hieu` · `dau-bep = nu, toc bui, ao tap-de, duoi quan den, mu mu-dau-bep` · `nong-dan = nam, da ngam, ao ao-ba-ba nau, duoi quan den, mu non-la` · `vdv = nu, toc duoi-ngua, ao the-thao do, duoi quan-short den`. Hai nhân vật cùng cảnh thì khác màu áo. Một nhân vật giữ nguyên trang phục cả video.
 
-| Cảnh | Loại | Nội dung |
+## Cảnh
+
+```
+## Cảnh 1
+tieu-de: <nhãn tiêu đề ≤ 40 ký tự>
+chuong: <nhãn chương ≤ 20 ký tự, ví dụ "1 · VÍ DỤ">
+loi: <lời đọc, có dấu nhấn từ khoá và gợi ý ngắt dòng>
+nhip: <cụm từ trong lời> | <vật>: <nội dung> | <ô> | <tuỳ chọn>
+```
+
+- `tieu-de`, `chuong`, `nguon` (nguồn số liệu, không hiện trên hình), `giu` (giây giữ hình sau lời, 0,5–3) đều bỏ được.
+- **3–6 nhịp mỗi cảnh** (tối đa 8), hai nhịp cách nhau không quá ~2,5 giây lời đọc; nhịp đầu là `@dau` (hiện ngay khi vào cảnh).
+- `<cụm từ>` chép đúng vài từ liền nhau trong `loi` (bỏ qua dấu nhấn, chữ hoa); các nhịp theo đúng thứ tự lời.
+
+### Vật
+
+| Vật | Nội dung | Giới hạn |
 |---|---|---|
-| 1 Tin nóng | `tieu-de` | `chu`: tiêu đề tin rút gọn ≤ 50 ký tự; `phu`: "Tin nhanh · <ngày đăng>" |
-| 2 Con số | `khai-niem` (hoặc `bieu-do` nếu bài có 2–5 số liệu so sánh) | `thuat-ngu`: điều được đo; `the: <nhãn> | {{số}} | <đơn vị/so với>` |
-| 3 Điểm chính | `y-tung-y` | 3–4 điểm, mỗi điểm ≤ 8 từ |
-| 4 Trích dẫn | `khai-niem` | `thuat-ngu`: người phát biểu; `dinh-nghia`: câu trích ngắn trong ngoặc kép |
-| 5 Ý nghĩa | `khai-niem` | tin này ảnh hưởng gì tới người xem (học sinh, thầy cô, phụ huynh) |
-| 6 Kết | `tieu-de` | kêu gọi; `tai-lieu`: tên báo, ngày đăng |
+| `nguoi` | `<vai> <tư thế>` — vai trong `vai:` hoặc vai làm sẵn. Gọi lại cùng vai ở nhịp sau = **đổi tư thế** (không thêm người) | tư thế: `dung`, `chao`, `chi-tay`, `giai-thich`, `suy-nghi`, `ngac-nhien`, `vo-dau`, `dung-lai`, `an-mung`, `buon` |
+| `nhom` | 2–4 người cách nhau `;`: `nhom: an dung; linh chao; binh giai-thich` | |
+| `bieu-tuong` | `<tên biểu tượng tabler> \| <nhãn>` (tên tiếng Anh như mục "Bảng tra biểu tượng" của canh-video.md: `bulb`, `alarm`, `heart`, `flask`…) | nhãn ≤ 24 |
+| `so` | số chạy `{{số}}` kèm chữ: `so: {{30}} mét` | 24 |
+| `luoi-cham` | `<số sáng>/<tổng> \| <chú thích>`: `luoi-cham: 7/10 \| bạn sẽ thông cảm` | tổng ≤ 200, chú thích ≤ 50 |
+| `truoc-sau` | `<trước> -> <sau> \| <nhãn trước> \| <nhãn sau>`: `truoc-sau: 80,4% -> 71,8% \| đủ suy luận \| bản tóm tắt` | giá trị ≤ 12, nhãn ≤ 20 |
+| `tin-nhan` | 1–3 tin `ban: …` (người kia, trái) / `minh: …` (phải), cách nhau `;`; tuỳ chọn `dien-thoai` đặt trong khung điện thoại | mỗi tin ≤ 70 |
+| `thong-bao` | `<ứng dụng> \| <tiêu đề> \| <nội dung>` (thẻ thông báo màn hình khoá) | 16 / 40 / 70 |
+| `trich-dan` | `"<câu>" \| <người nói>` | 120 / 40 |
+| `chu` | một câu chốt lớn | 40 |
+| `the` | `<nhãn> \| <giá trị> \| <chú thích>` | 24 / 16 / 60 |
+| `nhan`, `dau` | nhãn màu / con dấu | 30 / 16 |
+| `cot` | biểu đồ cột `2022 = 12; 2024 = 45%` (2–5 cột) | như Vox |
+| `moc`, `chu-trinh`, `thap` | dòng thời gian / các bước / tháp, mục cách nhau `;` | như Vox |
 
-Bài dài thì chọn ý quan trọng nhất; bài có nhiều mốc thời gian thì thay cảnh 3 bằng `dong-thoi-gian`.
+Không có `anh` ở video ngắn.
+
+### Ô và cách xếp
+
+- Bỏ trống ô (cách thường dùng): vật vào **ô chính** — cả sân khấu khi cảnh không có nhân vật, phần trên sân khấu khi có nhân vật (nhân vật luôn đứng ở sàn phía dưới). **Vật mới vào ô chính thay vật trước** (vật cũ mờ đi): nhờ đó mỗi nhịp là một hình chính mới.
+- Muốn hai vật cùng hiện: ghi ô `tren`, `duoi`, `trai`, `phai` (vật sau cùng ô mới thay vật trước ở ô đó).
+- Nhân vật tự xếp theo số vai trong cảnh (1 người giữa, 2 người hai bên…); `nguoi: … | trai` để chọn chỗ.
+
+## Phụ đề: từ khoá và ngắt dòng
+
+Phụ đề hiện mỗi lúc một dòng, căn giữa. Trong `loi`, đánh dấu **1–2 từ khoá mỗi câu** để phụ đề nổi bật (giọng đọc bỏ qua các dấu này):
+
+| Viết trong lời | Phụ đề hiện | Dùng cho |
+|---|---|---|
+| `==nhờ vả==` | tô nền vàng, font tròn | từ khoá chính của câu |
+| `((lực hút))` | khoanh vòng vẽ tay | khái niệm, thứ cần chú ý |
+| `__lựa chọn khác__` | gạch chân | giải pháp, kết luận |
+| `**không dám**` | chữ to, khác font, màu nhấn | cảm xúc, phủ định, cú twist |
+| `{{30}}` | số to | con số |
+
+Đổi kiểu nhấn giữa các câu cho đa dạng. Cụm nhấn 1–3 từ.
+
+**Ngắt dòng**: mỗi dòng phụ đề ≤ 26 ký tự. Câu dài hơn thì chèn ` / ` (dấu gạch chéo có khoảng trắng hai bên) vào chỗ ngắt tự nhiên — giữa hai cụm nghĩa, **không bao giờ giữa một từ ghép** ("lực / hút" sai, "có / lực hút" đúng). Dấu này không được đọc.
+
+## Ba công thức
+
+1. **Tình huống – giải pháp** (`phang-sang`): Cảnh 1 tình huống quen (2 nhân vật, tin nhắn), Cảnh 2 hậu quả/cảm xúc (đổi tư thế, `bieu-tuong`), Cảnh 3 giải pháp (`chuong: 2 · GIẢI PHÁP`, `luoi-cham` hoặc `truoc-sau`), Cảnh 4 kết + kêu gọi.
+2. **Giải mã số liệu** (`toi-du-lieu`): hook bằng `so` khổng lồ, `luoi-cham` cho tỉ lệ, `truoc-sau` cho thay đổi, `thong-bao`/`trich-dan` làm bằng chứng, kết bằng câu hỏi cho người xem.
+3. **Tin nhanh từ link**: chỉ dùng số và câu trích **có trong bài**; `thong-bao` cho tiêu đề tin, `so`/`cot` cho số liệu, `trich-dan` cho phát biểu, `nguon:` ghi tên báo.
 
 ## Ví dụ
 
 ```
 ---
-tieu-de: Axit và bazơ khác nhau thế nào
-mon: Hoá học
-lop: 11
+tieu-de: Từ chối khéo khi bị nhờ vả
 phong-cach: ngan
-loat: 2ANH AI · HOÁ 11
-toc-do: nhanh
+giao-dien: phang-sang
+loat: KỸ NĂNG SỐNG
 giong: ngoc-huyen
+toc-do: nhanh
+vai: an = hoc-sinh-nam; linh = hoc-sinh-nu, ao so-mi hong
 ---
 
 ## Cảnh 1
-loai: tieu-de
-chu: Axit hay ((bazơ))?
-phu: Phân biệt trong 30 giây
-hinh: flask
-loi: Chanh chua, xà phòng trơn. Một bên là axit, một bên là bazơ. Phân biệt thế nào cho đúng?
+tieu-de: Bị nhờ vả
+chuong: 1 · VÍ DỤ
+loi: Bạn có hay bị bạn bè / ==nhờ vả== liên tục / mà **không dám** từ chối? Ví dụ như / nhờ mua giùm đồ ăn mỗi ngày.
+nhip: @dau | nguoi: an dung
+nhip: bạn bè nhờ vả | nguoi: linh chi-tay
+nhip: không dám từ chối | nguoi: an vo-dau
+nhip: nhờ mua giùm | tin-nhan: ban: Ê, mua giùm tớ hộp cơm nha!; minh: Ừm… để tớ xem
 
 ## Cảnh 2
-loai: so-sanh
-tieu-de: Axit và bazơ
-trai: Axit
-phai: Bazơ
-y-trai: Vị ==chua==
-y-trai: Quỳ tím hoá đỏ
-y-trai: pH nhỏ hơn 7
-y-phai: Vị chát, nhờn
-y-phai: Quỳ tím hoá xanh
-y-phai: pH lớn hơn 7
-loi: Axit có vị chua, làm quỳ tím hoá đỏ, pH nhỏ hơn bảy. Bazơ thì chát và nhờn, làm quỳ hoá xanh, pH lớn hơn bảy.
-
-## Cảnh 3
-loai: khai-niem
-thuat-ngu: Phản ứng ==trung hoà==
-dinh-nghia: Axit gặp bazơ tạo ra muối và nước.
-the: pH trung tính | {{7}} | nước nguyên chất
-loi: Khi axit gặp bazơ, chúng trung hoà nhau, tạo ra muối và nước, pH tiến về bảy.
-
-## Cảnh 4
-loai: tieu-de
-chu: Theo dõi để học tiếp
-phu: Hoá 11 mỗi ngày một phút
-loi: Theo dõi kênh để học Hoá mỗi ngày một phút nhé!
+tieu-de: Cách nói khéo
+chuong: 2 · GIẢI PHÁP
+loi: Hãy nói rõ / ((lý do)) của mình, rồi đưa ra / một __lựa chọn khác__. {{7}} trên 10 bạn / sẽ **thông cảm** ngay.
+nhip: @dau | nguoi: an giai-thich
+nhip: lý do của mình | bieu-tuong: message-circle | Nói rõ lý do
+nhip: lựa chọn khác | nguoi: linh suy-nghi
+nhip: 7 trên 10 | luoi-cham: 7/10 | bạn sẽ thông cảm
+nhip: thông cảm ngay | nguoi: linh an-mung
 ```
