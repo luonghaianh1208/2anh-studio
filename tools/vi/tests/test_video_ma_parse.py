@@ -31,7 +31,7 @@ class FixtureTest(unittest.TestCase):
         video = parse.parse(MAU.read_text(encoding="utf-8"))
         self.assertEqual([c.loai for c in video.canh], list(parse.SCENE_TYPES[:8]))
         self.assertEqual([c.so for c in video.canh], list(range(1, 9)))
-        self.assertEqual(video.meta["giong"], "nu")
+        self.assertEqual(video.meta["giong"], "thu-giang")
         self.assertEqual(video.meta["toc-do"], "vua")
         self.assertEqual(video.meta["phu-de"], "karaoke")
         self.assertEqual(video.meta["phong-cach"], "viet-tay")

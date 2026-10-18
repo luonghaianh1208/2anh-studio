@@ -26,9 +26,10 @@ class MacDinhTest(unittest.TestCase):
         v = doc()
         self.assertEqual((v.meta["phong-anh"], v.meta["nen-canh"], v.meta["giong"]), ("cat-dan", "ve", "thu-giang"))
 
-    def test_other_styles_keep_the_edge_voice(self):
+    def test_other_styles_also_default_to_vieneu(self):
+        # vi.20: VieNeu là giọng chính ở mọi phong cách; edge-tts chỉ là dự phòng khi máy không có VieNeu.
         v = parse.parse("---\ntieu-de: T\nmon: A\nlop: 1\n---\n\n## Cảnh 1\nloai: tieu-de\nchu: A\nloi: B.\n")
-        self.assertEqual(v.meta["giong"], "nu")
+        self.assertEqual(v.meta["giong"], "thu-giang")
 
     def test_background_description_is_a_scene_field(self):
         v = doc()

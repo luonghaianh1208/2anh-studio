@@ -40,7 +40,7 @@ META_FREE = ("nhac-nen", "nguon-nhac", "loat", "nhan-vat", "thoi-luong")
 # `ban-tay` và `chuyen-canh` không có mặt ở đây: mặc định của hai khoá này đổi theo `phong-cach` (lich.mac_dinh),
 # nên kịch bản không ghi thì để trống trong `meta` thay vì điền cứng "co"/"lau-bang".
 META_DEFAULTS = {
-    "phong-cach": "viet-tay", "giong": "nu", "toc-do": "vua", "phu-de": "karaoke",
+    "phong-cach": "viet-tay", "giong": "thu-giang", "toc-do": "vua", "phu-de": "karaoke",
     "may-quay": "co",
     "chu-dong": "co", "am-thanh": "co", "kho": "ngang", "do-phan-giai": "1080",
     "nhan-vat": "khong", "mau-ao": "vang",

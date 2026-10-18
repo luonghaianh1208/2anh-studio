@@ -1,5 +1,13 @@
 # Nhật ký thay đổi — Bản Việt
 
+## 6.3.2-vi.20 — 2026-10-18
+
+### Đổi
+- Giọng mặc định của video (khi kịch bản không ghi `giong`) là Thu Giang của VieNeu ở mọi phong cách, thay cho giọng nữ edge-tts. Máy không có VieNeu vẫn tự lùi về edge-tts cùng giới.
+
+### Thêm
+- `tools/vi/giong_bai_giang.py`: đọc lời giảng của video bài giảng từ slide bằng VieNeu (`--giong`, `--toc-do`). Ghi `audio/<trang>.mp3`, phụ đề `.srt` (mỗi câu một dòng, câu dài chia đều) và `manifest.json` như `notes_to_audio.py`. Máy không có VieNeu thì gọi `notes_to_audio.py` với giọng edge-tts cùng giới.
+
 ## 6.3.2-vi.19 — 2026-10-18
 
 ### Đổi

@@ -409,6 +409,8 @@ class CliTest(unittest.TestCase):
             for patch in trinh_duyet_gia():
                 stack.enter_context(patch)
             stack.enter_context(mock.patch.object(video_ma.giong, "lay_giong", side_effect=lay))
+            # Giọng mặc định là VieNeu: giả máy không có VieNeu để đi đường edge-tts giả, không bao giờ chạy VieNeu thật.
+            stack.enter_context(mock.patch.object(video_ma.giong, "co_vieneu", return_value=False))
             stack.enter_context(mock.patch.object(video_ma.chup, "chup_canh", side_effect=fake_chup))
             stack.enter_context(mock.patch.object(video_ma.ghep, "ghep_video", side_effect=ghep_gia))
             code, data = self.one_json([str(self.dir)])

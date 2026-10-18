@@ -157,7 +157,8 @@ class VieTayPlanOnlyTest(unittest.TestCase):
         self.assertEqual(code, 0, data)
         self.assertEqual(data["so_canh"], 3)
         self.assertEqual(data["warnings"], [])
-        self.assertAlmostEqual(data["thoi_luong_uoc"], 14.8, delta=0.05)
+        # Không ghi `giong` → Thu Giang (VieNeu, vi.20), ước tính theo tốc độ đọc của VieNeu (edge-tts cũ: 14,8).
+        self.assertAlmostEqual(data["thoi_luong_uoc"], 10.7, delta=0.05)
 
 
 class VoxThieuAnhTest(unittest.TestCase):
