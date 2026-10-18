@@ -55,6 +55,21 @@ CAT_DAN = {
         "A full-frame collage scene filling the entire image edge to edge: {mo_ta}. Layered cut-out halftone photographs "
         "and engravings over aged cream paper, with large torn shapes of navy, vermilion and mustard paper."
     ),
+    "hau": (
+        "A full-frame background stage filling the entire image edge to edge: {mo_ta}. One coherent illustration "
+        "made of halftone photographs and copperplate engravings in muted sepia with palette accents, on aged cream "
+        "paper; only a few small torn paper accents at the far edges. Empty of people, figures and animals: the "
+        "characters are separate cut-outs placed in front later. Ground line in the lower quarter, open space in the "
+        "lower half."
+    ),
+    "vai": (
+        "One single full-body cut-out showing exactly this and nothing else: {mo_ta}. Exactly one person (or the one "
+        "object described), never a second person. Rendered as a detailed "
+        "vintage halftone photograph or copperplate engraving in muted sepia with small accents from the palette, cut out "
+        "along the silhouette with a thin white paper border. Whole figure visible from head to feet, feet at the bottom "
+        "of the figure, no ground, no shadow, no other people. Centered with margin on a perfectly flat pure green #00FF00 "
+        "background that fills the whole image edge to edge, no shadow on the green."
+    ),
 }
 CAT_DAN_CAM = "No text, no letters, no numbers, no logos, no watermark."
 # `phong-anh: ban-ve`: bản vẽ kỹ thuật. Vật cắt rời vẽ trên một tấm thẻ giấy xanh (nét trắng mảnh không tách được
@@ -79,6 +94,14 @@ BAN_VE = {
     ),
     "khung": "A single rectangular technical blueprint drawing filling the entire image edge to edge: {mo_ta}. No border.",
     "phu": "A full-frame technical blueprint scene filling the entire image edge to edge: {mo_ta}.",
+    "hau": ("A full-frame technical blueprint background stage filling the entire image edge to edge: {mo_ta}. "
+            "No people; open space in the lower half."),
+    "vai": (
+        "One single full-body figure drawn as a technical line drawing showing exactly this and nothing else: {mo_ta}. "
+        "Drawn on a cut-out card of blueprint paper following the figure outline with a thin white border, feet at the "
+        "bottom, centered with margin on a perfectly flat pure green #00FF00 background that fills the whole image, no "
+        "shadow on the green."
+    ),
 }
 # Phong cách ảnh có prompt chi tiết: (phần chung, bố cục theo kiểu ảnh).
 PHONG_CHI_TIET = {"cat-dan": (CAT_DAN_CHUNG, CAT_DAN), "ban-ve": (BAN_VE_CHUNG, BAN_VE)}
@@ -88,6 +111,7 @@ CAU_NHAN_VAT = ("the main character ({mo_ta}); draw the same main character with
 KHO_ANH = {"cat": "1024x1024", ("khung", "ngang"): "1536x1024", ("khung", "doc"): "1024x1536",
            ("phu", "ngang"): "1536x1024", ("phu", "doc"): "1024x1536",
            ("nen", "ngang"): "1536x1024", ("nen", "doc"): "1024x1536"}
+KHO_VAI = "1024x1536"
 # Nền AI của cảnh không thuộc nhịp nào: chỉ số nhịp quy ước -1, khoá trong vox.json là "<cảnh>-nen".
 CHI_SO_NEN = -1
 LOI_TRONG_NEN = 160
@@ -119,7 +143,7 @@ def khoa(m: Muc) -> str:
 
 
 def _kieu(n, nguon: str) -> str:
-    if n.o == "nen":
+    if n.o in ("nen", "hau-canh"):
         return "phu"
     if nguon != "ve" or "khung" in n.tuy_chon:
         return "khung"   # ảnh thật và ảnh có sẵn luôn là khung (spec 4.6)
@@ -142,13 +166,14 @@ def _nen_canh(video, c) -> Muc:
     return Muc(ma_anh(prompt, kt), c.so, CHI_SO_NEN, "nen", "ve", prompt, kt, ())
 
 
-def _prompt_ve(video, mo_ta: str, kieu: str) -> str:
+def _prompt_ve(video, mo_ta: str, kieu: str, vai: str | None = None) -> str:
+    """`vai` (bố cục `dung-canh`): `hau` cho hậu cảnh không người, `vai` cho nhân vật và tiền cảnh cắt rời."""
     nhan_vat = video.meta.get("nhan-vat-chinh")
     if nhan_vat and DAU_NHAN_VAT in mo_ta:
         mo_ta = mo_ta.replace(DAU_NHAN_VAT, CAU_NHAN_VAT.format(mo_ta=nhan_vat))
     if video.meta["phong-anh"] in PHONG_CHI_TIET:
         chung, bo = PHONG_CHI_TIET[video.meta["phong-anh"]]
-        return " ".join([chung, bo[kieu].format(mo_ta=mo_ta), CAT_DAN_CAM])
+        return " ".join([chung, bo[vai or kieu].format(mo_ta=mo_ta), CAT_DAN_CAM])
     phan = [mo_ta, DUOI_PHONG[video.meta["phong-anh"]]]
     if kieu == "cat":
         phan.append(DUOI_CAT)
@@ -171,7 +196,10 @@ def lap(video) -> list:
             co_phu = co_phu or kieu == "phu"
             kt = KHO_ANH["cat"] if kieu == "cat" else KHO_ANH[(kieu, kho)]
             if nguon == "ve":
-                prompt = _prompt_ve(video, nd[3:].strip(), kieu)
+                vai = "hau" if n.o == "hau-canh" else ("vai" if n.o in ("chinh", "phu", "phu-2", "tien-canh") else None)
+                if vai == "vai" and n.o != "tien-canh":
+                    kt = KHO_VAI   # người đứng cả thân: khổ dọc
+                prompt = _prompt_ve(video, nd[3:].strip(), kieu, vai)
             else:
                 prompt = nd[4:].strip() if nguon == "tim" else nd
             ma = ma_anh(prompt, kt) if nguon == "ve" else hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:10]

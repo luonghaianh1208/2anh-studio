@@ -57,10 +57,18 @@ Ví dụ: `nhip: để mai tính | anh: ve: bàn tay cầm điện thoại, ch�
 | `dan-hang` | `1`, `2`, `3`, `4` (xếp ngang) | `1`, `2`, `3`, `4` (xếp dọc) | danh sách, các bước |
 | `chong` | không có ô: tự xếp lệch nhau theo cảnh, tối đa 5 vật | như ngang | nhiều yếu tố rối rắm cùng lúc |
 | `toan-canh` | `nen` (ảnh phủ kín khung), `giua`, `duoi` | như ngang | nơi chốn, bối cảnh, một khoảnh khắc |
+| `dung-canh` | ảnh: `hau-canh`, `phu-2`, `phu`, `chinh`, `tien-canh`; chữ: `tren`, `giua` | như ngang | cảnh kể chuyện có nhân vật: một bức tranh giấy cắt nhiều lớp |
 
 - `mot`: `giua` là ô lớn cho ảnh; `tren` và `duoi` là dải hẹp, dành cho `chu`, `nhan`, `dau`, `so`.
 - `hai-ben`: ô `giua` nằm đè lên mép trong của hai bên; chỉ đặt ở đó một `dau` hoặc `nhan` ngắn, không đặt ảnh hay `the`. Con dấu, nhãn được dán đè lên ảnh hai bên (công cụ không tính là đè nhau), nhưng càng dài càng che ảnh: giữ khoảng 8 ký tự (`IM LẶNG`); hai bên là ảnh `khung` thì nên ngắn hơn, như `VS`.
 - `dan-hang`: mỗi ô hẹp (ngang khoảng một phần tư khung), hợp với `the`, `nhan`, ảnh cắt nền; chữ dài thì dễ tràn.
+- `dung-canh`: mỗi nhịp ghi rõ ô. Ảnh đặt theo vai, mỗi vai một ảnh, xếp từ xa tới gần:
+  - `hau-canh`: tranh phủ kín khung, không người (cung điện, phố, lớp học, đồng ruộng); trôi chậm nhất.
+  - `phu-2`, `phu`: nhân vật phụ, đứng sau vai chính (phía phải và giữa khung); trượt vào từ mép gần chúng.
+  - `chinh`: nhân vật chính, phía trái, đứng trước cùng; trồi lên và thu nhẹ về đúng cỡ.
+  - `tien-canh`: vật sát ống kính (cành lá, lan can, rèm, sóng nước), được phóng to và tràn ra ngoài góc khung, trôi ngược chiều để ra chiều sâu.
+  - Chữ (`nhan`, `chu`, `the`, `dau`, `so`) ở `tren` (nhãn tiêu đề góc trái) hoặc `giua` (góc phải trên); không dùng `mui-ten`.
+  - Nhân vật và tiền cảnh là ảnh cắt rời, không dùng `khung`. Mỗi cảnh cần ít nhất `hau-canh` hoặc `chinh`.
 - `toan-canh`: `nen` chỉ nhận `anh` (ảnh được cắt phủ đúng khổ, dạng khung); chữ đè lên ở `giua` hoặc `duoi`.
 - Ô sai với bố cục là lỗi `parse`, thông báo liệt kê các ô đúng. Bố cục `chong` mà ghi ô cũng là lỗi.
 - Nhịp không ghi ô lấy ô đầu tiên còn trống theo thứ tự trong bảng (bỏ qua `nen` và các ô đã ghi ở nhịp khác của cảnh); hết ô thì dùng ô cuối và dễ đè lên vật khác. Muốn chắc chắn thì ghi ô.
@@ -89,6 +97,25 @@ Mặc định ảnh ở lớp giữa; chữ, thẻ, nhãn, dấu ở lớp gần
 - Ở bước `--xem-truoc` và dựng thật, công cụ đo trên hình và báo lỗi `canh` khi chữ của một nhịp tràn ô, hai vật đè nhau quá 30% (giữa hai vật chữ hay giữa hai ảnh; trừ bố cục `chong`, và trừ `dau`, `nhan` dán lên ảnh). Rút chữ, đổi ô hay đổi bố cục rồi chạy lại.
 
 ## Ví dụ từng bố cục
+
+`dung-canh`: một cảnh kể chuyện bốn lớp. Vai chính và vai phụ là hai ảnh riêng, hậu cảnh không có người.
+
+```
+---
+tieu-de: Sơn Tinh, Thủy Tinh
+phong-cach: vox
+nhan-vat-chinh: Sơn Tinh, chàng trai Việt cổ cao lớn vạm vỡ, tóc búi, mình trần, khố và áo choàng ngắn màu nâu đất, tay cầm cây gậy thần bằng gỗ
+---
+
+## Cảnh 1
+bo-cuc: dung-canh
+loi: Có hai chàng trai cùng đến cầu hôn. Sơn Tinh là chúa vùng núi non, còn Thủy Tinh là chúa vùng nước thẳm.
+nhip: @dau | anh: ve: sân lớn trước cung điện thời Hùng Vương, lát đá, cờ phướn hai bên | hau-canh
+nhip: Sơn Tinh | anh: ve: @nhan-vat đứng thẳng, ngực ưỡn, nhìn sang phải | chinh
+nhip: Thủy Tinh | anh: ve: Thủy Tinh, chàng trai Việt cổ dáng thanh mảnh, áo choàng dài màu xanh biển có hoa văn sóng nước, đội vương miện hình con sóng, đứng nhìn sang trái | phu
+nhip: @dau | anh: ve: vài lá sen và một đoá sen hồng vươn lên từ góc dưới | tien-canh
+nhip: @dau | nhan: Hai chàng cùng đến | tren
+```
 
 `mot`: một vật và một câu chốt. Cảnh có số liệu nên có `nguon`.
 
