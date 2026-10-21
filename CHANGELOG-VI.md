@@ -1,5 +1,11 @@
 # Nhật ký thay đổi — Bản Việt
 
+## Chưa phát hành
+
+### Thêm
+- Cỡ chữ slide trình chiếu (bài giảng, báo cáo, hoạt động Đoàn, tập huấn; khổ 16:9 và 4:3): không chữ nào dưới 24pt, thân bài từ 28pt (chọn "nhiều chữ" thì 24pt), tiêu đề từ 36pt; dòng ghi nguồn ảnh và số trang từ 18pt. Thay bảng cỡ chữ mặc định của upstream (thân bài 15–24pt) vì chữ nhỏ chiếu lên khó đọc. Hướng dẫn ghi rõ cỡ tương ứng trong SVG (1px = 0,75pt: 24pt = 32, 28pt = 38, 36pt = 48).
+- `tools/vi/kiem_co_chu.py`: đọc các trang SVG của dự án, tính cỡ chữ thật (kể cả thừa hưởng từ nhóm), báo dòng nào dưới mức và cỡ px cần sửa; AI chạy trước khi xuất PPTX. Poster mạng xã hội (khổ khác) không áp.
+
 ## 6.3.2-vi.22 — 2026-10-19
 
 Video Vox có thêm bố cục `dung-canh`: mỗi cảnh kể chuyện là một tranh giấy cắt nhiều lớp (hậu cảnh, vai phụ, vai chính, tiền cảnh), học từ video "hoạt hình giấy cắt có chiều sâu". Video ngắn làm lại thành "nhịp hình" (thiết kế `docs/vi/phat-trien/2026-10-19-video-ngan-nhip-hinh-thiet-ke.md`), học từ các kênh TikTok tham khảo: hình đổi theo từng cụm lời, mỗi màn một hình chính, nhân vật minh hoạ, phụ đề từ khoá nổi bật. Thay hẳn bản nền neon (vi.17).

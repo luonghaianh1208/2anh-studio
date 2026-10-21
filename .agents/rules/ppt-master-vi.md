@@ -48,7 +48,7 @@ Bài mới thuộc 5 loại việc tạo PPTX ở bảng trên, kể cả tạo 
 
 ## Mật độ chữ
 
-Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop hỏi mật độ chữ: ít chữ → `presentation`, vừa → `balanced`, nhiều chữ → `text`; chưa chọn thì báo cáo vừa, ba loại kia ít chữ. Ít chữ: mỗi trang một ý, khoảng 5 dòng, giải thích vào lời giảng; không vừa thì chia trang, không bỏ thông tin. Muốn làm đẹp slide có sẵn mà ít chữ hơn, tách hay gộp trang: không dùng Beautify, tạo mới từ file đó như tài liệu nguồn.
+Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop hỏi mật độ chữ: ít chữ → `presentation`, vừa → `balanced`, nhiều chữ → `text`; chưa chọn thì báo cáo vừa, ba loại kia ít chữ. Cỡ chữ trình chiếu: không chữ nào dưới 24pt (SVG `font-size` 32), thân bài từ 28pt (38), tiêu đề từ 36pt (48); nguồn ảnh, số trang từ 18pt; trước khi xuất chạy `tools\vi\kiem_co_chu.py <dự án>` tới khi `ready` true. Ít chữ: mỗi trang một ý, khoảng 5 dòng, giải thích vào lời giảng; không vừa thì chia trang, không bỏ thông tin. Muốn làm đẹp slide có sẵn mà ít chữ hơn, tách hay gộp trang: không dùng Beautify, tạo mới từ file đó như tài liệu nguồn.
 
 ## Kiểu nhìn
 

@@ -17,6 +17,7 @@ File dành cho AI. Đọc khi làm Bài giảng, Báo cáo – tổng kết, Ho�
 - Thầy cô gọi tên một kiểu thì dùng kiểu đó, kể cả khi khác bảng trên. Thầy cô tả bằng lời ("trẻ trung", "trang trọng", "dễ thương") thì chọn kiểu gần nhất và nói tên kiểu đã chọn.
 - Hồ sơ đơn vị có "Màu chủ đạo" thì thay màu chính của bảng màu bằng màu đó, giữ các màu còn lại.
 - Mục "Không hợp với" của kiểu khớp với bài (ví dụ báo cáo nhiều bảng số mà chọn Bút dạ) thì nói với thầy cô một dòng và đề xuất kiểu khác.
+- Cỡ chữ theo mục "Mật độ chữ" của `quy-trinh-hoi.md`: không chữ nào dưới 24pt, thân bài từ 28pt; cỡ ghi trong từng kiểu dưới đây không được thấp hơn mức đó.
 - Ghi vào brief, mục "Phong cách gợi ý": `Kiểu nhìn: <tên kiểu> — bảng màu <tên bảng>`, kèm "(thầy cô đồng ý)" hoặc "(AI đề xuất, chưa duyệt)". Ở bước xác nhận của upstream, nêu tên kiểu và bảng màu trong phần phong cách.
 
 ## Tám kiểu
@@ -30,7 +31,7 @@ File dành cho AI. Đọc khi làm Bài giảng, Báo cáo – tổng kết, Ho�
   - Xanh trời: `#FFFFFF`, `#1E2430`, `#1F6FB2`, `#F2A541`
   - Lá non: `#FBFCF7`, `#1E2A20`, `#2E8B57`, `#F2C14E`
   - Cam ấm: `#FFFDF8`, `#2B2620`, `#E4572E`, `#2E86AB`
-- Chữ: Segoe UI (hoặc Arial), tiêu đề đậm 40–48pt, nội dung từ 28pt.
+- Chữ: Segoe UI (hoặc Arial), tiêu đề đậm 40–48pt, nội dung từ 28pt, không chữ nào dưới 24pt.
 - Hoạ tiết: ít, chỉ `sao-ve-tay` cho ý cần khen, `mui-ten-ve-tay` chỉ vào hình.
 - Nhịp trang: tiêu đề trái, hình phải; trang câu hỏi có ô đáp án riêng; trang hoạt động có nhãn tên hoạt động ở góc.
 - Upstream: style `workshop-teaching` hoặc `science-explainer` (môn tự nhiên); layout `presentation_core` (`presentation_core_43` cho máy chiếu 4:3).
@@ -73,7 +74,7 @@ File dành cho AI. Đọc khi làm Bài giảng, Báo cáo – tổng kết, Ho�
   - Kẹo ngọt: `#FFF6F0`, `#2B2B2B`, `#FF6F91`, `#FFC75F`
   - Vườn xanh: `#F4FBF2`, `#23331E`, `#4CAF50`, `#FFB703`
   - Biển xanh: `#F0F8FF`, `#1D2A3A`, `#2A9DF4`, `#FF8C42`
-- Chữ: Segoe UI đậm, tiêu đề 48pt, nội dung từ 32pt.
+- Chữ: Segoe UI đậm, tiêu đề 48pt, nội dung từ 32pt (lớp nhỏ ngồi xa vẫn đọc được).
 - Hoạ tiết: `goc-nguech`, `sao-ve-tay`, `hoa-giay` (thưa).
 - Nhịp trang: một câu hỏi hay một việc mỗi trang; tranh chiếm nửa trang.
 - Upstream: style `workshop-teaching`; layout `presentation_core`.
@@ -115,7 +116,7 @@ File dành cho AI. Đọc khi làm Bài giảng, Báo cáo – tổng kết, Ho�
   - Mòng két: `#FFFFFF`, `#1E2430`, `#0F5E66`, `#E4572E`
   - Tối giản: `#FFFFFF`, `#222222`, `#333F50`, `#1F6FB2`
   - Công thức: `#FBFBF8`, `#1E2430`, `#3D4A8A`, `#D97706`
-- Chữ: Segoe UI hoặc Calibri; tiêu đề 36pt, nội dung 24–28pt.
+- Chữ: Segoe UI hoặc Calibri; tiêu đề 36pt, nội dung 28pt (nhiều chữ thì 24pt), chú thích và nhãn biểu đồ từ 24pt.
 - Hoạ tiết: `o-ke` (nền công thức), `ngoac-kep` (trích dẫn).
 - Nhịp trang: động cơ → phương pháp → kết quả → giới hạn → điều rút ra; trang công thức kèm ghi chú người nói đọc từng ký hiệu bằng lời thường; số liệu phải có nguồn.
 - Upstream: style `academic-research`; layout `presentation_core`.

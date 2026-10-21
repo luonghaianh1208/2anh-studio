@@ -106,6 +106,20 @@ Mục này quy đổi lựa chọn của thầy cô về lượng chữ trên sl
 - Số dòng là định hướng để soát bài, không phải hạn mức cứng của upstream.
 - Ít chữ là chuyển chữ đi chỗ khác, không bỏ thông tin: phần giải thích vào lời giảng; nội dung không vừa một trang thì chia thêm trang; quá trình, so sánh, số liệu thì vẽ sơ đồ hoặc biểu đồ thay cho câu chữ. Quy tắc của upstream vẫn giữ nguyên: không bỏ thông tin chỉ để vừa bố cục.
 - Ở bước xác nhận của upstream, điền chế độ đọc đúng theo bảng; tạo nhanh thì áp chế độ đó khi tự quyết.
+
+Cỡ chữ cho slide trình chiếu (khổ `ppt169`, `ppt43`; chiếu lên màn hình lớp học, hội trường). Người dùng muốn chữ đủ to để ngồi cuối phòng vẫn đọc được; điều này thay cho bảng cỡ chữ mặc định của upstream (`skills/ppt-master/references/canvas-formats.md`, vốn cho thân bài 15–24pt):
+
+| Chữ | Tối thiểu | Cỡ trong SVG (1px = 0,75pt) |
+|---|---|---|
+| Mọi chữ trên slide | 24pt | `font-size` từ 32 |
+| Thân bài khi chọn ít chữ hoặc vừa | 28pt | từ 38 (nên 38–44) |
+| Thân bài khi chọn nhiều chữ | 24pt | từ 32 |
+| Tiêu đề trang | 36pt | từ 48 |
+| Dòng ghi nguồn ảnh, số trang | 18pt | từ 24 |
+
+- Chữ không vừa trang ở cỡ này thì rút gọn, tách trang hoặc chuyển phần giải thích vào lời giảng; không thu nhỏ chữ. Nhãn biểu đồ, chú thích ảnh, chữ trong sơ đồ cũng theo mức 24pt.
+- Áp cho Bài giảng, Báo cáo – tổng kết, Hoạt động Đoàn – sự kiện, Tập huấn/workshop, cả khi tạo nhanh. Poster/ấn phẩm Zalo – Facebook xem trên điện thoại, không chiếu, nên theo upstream.
+- Sau khi bộ kiểm cuối của upstream qua và trước khi xuất PPTX, chạy `python tools\vi\kiem_co_chu.py <thư_mục_dự_án>`. `ready` là `false` thì sửa từng dòng trong `loi` lên đúng `px_can` (sửa bố cục nếu chữ to ra bị tràn), chạy lại bộ kiểm của upstream rồi chạy lại lệnh này. `canh_bao` là dòng thân bài dài còn dưới 28pt: sửa khi chế độ đọc là ít chữ hoặc vừa.
 - Làm đẹp slide có sẵn (Beautify) giữ nguyên văn từng chữ và từng trang. Thầy cô muốn làm đẹp mà ít chữ hơn, rút gọn, tách hay gộp trang: không dùng Beautify, mà tạo mới từ file đó (file PPTX cũ làm tài liệu nguồn) theo loại việc phù hợp và mật độ chữ thầy cô chọn. Nói trước với thầy cô một dòng rằng bài sẽ được dựng lại, không chỉ đổi giao diện.
 
 ## Kiểu nhìn

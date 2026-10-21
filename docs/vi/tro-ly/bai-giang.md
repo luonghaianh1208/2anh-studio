@@ -61,7 +61,7 @@ Ví dụ câu lệnh:
 
 - Kiểu nhìn theo `docs/vi/tro-ly/kieu-slide.md`: mặc định Học đường sáng (THCS, THPT) hoặc Sách tranh tiểu học (Tiểu học); thầy cô gọi tên kiểu khác thì theo kiểu đó.
 - Học đường, sáng rõ, nền sáng, tương phản cao để học sinh cuối lớp vẫn đọc được.
-- Chữ nội dung từ 28pt; font Segoe UI hoặc Arial.
+- Chữ nội dung từ 28pt, không chữ nào dưới 24pt (mục "Mật độ chữ" của `quy-trinh-hoi.md`); font Segoe UI hoặc Arial.
 - Đề xuất mode `instructional` của upstream.
 - Khi dùng máy chiếu 4:3 có thể đề xuất layout `presentation_core_43` của upstream.
 
