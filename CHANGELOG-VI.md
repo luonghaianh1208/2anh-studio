@@ -1,6 +1,8 @@
 # Nhật ký thay đổi — Bản Việt
 
-## Chưa phát hành
+## 6.3.2-vi.23 — 2026-10-22
+
+Chữ trên slide trình chiếu đủ to để ngồi cuối phòng vẫn đọc được.
 
 ### Thêm
 - Cỡ chữ slide trình chiếu (bài giảng, báo cáo, hoạt động Đoàn, tập huấn; khổ 16:9 và 4:3): không chữ nào dưới 24pt, thân bài từ 28pt (chọn "nhiều chữ" thì 24pt), tiêu đề từ 36pt; dòng ghi nguồn ảnh và số trang từ 18pt. Thay bảng cỡ chữ mặc định của upstream (thân bài 15–24pt) vì chữ nhỏ chiếu lên khó đọc. Hướng dẫn ghi rõ cỡ tương ứng trong SVG (1px = 0,75pt: 24pt = 32, 28pt = 38, 36pt = 48).

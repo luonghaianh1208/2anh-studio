@@ -18,7 +18,7 @@ Nhắn cho AI một câu như *"Làm bài giảng 12 slide về phản ứng oxi
 
 > **Dành cho AI agent:** người dùng nhờ cài bộ công cụ này (hoặc chỉ dán link repo) thì làm theo [docs/vi/cai-dat-bang-ai.md](docs/vi/cai-dat-bang-ai.md), không tự nghĩ cách cài khác.
 
-Phiên bản: **6.3.2-vi.22** · [Nhật ký thay đổi](CHANGELOG-VI.md)
+Phiên bản: **6.3.2-vi.23** · [Nhật ký thay đổi](CHANGELOG-VI.md)
 
 ## Video kiểu Vox, dựng từ một câu lệnh
 
@@ -66,6 +66,7 @@ Hỏi thầy cô một lượt ngắn (môn, lớp, bộ sách, mục tiêu, đ�
 ### 🖥️ Trình chiếu và ấn phẩm
 
 - **Bài giảng, báo cáo – tổng kết, hoạt động Đoàn, tập huấn** ra PPTX từ PDF, Word, trang web, Markdown hoặc chỉ từ một chủ đề.
+- **Chữ đủ to để chiếu**: không chữ nào dưới 24pt, thân bài từ 28pt, tiêu đề từ 36pt; có công cụ tự kiểm trước khi xuất.
 - **Tám kiểu nhìn có tên**, mỗi kiểu ba bảng màu, cùng 12 hoạ tiết vẽ tay (băng dính, giấy xé, ruy băng, bút dạ, hoa giấy…) vẫn sửa được trong PowerPoint; bài giảng chia trang theo 4 hoạt động của Công văn 5512.
 - **Poster Zalo – Facebook** ở khổ bài đăng 3:4, ảnh vuông, story 9:16; slide 16:9 và 4:3.
 - **Hiệu ứng** theo mức chọn (không, vừa, nhiều): hiện từng ý khi bấm, bấm để hiện đáp án, Morph cho diễn biến thí nghiệm; bài có ảnh thật và sơ đồ thay vì toàn chữ.
